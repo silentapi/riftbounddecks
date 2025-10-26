@@ -201,6 +201,12 @@ Indexes:
 
 ## 🖥️ Frontend (React + Tailwind + Zustand)
 
+### **Current Implementation Snapshot**
+
+* React + Vite scaffold provides a static deck editor layout that mirrors the planned three-column structure (preview + controls, deck zones, advanced search).
+* Presentational components render placeholder card data to visualize grids for the main deck, legend, battlefields, runes, side deck, and search results.
+* Styling uses handcrafted CSS with responsive breakpoints to validate the target proportions before introducing Tailwind tokens.
+
 ### **State Management**
 
 * Zustand store holds:
@@ -226,12 +232,21 @@ Indexes:
 * `SearchPanel.jsx`
 
   * Filter inputs and search results
-* `RuneCounter.jsx`
+* `MainDeckGrid.jsx`
 
-  * +/- buttons with count display
-* `CardGrid.jsx`
+  * Renders the 8×5 main deck layout
+* `LegendSlot.jsx`
 
-  * For main deck and side deck
+  * Highlights the leader card with enlarged presentation
+* `BattlefieldsRow.jsx`
+
+  * Landscape cards for battlefield slots
+* `RuneSection.jsx`
+
+  * Displays rune counts with +/- controls
+* `SideDeckRow.jsx`
+
+  * Eight-slot horizontal reserve area
 
 ---
 
