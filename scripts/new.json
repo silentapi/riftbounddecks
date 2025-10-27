@@ -1,0 +1,4969 @@
+[
+  {
+    "name": "Acceptable Losses",
+    "description": "[ACTION] (Play on your turn or in showdowns.)\nEach player kills one of their gear.",
+    "variantNumber": "OGN-179",
+    "type": "Spell",
+    "super": null,
+    "energy": 1,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Adaptatron",
+    "description": "When I conquer, you may kill a gear. If you do, buff me. (If I don't have a buff, I get a +1 [Might] buff.)",
+    "variantNumber": "OGN-056",
+    "type": "Unit",
+    "super": null,
+    "energy": 4,
+    "power": 0,
+    "might": 3,
+    "colors": [
+      "Calm"
+    ],
+    "tags": [
+      "Piltover",
+      "Mech"
+    ]
+  },
+  {
+    "name": "Ahri, Alluring",
+    "description": "When I hold, you score 1 point.",
+    "variantNumber": "OGN-066",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 5,
+    "power": 1,
+    "might": 4,
+    "colors": [
+      "Calm"
+    ],
+    "tags": [
+      "Ahri",
+      "Ionia"
+    ]
+  },
+  {
+    "name": "Ahri, Inquisitive",
+    "description": "When I attack or defend, give an enemy unit here -2 [Might] this turn, to a minimum of 1 [Might].",
+    "variantNumber": "OGN-119",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 3,
+    "power": 1,
+    "might": 3,
+    "colors": [
+      "Mind"
+    ],
+    "tags": [
+      "Ahri",
+      "Ionia"
+    ]
+  },
+  {
+    "name": "Ahri, Nine-Tailed Fox",
+    "description": "When an enemy unit attacks a battlefield you control, give it -1 [Might] this turn, to a minimum of 1 [Might].",
+    "variantNumber": "OGN-255",
+    "type": "Legend",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Calm",
+      "Mind"
+    ],
+    "tags": [
+      "Ahri"
+    ]
+  },
+  {
+    "name": "Albus Ferros",
+    "description": "When you play me, spend any number of buffs.\nFor each buff spent, channel 1 rune exhausted.",
+    "variantNumber": "OGN-230",
+    "type": "Unit",
+    "super": null,
+    "energy": 4,
+    "power": 0,
+    "might": 3,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Piltover"
+    ]
+  },
+  {
+    "name": "Altar to Unity",
+    "description": "When you hold here, play a 1 [Might] Recruit unit token in your base.",
+    "variantNumber": "OGN-275",
+    "type": "Battlefield",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [],
+    "tags": []
+  },
+  {
+    "name": "Anivia, Primal",
+    "description": "When I attack, deal 3 to all enemy units here.",
+    "variantNumber": "OGN-148",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 7,
+    "power": 2,
+    "might": 8,
+    "colors": [
+      "Body"
+    ],
+    "tags": [
+      "Anivia",
+      "Freljord",
+      "Bird"
+    ]
+  },
+  {
+    "name": "Arena Bar",
+    "description": "[Tap]: Buff an exhausted friendly unit. (if it doesn't have a buff, it gets a +1 [Might] buff.)",
+    "variantNumber": "OGN-124",
+    "type": "Gear",
+    "super": null,
+    "energy": 3,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Body"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Aspirant's Climb",
+    "description": "Increase the points needed to win the game by 1.",
+    "variantNumber": "OGN-276",
+    "type": "Battlefield",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [],
+    "tags": []
+  },
+  {
+    "name": "Ava Achiever",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nWhen I attack, you may pay [Mind] to play a card with [Hidden]\nfrom your hand, ignoring its cost. If it’s a unit, play it here.",
+    "variantNumber": "OGN-107",
+    "type": "Unit",
+    "super": null,
+    "energy": 5,
+    "power": 0,
+    "might": 4,
+    "colors": [
+      "Mind"
+    ],
+    "tags": [
+      "Yordle",
+      "Bandle City"
+    ]
+  },
+  {
+    "name": "Back-Alley Bar",
+    "description": "When a unit moves from here, give it +1 [Might] this turn.",
+    "variantNumber": "OGN-277",
+    "type": "Battlefield",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [],
+    "tags": []
+  },
+  {
+    "name": "Back to Back",
+    "description": "[REACTION] (Play any time, even before spells and abilities resolve.)\nGive two friendly units each +2 [Might] this turn.",
+    "variantNumber": "OGN-206",
+    "type": "Spell",
+    "super": null,
+    "energy": 3,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Order"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Baited Hook",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[1] [order] [tap]: Kill a friendly unit. Look at the top 5 cards of\nyour Main Deck. You may banish a unit from among them\nthat has Might up to 1 more than the killed unit and play it,\nignoring its cost. Then recycle the rest.",
+    "variantNumber": "OGN-242",
+    "type": "Gear",
+    "super": null,
+    "energy": 3,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Order"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Bandle Tree",
+    "description": "You may hide an additional card here.",
+    "variantNumber": "OGN-278",
+    "type": "Battlefield",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [],
+    "tags": []
+  },
+  {
+    "name": "Bilgewater Bully",
+    "description": "While I'm buffed, I have [GANKING]. (I can move from battlefield to battlefield.)",
+    "variantNumber": "OGN-125",
+    "type": "Unit",
+    "super": null,
+    "energy": 6,
+    "power": 0,
+    "might": 6,
+    "colors": [
+      "Body"
+    ],
+    "tags": [
+      "Bilgewater"
+    ]
+  },
+  {
+    "name": "Blastcone Fae",
+    "description": "[HIDDEN] (Hide now for [Rune] to react with later for [0].)\nWhen you play me, give a unit -2 [Might] this turn, to a minimum of 1 [Might].",
+    "variantNumber": "OGN-097",
+    "type": "Unit",
+    "super": null,
+    "energy": 2,
+    "power": 1,
+    "might": 2,
+    "colors": [
+      "Mind"
+    ],
+    "tags": [
+      "Bandle City",
+      "Fae"
+    ]
+  },
+  {
+    "name": "Blazing Scorcher",
+    "description": "[ACCELERATE] (You may pay [1] [Fury] as an additional cost to have me enter ready.)",
+    "variantNumber": "OGN-001",
+    "type": "Unit",
+    "super": null,
+    "energy": 5,
+    "power": 0,
+    "might": 5,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [
+      "Noxus",
+      "Dragon"
+    ]
+  },
+  {
+    "name": "Blind Fury",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[Action] (Play on your turn or in showdowns.)\nEach opponent reveals the top card of their Main Deck.\nChoose one and banish it, then play it, ignoring its cost.\nThen recycle the rest.",
+    "variantNumber": "OGN-025",
+    "type": "Spell",
+    "super": null,
+    "energy": 4,
+    "power": 2,
+    "might": 0,
+    "colors": [
+      "Fury"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Blitzcrank, Impassive",
+    "description": "[Tank] (I must be assigned combat damage first.)\nWhen you play me to a battlefield, you may move an enemy unit to here.\nWhen I hold, return me to my owner's hand.",
+    "variantNumber": "OGN-067",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 5,
+    "power": 1,
+    "might": 5,
+    "colors": [
+      "Calm"
+    ],
+    "tags": [
+      "Blitzcrank",
+      "Zaun",
+      "Mech"
+    ]
+  },
+  {
+    "name": "Block",
+    "description": "[HIDDEN]  (Hide now for [Rune] to react with later for [0].)\n[ACTION] (Play on your turn or in showdowns.)\n\nGive a unit [SHIELD 3] and [TANK] this turn. (+3 [Might] while it's a defender. It must be assigned combat damage first.)",
+    "variantNumber": "OGN-057",
+    "type": "Spell",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Calm"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Body Rune",
+    "description": "",
+    "variantNumber": "OGN-126",
+    "type": "Rune",
+    "super": "Basic",
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Body"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Brazen Buccaneer",
+    "description": "As you play me, you may discard a card as an additional cost. If you do, reduce my cost by [2].",
+    "variantNumber": "OGN-002",
+    "type": "Unit",
+    "super": null,
+    "energy": 6,
+    "power": 0,
+    "might": 5,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [
+      "Bilgewater",
+      "Pirate"
+    ]
+  },
+  {
+    "name": "Brynhir Thundersong",
+    "description": "When you play me, opponents can't play cards this turn.",
+    "variantNumber": "OGN-026",
+    "type": "Unit",
+    "super": null,
+    "energy": 6,
+    "power": 0,
+    "might": 5,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [
+      "Freljord"
+    ]
+  },
+  {
+    "name": "Buff",
+    "description": "A unit may have no more than one buff at a time.",
+    "variantNumber": "OGN-999",
+    "type": "Card",
+    "super": "Token",
+    "energy": 0,
+    "power": 0,
+    "might": 1,
+    "colors": [],
+    "tags": []
+  },
+  {
+    "name": "Bullet Time",
+    "description": "[ACTION] (Play on your turn or in showdowns.)\n\nPay any amount of [Rune] to deal that much damage to all enemy units at a battlefield.",
+    "variantNumber": "OGN-268",
+    "type": "Spell",
+    "super": "Signature",
+    "energy": 1,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Body",
+      "Chaos"
+    ],
+    "tags": [
+      "Miss Fortune"
+    ]
+  },
+  {
+    "name": "Caitlyn, Patrolling",
+    "description": "I must be assigned combat damage last.\n[Tap]: Deal damage equal to my Might to a unit at a battlefield. Use this ability only while I'm at a battlefield.",
+    "variantNumber": "OGN-068",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 3,
+    "power": 1,
+    "might": 3,
+    "colors": [
+      "Calm"
+    ],
+    "tags": [
+      "Piltover",
+      "Caitlyn"
+    ]
+  },
+  {
+    "name": "Call to Glory",
+    "description": "[REACTION] (Play any time, even before spells and abilities resolve.)\nAs you play this, you may spend a buff as an additional cost. If you do, ignore this spell's cost.\nGive a unit +3 [Might] this turn.",
+    "variantNumber": "OGN-207",
+    "type": "Spell",
+    "super": null,
+    "energy": 3,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Order"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Calm Rune",
+    "description": "",
+    "variantNumber": "OGN-042",
+    "type": "Rune",
+    "super": "Basic",
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Calm"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Cannon Barrage",
+    "description": "[Reaction] (Play any time, even before spells and abilities resolve.)\n\nDeal 2 to all enemy units in combat.",
+    "variantNumber": "OGN-127",
+    "type": "Spell",
+    "super": null,
+    "energy": 2,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Body"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Captain Farron",
+    "description": "Other friendly units here have [ASSAULT] (+1 [Might] while they're attackers.)",
+    "variantNumber": "OGN-015",
+    "type": "Unit",
+    "super": null,
+    "energy": 4,
+    "power": 1,
+    "might": 5,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [
+      "Noxus",
+      "Trifarian"
+    ]
+  },
+  {
+    "name": "Carnivorous Snapvine",
+    "description": "When you play me, choose an enemy unit at a battlefield. We deal damage equal to our Mights to each other.",
+    "variantNumber": "OGN-149",
+    "type": "Unit",
+    "super": null,
+    "energy": 5,
+    "power": 2,
+    "might": 6,
+    "colors": [
+      "Body"
+    ],
+    "tags": [
+      "Shadow Isles"
+    ]
+  },
+  {
+    "name": "Catalyst of Aeons",
+    "description": "Channel 2 runes exhausted. If you couldn't channel 2 runes this way, draw 1.",
+    "variantNumber": "OGN-138",
+    "type": "Spell",
+    "super": null,
+    "energy": 4,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Body"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Cemetery Attendant",
+    "description": "When you play me, return a unit from your trash to your hand.",
+    "variantNumber": "OGN-165",
+    "type": "Unit",
+    "super": null,
+    "energy": 3,
+    "power": 1,
+    "might": 3,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": [
+      "Shadow Isles",
+      "Dog"
+    ]
+  },
+  {
+    "name": "Challenge",
+    "description": "[ACTION] (Play on your turn or in showdowns.)\nChoose a friendly unit and an enemy unit. They deal damage equal to their Mights to each other.",
+    "variantNumber": "OGN-128",
+    "type": "Spell",
+    "super": null,
+    "energy": 2,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Body"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Chaos Rune",
+    "description": "",
+    "variantNumber": "OGN-166",
+    "type": "Rune",
+    "super": "Basic",
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Charm",
+    "description": "Move an enemy unit.",
+    "variantNumber": "OGN-043",
+    "type": "Spell",
+    "super": null,
+    "energy": 1,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Calm"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Chemtech Enforcer",
+    "description": "[ASSAULT] (+2 [Might] while I'm an attacker.)\nWhen you play me, discard 1.",
+    "variantNumber": "OGN-003",
+    "type": "Unit",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 2,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [
+      "Zaun"
+    ]
+  },
+  {
+    "name": "Cithria of Cloudfield",
+    "description": "When you play another unit, buff me. (If I don't have a buff, I get a +1 [Might] buff.)",
+    "variantNumber": "OGN-139",
+    "type": "Unit",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 1,
+    "colors": [
+      "Body"
+    ],
+    "tags": [
+      "Demacia",
+      "Elite"
+    ]
+  },
+  {
+    "name": "Cleave",
+    "description": "[ACTION] (Play on your turn or in showdowns.)\n\nGive a unit [ASSAULT 3] this turn. (+3 [Might] while it's an attacker.)",
+    "variantNumber": "OGN-004",
+    "type": "Spell",
+    "super": null,
+    "energy": 1,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Fury"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Clockwork Keeper",
+    "description": "As you play me, you may pay [Calm] as an additional cost. If you do, draw 1.",
+    "variantNumber": "OGN-044",
+    "type": "Unit",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 2,
+    "colors": [
+      "Calm"
+    ],
+    "tags": [
+      "Shurima"
+    ]
+  },
+  {
+    "name": "Commander Ledros",
+    "description": "As you play me, you may kill any number of friendly units as an additional cost. Reduce my cost by [Order] for each killed this way.\n[Deflect] (Opponents must pay [Rune] to choose me with a spell or ability.)\n[Ganking] (I can move from battlefield to battlefield.)",
+    "variantNumber": "OGN-231",
+    "type": "Unit",
+    "super": null,
+    "energy": 6,
+    "power": 4,
+    "might": 8,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Shadow Isles",
+      "Spirit"
+    ]
+  },
+  {
+    "name": "Confront",
+    "description": "[Action] (Play on your turn or in showdowns.)\n\nUnits you play this turn enter ready.\nDraw 1.",
+    "variantNumber": "OGN-129",
+    "type": "Spell",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Body"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Consult the Past",
+    "description": "[Hidden] (Hide now for [power] to react with later for [0].)\n[Reaction] (Play any time, even before spells and abilities resolve.)\nDraw 2.",
+    "variantNumber": "OGN-083",
+    "type": "Spell",
+    "super": null,
+    "energy": 4,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Mind"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Convergent Mutation",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[Reaction] (Play any time, even before spells and abilities\nresolve.)\nChoose a friendly unit. This turn, increase its Might to the\nMight of another friendly unit.",
+    "variantNumber": "OGN-108",
+    "type": "Spell",
+    "super": null,
+    "energy": 2,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Mind"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Crackshot Corsair",
+    "description": "When I attack, deal 1 to an enemy unit here.",
+    "variantNumber": "OGN-130",
+    "type": "Unit",
+    "super": null,
+    "energy": 3,
+    "power": 0,
+    "might": 3,
+    "colors": [
+      "Body"
+    ],
+    "tags": [
+      "Bilgewater",
+      "Pirate"
+    ]
+  },
+  {
+    "name": "Cruel Patron",
+    "description": "As an additional cost to play me, kill a friendly unit.",
+    "variantNumber": "OGN-208",
+    "type": "Unit",
+    "super": null,
+    "energy": 4,
+    "power": 0,
+    "might": 6,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Noxus"
+    ]
+  },
+  {
+    "name": "Cull the Weak",
+    "description": "Each player kills one of their units.",
+    "variantNumber": "OGN-209",
+    "type": "Spell",
+    "super": null,
+    "energy": 2,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Order"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Dangerous Duo",
+    "description": "[LEGION] - When you play me, give a unit +2 [Might] this turn. (Get the effect if you've played another card this turn.)",
+    "variantNumber": "OGN-016",
+    "type": "Unit",
+    "super": null,
+    "energy": 3,
+    "power": 0,
+    "might": 3,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [
+      "Bandle City",
+      "Mech"
+    ]
+  },
+  {
+    "name": "Daring Poro",
+    "description": "[ASSAULT] (+1 [Might] while I'm an attacker.)",
+    "variantNumber": "OGN-210",
+    "type": "Unit",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 2,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Poro"
+    ]
+  },
+  {
+    "name": "Darius, Executioner",
+    "description": "[LEGION] - When you play me, ready me. (Get the effect if you've played another card this turn)\n\nOther friendly units have +1 [Might] here.",
+    "variantNumber": "OGN-243",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 6,
+    "power": 1,
+    "might": 6,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Darius",
+      "Noxus",
+      "Trifarian"
+    ]
+  },
+  {
+    "name": "Darius, Hand of Noxus",
+    "description": "[Tap] [REACTION], [LEGION] - [ADD] [1] (Abilities that add resources can't be reacted to. Get the effect if you've played a card this turn.)",
+    "variantNumber": "OGN-253",
+    "type": "Legend",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Fury",
+      "Order"
+    ],
+    "tags": [
+      "Darius"
+    ]
+  },
+  {
+    "name": "Darius, Trifarian",
+    "description": "When you play your second card in a turn, give me +2 [Might] this turn and ready me.",
+    "variantNumber": "OGN-027",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 5,
+    "power": 1,
+    "might": 5,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [
+      "Darius",
+      "Noxus",
+      "Trifarian"
+    ]
+  },
+  {
+    "name": "Dazzling Aurora",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nAt the end of your turn, reveal cards from the top of your\nMain Deck until you reveal a unit and banish it. Play it,\nignoring its cost, and recycle the rest.",
+    "variantNumber": "OGN-160",
+    "type": "Gear",
+    "super": null,
+    "energy": 9,
+    "power": 2,
+    "might": 0,
+    "colors": [
+      "Body"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Deadbloom Predator",
+    "description": "[DEFLECT] (Opponents must play [Rune] to choose me with a spell or effect.)\n\nYou may play me to an occupied enemy battlefield.",
+    "variantNumber": "OGN-161",
+    "type": "Unit",
+    "super": null,
+    "energy": 8,
+    "power": 2,
+    "might": 8,
+    "colors": [
+      "Body"
+    ],
+    "tags": [
+      "Shadow Isles"
+    ]
+  },
+  {
+    "name": "Defy",
+    "description": "[REACTION] (Play any time, even before spells and abilities resolve.)\n\nCounter a spell that costs no more than [4] and no more than [Rune].",
+    "variantNumber": "OGN-045",
+    "type": "Spell",
+    "super": null,
+    "energy": 1,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Calm"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Discipline",
+    "description": "[REACTION] (Play any time, even before spells and abilities resolve.)\n\nGive a unit +2 [Might] this turn. Draw 1.",
+    "variantNumber": "OGN-058",
+    "type": "Spell",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Calm"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Disintegrate",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[ACTION] (Play on your turn or in showdowns.)\n\nDeal 3 to a unit at a battlefield. If this kills it, do this: draw 1.",
+    "variantNumber": "OGN-005",
+    "type": "Spell",
+    "super": null,
+    "energy": 4,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Fury"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Divine Judgment",
+    "description": "Each player chooses 2 units, 2 gear, 2 runes, and 2 cards in their hands. Recycle the rest.",
+    "variantNumber": "OGN-244",
+    "type": "Spell",
+    "super": null,
+    "energy": 7,
+    "power": 2,
+    "might": 0,
+    "colors": [
+      "Order"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Dragon's Rage",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nMove an enemy unit. Then do this: Choose another enemy\nunit at its destination. They deal damage equal to their\nMights to each other.",
+    "variantNumber": "OGN-258",
+    "type": "Spell",
+    "super": "Signature",
+    "energy": 4,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Body",
+      "Calm"
+    ],
+    "tags": [
+      "Lee Sin"
+    ]
+  },
+  {
+    "name": "Draven, Showboat",
+    "description": "My might is increased by your points.",
+    "variantNumber": "OGN-028",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 5,
+    "power": 1,
+    "might": 3,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [
+      "Draven",
+      "Noxus"
+    ]
+  },
+  {
+    "name": "Dr. Mundo, Expert",
+    "description": "My Might is increased by the number of cards on your trash.\nAt the start of your Beginning Phase, recycle 3 from your trash.",
+    "variantNumber": "OGN-109",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 8,
+    "power": 2,
+    "might": 6,
+    "colors": [
+      "Mind"
+    ],
+    "tags": [
+      "Dr. Mundo",
+      "Zaun"
+    ]
+  },
+  {
+    "name": "Dune Drake",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nWhen I attack, give me +2 [Might] this turn if there is a ready\nenemy unit here.",
+    "variantNumber": "OGN-131",
+    "type": "Unit",
+    "super": null,
+    "energy": 5,
+    "power": 0,
+    "might": 5,
+    "colors": [
+      "Body"
+    ],
+    "tags": [
+      "Shurima",
+      "Dragon"
+    ]
+  },
+  {
+    "name": "Eager Apprentice",
+    "description": "While I'm at a battlefield, the Energy costs for spells you play is reduced by [1], to a minimum of [1].",
+    "variantNumber": "OGN-084",
+    "type": "Unit",
+    "super": null,
+    "energy": 3,
+    "power": 0,
+    "might": 3,
+    "colors": [
+      "Mind"
+    ],
+    "tags": [
+      "Piltover"
+    ]
+  },
+  {
+    "name": "Eclipse Herald",
+    "description": "When you stun an enemy unit, ready me and give me +1 [Might] this turn.",
+    "variantNumber": "OGN-059",
+    "type": "Unit",
+    "super": null,
+    "energy": 7,
+    "power": 1,
+    "might": 7,
+    "colors": [
+      "Calm"
+    ],
+    "tags": [
+      "Mount Targon",
+      "Bird"
+    ]
+  },
+  {
+    "name": "Ekko, Recurrent",
+    "description": "[ACCELERATE] (You may pay [1] [Mind] as an additional cost to have me enter ready.)\n[DEATHKNELL] - Recycle me to ready your runes. (When I die, get the effect.)",
+    "variantNumber": "OGN-110",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 5,
+    "power": 1,
+    "might": 5,
+    "colors": [
+      "Mind"
+    ],
+    "tags": [
+      "Ekko",
+      "Zaun"
+    ]
+  },
+  {
+    "name": "Ember Monk",
+    "description": "When you play a card from [hidden], give me +2 [might] this turn.",
+    "variantNumber": "OGN-167",
+    "type": "Unit",
+    "super": null,
+    "energy": 4,
+    "power": 0,
+    "might": 4,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": [
+      "Bandle City"
+    ]
+  },
+  {
+    "name": "Energy Conduit",
+    "description": "[Tap]: [Reaction] - [Add] [1]. (Abilities that add resources can't be reacted to.)",
+    "variantNumber": "OGN-098",
+    "type": "Gear",
+    "super": null,
+    "energy": 3,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Mind"
+    ],
+    "tags": []
+  },
+  {
+    "name": "En Garde",
+    "description": "[REACTION] (Play any time, even before spells and abilities resolve.)\nGive a friendly unit +1 [Might] this turn, then an additional +1 [Might] this turn if it is the only unit you control there.",
+    "variantNumber": "OGN-046",
+    "type": "Spell",
+    "super": null,
+    "energy": 1,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Calm"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Facebreaker",
+    "description": "[hidden] (Hide now for [power] to react with later for [0].)\n\n[action] (play on your turn or in showdowns.)\n\nStun a friendly unit and an enemy unit at the same battlefield. (They don't deal combat damage this turn.)",
+    "variantNumber": "OGN-220",
+    "type": "Spell",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Order"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Fading Memories",
+    "description": "Give a unit at a battlefield or a gear [temporary]. (Kill it at the start of its controller's Beginning Phase, before.)",
+    "variantNumber": "OGN-180",
+    "type": "Spell",
+    "super": null,
+    "energy": 4,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Faithful Manufactor",
+    "description": "When you play me, play a 1 [Might] Recruit unit token here.",
+    "variantNumber": "OGN-211",
+    "type": "Unit",
+    "super": null,
+    "energy": 3,
+    "power": 0,
+    "might": 2,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Piltover"
+    ]
+  },
+  {
+    "name": "Falling Comet",
+    "description": "[Action] (play on your turn or in showdowns.)\n\nDeal 6 to a unit at a battlefield.",
+    "variantNumber": "OGN-085",
+    "type": "Spell",
+    "super": null,
+    "energy": 5,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Mind"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Falling Star",
+    "description": "Do this twice:\nDeal 3 to a unit. (You can choose different units.)",
+    "variantNumber": "OGN-029",
+    "type": "Spell",
+    "super": null,
+    "energy": 2,
+    "power": 2,
+    "might": 0,
+    "colors": [
+      "Fury"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Fight or Flight",
+    "description": "[Hidden] (Hide now for [Rune] to react with later for [0].)\n[Action] (Play on your turn or in showdowns.)\nMove a unit from a battlefield to its base.",
+    "variantNumber": "OGN-168",
+    "type": "Spell",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Find Your Center",
+    "description": "[ACTION] (Play on your turn or in showdowns.)\nIf an opponent's score is within 3 points of the Victory Score, this costs [2] less.\nDraw 1 and channel 1 rune exhausted.",
+    "variantNumber": "OGN-047",
+    "type": "Spell",
+    "super": null,
+    "energy": 3,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Calm"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Fiora, Victorious",
+    "description": "While I'm [Mighty], I have [Deflect], [Ganking] and [Shield]. (I'm Mighty while I have 5+ [Might].)",
+    "variantNumber": "OGN-232",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 4,
+    "power": 0,
+    "might": 4,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Fiora",
+      "Demacia"
+    ]
+  },
+  {
+    "name": "First Mate",
+    "description": "When you play me, ready another unit.",
+    "variantNumber": "OGN-132",
+    "type": "Unit",
+    "super": null,
+    "energy": 3,
+    "power": 0,
+    "might": 3,
+    "colors": [
+      "Body"
+    ],
+    "tags": [
+      "Bilgewater",
+      "Pirate"
+    ]
+  },
+  {
+    "name": "Flame Chompers",
+    "description": "When you discard me, you may pay [Fury] to play me.",
+    "variantNumber": "OGN-006",
+    "type": "Unit",
+    "super": null,
+    "energy": 3,
+    "power": 0,
+    "might": 3,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [
+      "Zaun"
+    ]
+  },
+  {
+    "name": "Flurry of Blades",
+    "description": "[Reaction] (Play any time, even before spells and abilities resolve.)\n\nDeal 1 to all units at battlefields.",
+    "variantNumber": "OGN-133",
+    "type": "Spell",
+    "super": null,
+    "energy": 1,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Body"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Forge of the Future",
+    "description": "When you play this, play a 1 [might] Recruit unit token at your base.\n\nKill this: Recycle up to 4 cards from trashes.",
+    "variantNumber": "OGN-212",
+    "type": "Gear",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Order"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Fortified Position",
+    "description": "When you defend here, choose a unit. It gains [SHIELD 2] this combat. (+2 [Might] while It's a defender.)",
+    "variantNumber": "OGN-279",
+    "type": "Battlefield",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [],
+    "tags": []
+  },
+  {
+    "name": "Fox-Fire",
+    "description": "[HIDDEN] (Hide now for [Rune] to react with later for [0].)\n[ACTION] (Play on your turn or in showdowns.)\nKill any number of units at a battlefield with total Might 4 or less.",
+    "variantNumber": "OGN-256",
+    "type": "Spell",
+    "super": "Signature",
+    "energy": 3,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Calm",
+      "Mind"
+    ],
+    "tags": [
+      "Ahri"
+    ]
+  },
+  {
+    "name": "Fury Rune",
+    "description": "",
+    "variantNumber": "OGN-007",
+    "type": "Rune",
+    "super": "Basic",
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Fury"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Garbage Grabber",
+    "description": "Recycle 3 from your trash, [1], [Tap]: Draw 1.",
+    "variantNumber": "OGN-099",
+    "type": "Gear",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Mind"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Gemcraft Seer",
+    "description": "[VISION] (When you play me, look at the top card of your Main Deck. You may recycle it.) \nOther friendly units have [VISION].",
+    "variantNumber": "OGN-100",
+    "type": "Unit",
+    "super": null,
+    "energy": 3,
+    "power": 1,
+    "might": 3,
+    "colors": [
+      "Mind"
+    ],
+    "tags": [
+      "Mount Targon"
+    ]
+  },
+  {
+    "name": "Get Excited!",
+    "description": "[ACTION] (Play on your turn or in showdowns.)\nDiscard 1. Deal its Energy cost as damage to a unit at a battlefield. (Ignore its Power cost.)",
+    "variantNumber": "OGN-008",
+    "type": "Spell",
+    "super": null,
+    "energy": 2,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Fury"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Grand Strategem",
+    "description": "[ACTION] (Play on your turn or in showdowns.)\nGive friendly units +5 [Might] this turn.",
+    "variantNumber": "OGN-233",
+    "type": "Spell",
+    "super": null,
+    "energy": 6,
+    "power": 3,
+    "might": 0,
+    "colors": [
+      "Order"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Grove of the God-Willow",
+    "description": "When you hold here, draw 1.",
+    "variantNumber": "OGN-280",
+    "type": "Battlefield",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [],
+    "tags": []
+  },
+  {
+    "name": "Guerilla Warfare",
+    "description": "Return up to two cards with [HIDDEN]  from your trash to your hand. You can hide ignoring costs this turn.",
+    "variantNumber": "OGN-264",
+    "type": "Spell",
+    "super": "Signature",
+    "energy": 2,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Mind",
+      "Chaos"
+    ],
+    "tags": [
+      "Teemo"
+    ]
+  },
+  {
+    "name": "Gust",
+    "description": "[REACTION] (Play any time, even before spells and abilities resolve.)\nReturn a unit at a battlefield with 3 [Might] or less to its owner's hand.",
+    "variantNumber": "OGN-169",
+    "type": "Spell",
+    "super": null,
+    "energy": 1,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Hallowed Tomb",
+    "description": "When you hold here, you may return your Chosen Champion from your trash to your Champion Zone if it is empty.",
+    "variantNumber": "OGN-281",
+    "type": "Battlefield",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [],
+    "tags": []
+  },
+  {
+    "name": "Harnessed Dragon",
+    "description": "When you play me, kill an enemy unit.",
+    "variantNumber": "OGN-234",
+    "type": "Unit",
+    "super": null,
+    "energy": 8,
+    "power": 2,
+    "might": 6,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Demacia",
+      "Dragon"
+    ]
+  },
+  {
+    "name": "Heimerdinger, Inventor",
+    "description": "I have all [Tap] abilities of all friendly legends, units and gear.",
+    "variantNumber": "OGN-111",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 3,
+    "power": 1,
+    "might": 3,
+    "colors": [
+      "Mind"
+    ],
+    "tags": [
+      "Heimerdinger",
+      "Piltover",
+      "Yordle"
+    ]
+  },
+  {
+    "name": "Herald of Scales",
+    "description": "Your Dragons' Energy costs are reduced by [2], to a minimum of [1].",
+    "variantNumber": "OGN-140",
+    "type": "Unit",
+    "super": null,
+    "energy": 4,
+    "power": 0,
+    "might": 3,
+    "colors": [
+      "Body"
+    ],
+    "tags": [
+      "Mount Targon"
+    ]
+  },
+  {
+    "name": "Hextech Ray",
+    "description": "[ACTION] (Play on your turn or in showdowns.)\nDeal 3 damage to a unit at a battlefield.",
+    "variantNumber": "OGN-009",
+    "type": "Spell",
+    "super": null,
+    "energy": 1,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Fury"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Hidden Blade",
+    "description": "[HIDDEN] (Hide now for [Rune] to react with later for [0].)\n[ACTION] (Play on your turn or in showdowns.)\nKill a unit at a battlefield. Its controller draws 2.",
+    "variantNumber": "OGN-213",
+    "type": "Spell",
+    "super": null,
+    "energy": 2,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Order"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Icathian Rain",
+    "description": "Do this 6 times: \nDeal 2 to a unit. (You can choose different units.)",
+    "variantNumber": "OGN-248",
+    "type": "Spell",
+    "super": "Signature",
+    "energy": 7,
+    "power": 3,
+    "might": 0,
+    "colors": [
+      "Fury",
+      "Mind"
+    ],
+    "tags": [
+      "Kai'Sa"
+    ]
+  },
+  {
+    "name": "Immortal Phoenix",
+    "description": "[ASSAULT 2] (+2 [Might] while I'm an attacker.)\n\nWhen you kill a unit with a spell, you may pay [1] [Fury] to play me from your trash.",
+    "variantNumber": "OGN-037",
+    "type": "Unit",
+    "super": null,
+    "energy": 3,
+    "power": 1,
+    "might": 3,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [
+      "Spirit"
+    ]
+  },
+  {
+    "name": "Imperial Decree",
+    "description": "[action] (Play on your turn or in showdowns.) When any unit takes damage this turn, kill it.",
+    "variantNumber": "OGN-221",
+    "type": "Spell",
+    "super": null,
+    "energy": 5,
+    "power": 2,
+    "might": 0,
+    "colors": [
+      "Order"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Invert Timelines",
+    "description": "Each player discards their hand, then draws 4.",
+    "variantNumber": "OGN-201",
+    "type": "Spell",
+    "super": null,
+    "energy": 3,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Iron Ballista",
+    "description": "This enters exhausted.\n[TAP]: Deal 2 to a unit at a battlefield.",
+    "variantNumber": "OGN-017",
+    "type": "Gear",
+    "super": null,
+    "energy": 3,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Fury"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Jeweled Colossus",
+    "description": "[Vision] (When you play me, look at the top card of your Main Deck. You may recycle it.)\n[Shield] (+1 [Might] while I'm a defender.)",
+    "variantNumber": "OGN-086",
+    "type": "Unit",
+    "super": null,
+    "energy": 5,
+    "power": 0,
+    "might": 5,
+    "colors": [
+      "Mind"
+    ],
+    "tags": [
+      "Mount Targon"
+    ]
+  },
+  {
+    "name": "Jinx, Demolitionist",
+    "description": "[ACCELERATE] (You may pay [1] [Fury] as an additional cost to have me enter ready.)\n[ASSAULT 2] (+2 [Might] while I'm an attacker.)\nWhen you play me, discard 2.",
+    "variantNumber": "OGN-030",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 3,
+    "power": 1,
+    "might": 4,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [
+      "Jinx",
+      "Zaun"
+    ]
+  },
+  {
+    "name": "Jinx, Loose Cannon",
+    "description": "At start of your Beginning Phase, draw 1 if you have 1 or fewer cards in your hand.",
+    "variantNumber": "OGN-251",
+    "type": "Legend",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Fury",
+      "Chaos"
+    ],
+    "tags": [
+      "Jinx"
+    ]
+  },
+  {
+    "name": "Jinx, Rebel",
+    "description": "When you discard one or more cards, ready me and give me +1 [Might] this turn.",
+    "variantNumber": "OGN-202",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 5,
+    "power": 1,
+    "might": 5,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": [
+      "Jinx",
+      "Zaun"
+    ]
+  },
+  {
+    "name": "Kadregrin the Infernal",
+    "description": "When you play me, draw 1 for each of your [MIGHTY] units. (A unit is Mighty while it has 5+ [Might].)",
+    "variantNumber": "OGN-038",
+    "type": "Unit",
+    "super": null,
+    "energy": 9,
+    "power": 2,
+    "might": 9,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [
+      "Demacia",
+      "Dragon"
+    ]
+  },
+  {
+    "name": "Kai'Sa, Daughter of the Void",
+    "description": "[Tap]: [REACTION] - [ADD] [Rune]. Use only to play spells. (Abilities that add resources can't be reacted to.)",
+    "variantNumber": "OGN-247",
+    "type": "Legend",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Fury",
+      "Mind"
+    ],
+    "tags": [
+      "Kai'Sa"
+    ]
+  },
+  {
+    "name": "Kai'Sa, Evolutionary",
+    "description": "[GANKING] (I can move from battlefield to battlefield.)\n\nWhen I conquer, you may play a spell from your trash with Energy cost less than your points without paying its Energy cost. Then recycle it. (You must still pay its Power cost.)",
+    "variantNumber": "OGN-112",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 6,
+    "power": 1,
+    "might": 6,
+    "colors": [
+      "Mind"
+    ],
+    "tags": [
+      "Kai'Sa",
+      "The Void"
+    ]
+  },
+  {
+    "name": "Kai'Sa, Survivor",
+    "description": "[ACCELERATE] (You may pay [1] [FURY] as an additional cost to have me enter ready.)\nWhen I conquer, draw 1.",
+    "variantNumber": "OGN-039",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 4,
+    "power": 0,
+    "might": 4,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [
+      "Kai'Sa",
+      "The Void"
+    ]
+  },
+  {
+    "name": "Karma, Channeler",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[Vision] (When you play me, look at the top card of your\nMain Deck. You may recycle it.)\nWhen you recycle one or more cards to your Main Deck,\nbuff a friendly unit. (If it doesn't have a buff, it gets a +1 [M]\nbuff.)",
+    "variantNumber": "OGN-235",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 6,
+    "power": 1,
+    "might": 6,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Karma",
+      "Ionia"
+    ]
+  },
+  {
+    "name": "Karthus, Eternal",
+    "description": "Your [deathknell] trigger an additional time",
+    "variantNumber": "OGN-236",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 3,
+    "power": 1,
+    "might": 3,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Shadow Isles",
+      "Spirit",
+      "Karthus"
+    ]
+  },
+  {
+    "name": "Kayn, Unleashed",
+    "description": "[GANKING] (I can move from battlefield to battlefield.)\nIf I have moved twice this turn, I don't take damage.",
+    "variantNumber": "OGN-189",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 6,
+    "power": 1,
+    "might": 6,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": [
+      "Kayn",
+      "Ionia"
+    ]
+  },
+  {
+    "name": "King's Edict",
+    "description": "Starting with the next player, each other player chooses a unit you don't control that hasn't been chosen for this spell. Kill those units.",
+    "variantNumber": "OGN-237",
+    "type": "Spell",
+    "super": null,
+    "energy": 6,
+    "power": 2,
+    "might": 0,
+    "colors": [
+      "Order"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Kinkou Monk",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nWhen you play me, buff up to two other friendly units.\n(Each one that doesn't have a buff gets a +1 [Might] buff.)",
+    "variantNumber": "OGN-141",
+    "type": "Unit",
+    "super": null,
+    "energy": 4,
+    "power": 1,
+    "might": 4,
+    "colors": [
+      "Body"
+    ],
+    "tags": [
+      "Ionia"
+    ]
+  },
+  {
+    "name": "Kog'Maw, Caustic",
+    "description": "[Deathknell] - Deal 4 to all units at my battlefield. (When I die, get the effect)",
+    "variantNumber": "OGN-190",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 3,
+    "power": 1,
+    "might": 1,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": [
+      "Kog'Maw",
+      "The Void"
+    ]
+  },
+  {
+    "name": "Kraken Hunter",
+    "description": "[Accelerate] (You may pay [1] [body] as an additional cost to have me enter ready.)\n[Assault] (+1 [might] while i'm an attacker.)\n\nAs you play me, you may spend any number of buffs as an additional cost. Reduce my cost by [body] for each buff you spend.",
+    "variantNumber": "OGN-150",
+    "type": "Unit",
+    "super": null,
+    "energy": 3,
+    "power": 2,
+    "might": 5,
+    "colors": [
+      "Body"
+    ],
+    "tags": [
+      "Bilgewater",
+      "Pirate"
+    ]
+  },
+  {
+    "name": "Last Breath",
+    "description": "[ACTION] (Play on your turn or in showdowns.)\nReady a friendly unit. It deals damage equal to its Might to an enemy at a battlefield.",
+    "variantNumber": "OGN-260",
+    "type": "Spell",
+    "super": "Signature",
+    "energy": 3,
+    "power": 2,
+    "might": 0,
+    "colors": [
+      "Calm",
+      "Chaos"
+    ],
+    "tags": [
+      "Yasuo"
+    ]
+  },
+  {
+    "name": "Last Stand",
+    "description": "[Action] (Play on your turn or in showdowns.)\nDouble a friendly unit's Might this turn. Give it [Temporary]. Kill it at the start of its controller's Beginning Phase, before scoring.)",
+    "variantNumber": "OGN-069",
+    "type": "Spell",
+    "super": null,
+    "energy": 3,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Calm"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Lecturing Yordle",
+    "description": "[Tank] (I must be assigned combat damage first.)\n\nWhen you play me, draw 1.",
+    "variantNumber": "OGN-087",
+    "type": "Unit",
+    "super": null,
+    "energy": 3,
+    "power": 0,
+    "might": 2,
+    "colors": [
+      "Mind"
+    ],
+    "tags": [
+      "Bandle City",
+      "Yordle"
+    ]
+  },
+  {
+    "name": "Lee Sin, Ascetic",
+    "description": "[SHIELD] (+1 [Might] while I'm a defender.)\n[Tap]: Buff me. (I get a +1 [Might] buff.) \nI can have any number of buffs.",
+    "variantNumber": "OGN-078",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 5,
+    "power": 1,
+    "might": 5,
+    "colors": [
+      "Calm"
+    ],
+    "tags": [
+      "Lee Sin",
+      "Ionia"
+    ]
+  },
+  {
+    "name": "Lee Sin, Blind Monk",
+    "description": "[1], [Tap]: Buff a friendly unit. (If it doesn't have a buff, it gets a +1 [Might] buff.)",
+    "variantNumber": "OGN-257",
+    "type": "Legend",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Body",
+      "Calm"
+    ],
+    "tags": [
+      "Lee Sin"
+    ]
+  },
+  {
+    "name": "Lee Sin, Centered",
+    "description": "[Accelerate] (You may pay [1][Body] as an additional cost to have me enter ready.)\nOther buffed friendly units at my battlefield have +2 [Might].",
+    "variantNumber": "OGN-151",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 6,
+    "power": 0,
+    "might": 6,
+    "colors": [
+      "Body"
+    ],
+    "tags": [
+      "Lee Sin",
+      "Ionia"
+    ]
+  },
+  {
+    "name": "Legion Rearguard",
+    "description": "[ACCELERATE] (You may pay [1] [Fury] as an additional cost to have me enter ready.)",
+    "variantNumber": "OGN-010",
+    "type": "Unit",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 2,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [
+      "Noxus",
+      "Trifarian"
+    ]
+  },
+  {
+    "name": "Leona, Determined",
+    "description": "[SHIELD] (+1 [Might] while I'm a defender.)\nWhen I attack, stun an enemy unit here. \n(It doesn't deal combat damage this turn.)",
+    "variantNumber": "OGN-238",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 4,
+    "power": 1,
+    "might": 4,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Leona",
+      "Mount Targon"
+    ]
+  },
+  {
+    "name": "Leona, Radiant Dawn",
+    "description": "When you stun one or more enemy units, buff a friendly unit. (If it doesn't have a buff, it gets a +1 [Might] buff.)",
+    "variantNumber": "OGN-261",
+    "type": "Legend",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Calm",
+      "Order"
+    ],
+    "tags": [
+      "Leona"
+    ]
+  },
+  {
+    "name": "Leona, Zealot",
+    "description": "If an opponent's score is within 3 points of the Victory Score, I enter ready.\nStunned enemy units here have -8 [Might], to a minimum of 1 [Might].",
+    "variantNumber": "OGN-079",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 6,
+    "power": 1,
+    "might": 6,
+    "colors": [
+      "Calm"
+    ],
+    "tags": [
+      "Leona",
+      "Mount Targon"
+    ]
+  },
+  {
+    "name": "Machine Evangel",
+    "description": "[DEATHKNELL] - Play three 1 [Might] Recruit unit tokens into your base. (When I die, get the effect.)",
+    "variantNumber": "OGN-239",
+    "type": "Unit",
+    "super": null,
+    "energy": 5,
+    "power": 1,
+    "might": 4,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Piltover"
+    ]
+  },
+  {
+    "name": "Maddened Marauder",
+    "description": "[TANK] (I must be assigned combat damage first.)\nWhen you play me, move a unit from a battlefield to its base.",
+    "variantNumber": "OGN-191",
+    "type": "Unit",
+    "super": null,
+    "energy": 5,
+    "power": 0,
+    "might": 4,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": [
+      "Bilgewater",
+      "Pirate"
+    ]
+  },
+  {
+    "name": "Mageseeker Warden",
+    "description": "While I'm at a battlefield, opponents can only play units to their base.\nWhile I'm at a battlefield, spells and abilities can't ready enemy units and gears.",
+    "variantNumber": "OGN-070",
+    "type": "Unit",
+    "super": null,
+    "energy": 6,
+    "power": 1,
+    "might": 5,
+    "colors": [
+      "Calm"
+    ],
+    "tags": [
+      "Demacia"
+    ]
+  },
+  {
+    "name": "Magma Wurm",
+    "description": "Other friendly units enter ready.",
+    "variantNumber": "OGN-011",
+    "type": "Unit",
+    "super": null,
+    "energy": 8,
+    "power": 1,
+    "might": 8,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [
+      "Freljord"
+    ]
+  },
+  {
+    "name": "Malzahar, Fanatic",
+    "description": "Kill a friend unit or gear, [tap] : [action] - [add] [rune] [rune]. (Use on your turn or in showdowns. Abilities that add resources can't be reacted to.)",
+    "variantNumber": "OGN-113",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 4,
+    "power": 0,
+    "might": 3,
+    "colors": [
+      "Mind"
+    ],
+    "tags": [
+      "Malzahar",
+      "The Void"
+    ]
+  },
+  {
+    "name": "Mask of Foresight",
+    "description": "When a friendly unit attacks or defends alone, give it +1 [Might] this turn.",
+    "variantNumber": "OGN-060",
+    "type": "Gear",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Calm"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Meditation",
+    "description": "[REACTION] (Play any time, even before spells and abilities resolve.)\nAs an additional cost to play this, you may exhaust a friendly unit. If you do, draw 2. Otherwise, draw 1.",
+    "variantNumber": "OGN-048",
+    "type": "Spell",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Calm"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Mega-Mech",
+    "description": ".",
+    "variantNumber": "OGN-088",
+    "type": "Unit",
+    "super": null,
+    "energy": 7,
+    "power": 0,
+    "might": 8,
+    "colors": [
+      "Mind"
+    ],
+    "tags": [
+      "Bandle City",
+      "Mech"
+    ]
+  },
+  {
+    "name": "Mind Rune",
+    "description": "",
+    "variantNumber": "OGN-089",
+    "type": "Rune",
+    "super": "Basic",
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Mind"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Mindsplitter",
+    "description": "When you play me, choose an opponent. They reveal their hand. Choose a card from it, and they discard that card.",
+    "variantNumber": "OGN-192",
+    "type": "Unit",
+    "super": null,
+    "energy": 7,
+    "power": 2,
+    "might": 7,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": [
+      "Mount Targon",
+      "Dragon"
+    ]
+  },
+  {
+    "name": "Miss Fortune, Bounty Hunter",
+    "description": "[Tap]: Give a unit [GANKING] this turn. (It can move from battlefield to battlefield.)",
+    "variantNumber": "OGN-267",
+    "type": "Legend",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Body",
+      "Chaos"
+    ],
+    "tags": [
+      "Miss Fortune"
+    ]
+  },
+  {
+    "name": "Miss Fortune, Buccaneer",
+    "description": "You may play me to an open battlefield.\nFriendly units may be played to open battlefields.",
+    "variantNumber": "OGN-193",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 4,
+    "power": 1,
+    "might": 4,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": [
+      "Miss Fortune",
+      "Bilgewater",
+      "Pirate"
+    ]
+  },
+  {
+    "name": "Miss Fortune, Captain",
+    "description": "[ACCELERATE] (You may pay [1] [Body] as an additional cost to have me enter ready.)\n[GANKING] (I can move from battlefield to battlefield.)\nThe first time I move each turn, you may ready something else that's exhausted.",
+    "variantNumber": "OGN-162",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 5,
+    "power": 1,
+    "might": 5,
+    "colors": [
+      "Body"
+    ],
+    "tags": [
+      "Miss Fortune",
+      "Bilgewater",
+      "Pirate"
+    ]
+  },
+  {
+    "name": "Mistfall",
+    "description": "When you buff a friendly unit, you may pay [Body] and exhaust this to ready it.",
+    "variantNumber": "OGN-152",
+    "type": "Gear",
+    "super": null,
+    "energy": 3,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Body"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Mobilize",
+    "description": "Channel 1 rune exhausted. If you can't, draw 1.",
+    "variantNumber": "OGN-134",
+    "type": "Spell",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Body"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Monastery of Hirana",
+    "description": "When you conquer here, you may spend a buff to draw 1.",
+    "variantNumber": "OGN-282",
+    "type": "Battlefield",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [],
+    "tags": []
+  },
+  {
+    "name": "Morbid Return",
+    "description": "[ACTION] (Play on your turn or in showdowns.)\nReturn a unit from your trash to your hand.",
+    "variantNumber": "OGN-170",
+    "type": "Spell",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Mountain Drake",
+    "description": ".",
+    "variantNumber": "OGN-142",
+    "type": "Unit",
+    "super": null,
+    "energy": 9,
+    "power": 0,
+    "might": 10,
+    "colors": [
+      "Body"
+    ],
+    "tags": [
+      "Dragon"
+    ]
+  },
+  {
+    "name": "Mushroom Pouch",
+    "description": "At the start of your Beginning Phase, if you control a facedown card at a battlefield, draw 1.",
+    "variantNumber": "OGN-101",
+    "type": "Gear",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Mind"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Mystic Poro",
+    "description": "[Vision] (When you play me, look at the top card of your Main Deck. You may recycle it.)",
+    "variantNumber": "OGN-171",
+    "type": "Unit",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 2,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": [
+      "Poro"
+    ]
+  },
+  {
+    "name": "Mystic Reversal",
+    "description": "[Reaction] (Play any time, even before spells and abilities resolve.)\nGain control of a spell. You may make new choices for it.",
+    "variantNumber": "OGN-080",
+    "type": "Spell",
+    "super": null,
+    "energy": 4,
+    "power": 3,
+    "might": 0,
+    "colors": [
+      "Calm"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Navori Fighting Pit",
+    "description": "When you hold here, buff a unit here. (If it doesn't have a buff, it gets a +1 [Might] buff.)",
+    "variantNumber": "OGN-283",
+    "type": "Battlefield",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [],
+    "tags": []
+  },
+  {
+    "name": "Nocturne, Horrifying",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[Ganking] (I can move from battlefield to battlefield.)\nAs you look at or reveal me from the top of your deck, you\nmay banish me. If you do, you may play me for [A].",
+    "variantNumber": "OGN-194",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 4,
+    "power": 1,
+    "might": 4,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": [
+      "Nocturne"
+    ]
+  },
+  {
+    "name": "Noxian Drummer",
+    "description": "When I move to a battlefield, play a 1 [Might] Recruit unit token here. (It is also at the battlefield.)",
+    "variantNumber": "OGN-222",
+    "type": "Unit",
+    "super": null,
+    "energy": 3,
+    "power": 0,
+    "might": 3,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Noxus",
+      "Trifarian"
+    ]
+  },
+  {
+    "name": "Noxian Guillotine",
+    "description": "[ACTION] (Play on your turn or in showdowns.)\nChoose a unit. Kill it the next time it takes damage this turn.\n[LEGION] - Kill it now instead. (Get the effect if you've played another card this turn.)",
+    "variantNumber": "OGN-254",
+    "type": "Spell",
+    "super": "Signature",
+    "energy": 4,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Fury",
+      "Order"
+    ],
+    "tags": [
+      "Darius"
+    ]
+  },
+  {
+    "name": "Noxus Hopeful",
+    "description": "[LEGION] I cost [2] less. (Get the effect if you've played another card this turn.)",
+    "variantNumber": "OGN-012",
+    "type": "Unit",
+    "super": null,
+    "energy": 4,
+    "power": 0,
+    "might": 4,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [
+      "Noxus",
+      "Trifarian"
+    ]
+  },
+  {
+    "name": "Noxus Saboteur",
+    "description": "Your opponents' [HIDDEN] cards can't be revealed here.",
+    "variantNumber": "OGN-018",
+    "type": "Unit",
+    "super": null,
+    "energy": 3,
+    "power": 0,
+    "might": 3,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [
+      "Noxus",
+      "Trifarian"
+    ]
+  },
+  {
+    "name": "Obelisk of Power",
+    "description": "At the start of each Player's first Beginning Phase, that player channels 1 rune.",
+    "variantNumber": "OGN-284",
+    "type": "Battlefield",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [],
+    "tags": []
+  },
+  {
+    "name": "Orb of Regret",
+    "description": "[Tap]: Give a unit -1 [Might] this turn, to a minimum of 1 [Might].",
+    "variantNumber": "OGN-090",
+    "type": "Gear",
+    "super": null,
+    "energy": 1,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Mind"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Order Rune",
+    "description": "",
+    "variantNumber": "OGN-214",
+    "type": "Rune",
+    "super": "Basic",
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Order"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Overt Operation",
+    "description": "[Action] (play on your turn or in showdowns.)\n\nFor each friendly unit, you may spend its buff to ready it. Then buff all friendly units. (Each one that doesn't have a buff gets a +1 [might] buff.)",
+    "variantNumber": "OGN-153",
+    "type": "Spell",
+    "super": null,
+    "energy": 5,
+    "power": 2,
+    "might": 0,
+    "colors": [
+      "Body"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Pack of Wonders",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[Tap]: Return another friendly gear, unit, or facedown card to\nits owner's hand.",
+    "variantNumber": "OGN-181",
+    "type": "Gear",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Pakaa Cub",
+    "description": "[Hidden] (Hide now for [Rune] to react with later for [0].)",
+    "variantNumber": "OGN-135",
+    "type": "Unit",
+    "super": null,
+    "energy": 3,
+    "power": 0,
+    "might": 3,
+    "colors": [
+      "Body"
+    ],
+    "tags": [
+      "Ixtal",
+      "Cat"
+    ]
+  },
+  {
+    "name": "Party Favors",
+    "description": "Each other player chooses Cards or Runes.\nFor each player that chooses Cards, you and that player each draw 1.\nFor each player that chooses Runes, you and that player each channel 1 rune exhausted.",
+    "variantNumber": "OGN-071",
+    "type": "Spell",
+    "super": null,
+    "energy": 3,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Calm"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Peak Guardian",
+    "description": "When you play me, buff me. Then, if I am at a battlefield, buff all other friendly units there. (To buff a unit give it a +1 [might] if it doesn't already have one.)",
+    "variantNumber": "OGN-223",
+    "type": "Unit",
+    "super": null,
+    "energy": 6,
+    "power": 1,
+    "might": 5,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Mount Targon"
+    ]
+  },
+  {
+    "name": "Petty Officer",
+    "description": "[ASSAULT] (+1 [Might] while I'm an attacker.)",
+    "variantNumber": "OGN-215",
+    "type": "Unit",
+    "super": null,
+    "energy": 5,
+    "power": 0,
+    "might": 5,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Bilgewater",
+      "Pirate"
+    ]
+  },
+  {
+    "name": "Pirate's Haven",
+    "description": "When you ready a friendly unit, give it +1 [Might] this turn.",
+    "variantNumber": "OGN-143",
+    "type": "Gear",
+    "super": null,
+    "energy": 3,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Body"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Pit Crew",
+    "description": "When you play a gear, ready me.",
+    "variantNumber": "OGN-091",
+    "type": "Unit",
+    "super": null,
+    "energy": 3,
+    "power": 0,
+    "might": 3,
+    "colors": [
+      "Mind"
+    ],
+    "tags": [
+      "Bandle City"
+    ]
+  },
+  {
+    "name": "Pit Rookie",
+    "description": "When you play me, buff another friendly unit. (If it doesn't have a buff, it gets +1 [might] buff.)",
+    "variantNumber": "OGN-136",
+    "type": "Unit",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 2,
+    "colors": [
+      "Body"
+    ],
+    "tags": [
+      "Bilgewater"
+    ]
+  },
+  {
+    "name": "Playful Phantom",
+    "description": ".",
+    "variantNumber": "OGN-049",
+    "type": "Unit",
+    "super": null,
+    "energy": 5,
+    "power": 0,
+    "might": 5,
+    "colors": [
+      "Calm"
+    ],
+    "tags": [
+      "Shadow Isles",
+      "Spirit"
+    ]
+  },
+  {
+    "name": "Poro Herder",
+    "description": "When you play me, if you control a Poro, buff me and draw 1. (if I don't have a buff, I get a +1 [Might] buff.)",
+    "variantNumber": "OGN-061",
+    "type": "Unit",
+    "super": null,
+    "energy": 3,
+    "power": 1,
+    "might": 3,
+    "colors": [
+      "Calm"
+    ],
+    "tags": [
+      "Freljord"
+    ]
+  },
+  {
+    "name": "Portal Rescue",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[ACTION] (Play on your turn or in showdowns.) \n\nBanish a friendly unit, then its owner plays it to their base,\nignoring its cost.",
+    "variantNumber": "OGN-102",
+    "type": "Spell",
+    "super": null,
+    "energy": 3,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Mind"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Possession",
+    "description": "[ACTION] (Play on your turn or in showdowns.)\nChoose an enemy unit at a battlefield. Take control of it and recall it. (Send it to your base. This isn't a move.)",
+    "variantNumber": "OGN-203",
+    "type": "Spell",
+    "super": null,
+    "energy": 8,
+    "power": 3,
+    "might": 0,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Pouty Poro",
+    "description": "[Deflect] (Opponents must pay [power] to choose me with an ability or spell)",
+    "variantNumber": "OGN-013",
+    "type": "Unit",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 2,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [
+      "Poro"
+    ]
+  },
+  {
+    "name": "Primal Strength",
+    "description": "[Action] (Play on your turn or in showdowns.)\nGive a unit +7 [Might] this turn.",
+    "variantNumber": "OGN-154",
+    "type": "Spell",
+    "super": null,
+    "energy": 4,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Body"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Progress Day",
+    "description": "Draw 4.",
+    "variantNumber": "OGN-114",
+    "type": "Spell",
+    "super": null,
+    "energy": 6,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Mind"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Promising Future",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nEach player looks at the top 5 cards of their Main Deck,\nbanishes one, then recycles the rest. Starting with the next\nplayer, each player plays those cards, ignoring Energy\ncosts. (They must still pay Power costs.)",
+    "variantNumber": "OGN-115",
+    "type": "Spell",
+    "super": null,
+    "energy": 5,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Mind"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Qiyana, Victorious",
+    "description": "[Deflect] (Opponents must pay [power] to choose me with a spell or ability.)\nWhen I conquer, draw 1 or channel 1 rune exhausted.",
+    "variantNumber": "OGN-155",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 4,
+    "power": 1,
+    "might": 4,
+    "colors": [
+      "Body"
+    ],
+    "tags": [
+      "Qiyana",
+      "Ixtal"
+    ]
+  },
+  {
+    "name": "Raging Firebrand",
+    "description": "When you play me, the next spell you play this turn costs [5] less.",
+    "variantNumber": "OGN-031",
+    "type": "Unit",
+    "super": null,
+    "energy": 6,
+    "power": 1,
+    "might": 4,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [
+      "Mount Targon",
+      "Dragon"
+    ]
+  },
+  {
+    "name": "Raging Soul",
+    "description": "If you've discarded a card this turn, I have [ASSAULT] and [GANKING]. (+1 [MIGHT] while I'm an attacker. I can move from battlefield to battlefield)",
+    "variantNumber": "OGN-019",
+    "type": "Unit",
+    "super": null,
+    "energy": 4,
+    "power": 0,
+    "might": 4,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [
+      "Shadow Isles",
+      "Spirit"
+    ]
+  },
+  {
+    "name": "Ravenbloom Student",
+    "description": "When you play a spell, give me +1 [Might] this turn.",
+    "variantNumber": "OGN-103",
+    "type": "Unit",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 2,
+    "colors": [
+      "Mind"
+    ],
+    "tags": [
+      "Noxus"
+    ]
+  },
+  {
+    "name": "Ravenborn Tome",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[TAP]: The next spell you play this turn deals 1 Bonus Damage.\n(Each instance of damage the spell deals is increased by\n1.)",
+    "variantNumber": "OGN-032",
+    "type": "Gear",
+    "super": null,
+    "energy": 3,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Fury"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Reaver's Row",
+    "description": "When you defend here, you may move a friendly unit here to base.",
+    "variantNumber": "OGN-285",
+    "type": "Battlefield",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [],
+    "tags": []
+  },
+  {
+    "name": "Rebuke",
+    "description": "[ACTION] (Play on your turn or in showdowns.)\nReturn a unit at a battlefield to its owner's hand.",
+    "variantNumber": "OGN-172",
+    "type": "Spell",
+    "super": null,
+    "energy": 2,
+    "power": 2,
+    "might": 0,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Reckoner's Arena",
+    "description": "When you hold this, activate the conquer abilities of units here.",
+    "variantNumber": "OGN-286",
+    "type": "Battlefield",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [],
+    "tags": []
+  },
+  {
+    "name": "Recruit",
+    "description": "",
+    "variantNumber": "OGN-273",
+    "type": "Unit",
+    "super": "Token",
+    "energy": 0,
+    "power": 0,
+    "might": 1,
+    "colors": [],
+    "tags": [
+      "Recruit"
+    ]
+  },
+  {
+    "name": "Recruit v2",
+    "description": "",
+    "variantNumber": "OGN-271",
+    "type": "Unit",
+    "super": "Token",
+    "energy": 0,
+    "power": 0,
+    "might": 1,
+    "colors": [],
+    "tags": [
+      "Recruit"
+    ]
+  },
+  {
+    "name": "Recruit v3",
+    "description": "",
+    "variantNumber": "OGN-272",
+    "type": "Unit",
+    "super": "Token",
+    "energy": 0,
+    "power": 0,
+    "might": 1,
+    "colors": [],
+    "tags": [
+      "Recruit"
+    ]
+  },
+  {
+    "name": "Reinforce",
+    "description": "Look at the top 5 cards of you Main Deck. You may play a unit from among them. Its Energy cost is reduced by [5]. Then recycle the remaining cards.",
+    "variantNumber": "OGN-062",
+    "type": "Spell",
+    "super": null,
+    "energy": 5,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Calm"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Retreat",
+    "description": "[Reaction] (Play any time, even before spells and abilities resolve.)\nReturn a friendly unit to its owner's hand. Its owner channels 1 rune exhausted.",
+    "variantNumber": "OGN-104",
+    "type": "Spell",
+    "super": null,
+    "energy": 1,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Mind"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Rhasa the Sunderer",
+    "description": "I cost [1] less for each card in your trash.",
+    "variantNumber": "OGN-195",
+    "type": "Unit",
+    "super": null,
+    "energy": 10,
+    "power": 1,
+    "might": 6,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": [
+      "Shadow Isles",
+      "Spirit"
+    ]
+  },
+  {
+    "name": "Ride the Wind",
+    "description": "[Action] (play on your turn or in showdowns.) \n\nMove a friendly unit and ready it.",
+    "variantNumber": "OGN-173",
+    "type": "Spell",
+    "super": null,
+    "energy": 2,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Riptide Rex",
+    "description": "When you play me, deal 6 to an enemy unit at a battlefield.",
+    "variantNumber": "OGN-092",
+    "type": "Unit",
+    "super": null,
+    "energy": 6,
+    "power": 2,
+    "might": 6,
+    "colors": [
+      "Mind"
+    ],
+    "tags": [
+      "Bilgewater",
+      "Pirate"
+    ]
+  },
+  {
+    "name": "Rune Prison",
+    "description": "[Action] (Play on your turn or in showdowns.)\nStun a unit. (It doesn't deal combat damage this turn.)",
+    "variantNumber": "OGN-050",
+    "type": "Spell",
+    "super": null,
+    "energy": 2,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Calm"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Sabotage",
+    "description": "Choose an opponent. They reveal their hand. Choose a non-unit card from it, and recycle that card.",
+    "variantNumber": "OGN-156",
+    "type": "Spell",
+    "super": null,
+    "energy": 1,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Body"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Sai Scout",
+    "description": "[VISION] (When you play me, look at the top card of your Main Deck. You may recycle it.)\nYou may play me to an open battlefield.",
+    "variantNumber": "OGN-174",
+    "type": "Unit",
+    "super": null,
+    "energy": 6,
+    "power": 0,
+    "might": 5,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": [
+      "Shurima"
+    ]
+  },
+  {
+    "name": "Salvage",
+    "description": "[Action] (play on your turn or in showdowns.) \nYou may kill a gear. Draw 1.",
+    "variantNumber": "OGN-224",
+    "type": "Spell",
+    "super": null,
+    "energy": 2,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Order"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Scrapheap",
+    "description": "When this is played, discarded, or killed, draw 1.",
+    "variantNumber": "OGN-182",
+    "type": "Gear",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Scrapyard Champion",
+    "description": "[LEGION] When you play me, discard 2, then draw 2. (Get the effect if you've played another card this turn.)",
+    "variantNumber": "OGN-020",
+    "type": "Unit",
+    "super": null,
+    "energy": 5,
+    "power": 1,
+    "might": 5,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [
+      "Bandle City",
+      "Mech"
+    ]
+  },
+  {
+    "name": "Seal of Discord",
+    "description": "[Tap]: [REACTION] - [ADD] [Chaos]. (Abilities that add resources can't be reacted to.)",
+    "variantNumber": "OGN-204",
+    "type": "Gear",
+    "super": null,
+    "energy": 0,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Seal of Focus",
+    "description": "[Tap]: [REACTION] - [ADD] [Calm]. (Abilities that add resources can't be reacted to.)",
+    "variantNumber": "OGN-081",
+    "type": "Gear",
+    "super": null,
+    "energy": 0,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Calm"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Seal of Insight",
+    "description": "[Tap]: [REACTION] - [ADD] [Mind]. (Abilities that add resources can't be reacted to.)",
+    "variantNumber": "OGN-120",
+    "type": "Gear",
+    "super": null,
+    "energy": 0,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Mind"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Seal of Rage",
+    "description": "[Tap]: [REACTION] - [ADD] [Fury]. (Abilities that add resources can't be reacted to.)",
+    "variantNumber": "OGN-040",
+    "type": "Gear",
+    "super": null,
+    "energy": 0,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Fury"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Seal of Strength",
+    "description": "[Tap]: [REACTION] - [ADD] [Body]. (Abilities that add resources can't be reacted to.)",
+    "variantNumber": "OGN-163",
+    "type": "Gear",
+    "super": null,
+    "energy": 0,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Body"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Seal of Unity",
+    "description": "[Tap]: [REACTION] - [ADD] [Order]. (Abilities that add resources can't be reacted to.)",
+    "variantNumber": "OGN-245",
+    "type": "Gear",
+    "super": null,
+    "energy": 0,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Order"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Sett, Brawler",
+    "description": "When I'm played and when I conquer, buff me. (If I don't have a buff, I get a +1 [Might] buff.)\nSpend my buff: Give me +4 [Might] this turn.",
+    "variantNumber": "OGN-164",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 5,
+    "power": 1,
+    "might": 4,
+    "colors": [
+      "Body"
+    ],
+    "tags": [
+      "Sett",
+      "Ionia"
+    ]
+  },
+  {
+    "name": "Sett, Kingpin",
+    "description": "[TANK] (I must be assigned combat damage first.)\nI get +1 [Might] for each buffed friendly unit at my battlefield.",
+    "variantNumber": "OGN-240",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 4,
+    "power": 1,
+    "might": 5,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Sett",
+      "Ionia"
+    ]
+  },
+  {
+    "name": "Sett, The Boss",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nIf a buffed unit you control would die, you may pay [C],\nexhaust me, and spend its buff to heal it, exhaust it, and\nrecall it instead. (Send it to base. This isn't a move.)\nWhen you conquer, ready me.",
+    "variantNumber": "OGN-269",
+    "type": "Legend",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Body",
+      "Order"
+    ],
+    "tags": [
+      "Sett"
+    ]
+  },
+  {
+    "name": "Shakedown",
+    "description": "[REACTION] (Play any time, even before spells and abilities resolve.)\nChoose an enemy unit. Deal 6 to it unless its controller has you draw 2.",
+    "variantNumber": "OGN-033",
+    "type": "Spell",
+    "super": null,
+    "energy": 2,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Fury"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Shen, Kinkou",
+    "description": "[REACTION] (Play any time, even before spells and abilities resolve, including to a battlefield you control.)\n[SHIELD 2] (+2 [Might] while I'm a defender.)\n[TANK] (I must be assigned combat damage first.)",
+    "variantNumber": "OGN-241",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 3,
+    "power": 1,
+    "might": 3,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Shen",
+      "Ionia"
+    ]
+  },
+  {
+    "name": "Shipyard Skulker",
+    "description": ".",
+    "variantNumber": "OGN-175",
+    "type": "Unit",
+    "super": null,
+    "energy": 3,
+    "power": 0,
+    "might": 3,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": [
+      "Bilgewater",
+      "Pirate"
+    ]
+  },
+  {
+    "name": "Showstopper",
+    "description": "Buff a friendly unit in your base, then move it to a battlefield. (If it doesn't have a buff, it gets a +1 [Might] buff.)",
+    "variantNumber": "OGN-270",
+    "type": "Spell",
+    "super": "Signature",
+    "energy": 1,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Body",
+      "Order"
+    ],
+    "tags": [
+      "Sett"
+    ]
+  },
+  {
+    "name": "Sigil of the Storm",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nWhen you conquer here, you must recycle one of your\nrunes.",
+    "variantNumber": "OGN-287",
+    "type": "Battlefield",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [],
+    "tags": []
+  },
+  {
+    "name": "Singularity",
+    "description": "Deal 6 to each of up to two units.",
+    "variantNumber": "OGN-105",
+    "type": "Spell",
+    "super": null,
+    "energy": 6,
+    "power": 2,
+    "might": 0,
+    "colors": [
+      "Mind"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Siphon Power",
+    "description": "[REACTION] (Play any time, even before spells and abilities resolve.)\nChoose a battlefield. Give friendly units there +1 [Might] this turn and enemy units there -1 [Might] this turn, to a minimum of 1 [Might].",
+    "variantNumber": "OGN-266",
+    "type": "Spell",
+    "super": "Signature",
+    "energy": 2,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Order",
+      "Mind"
+    ],
+    "tags": [
+      "Viktor"
+    ]
+  },
+  {
+    "name": "Sky Splitter",
+    "description": "[ACTION] (Play on your turn or in showdowns.)\n\nThis spell's Energy cost is reduced by the highest Might among units you control. \nDeal 5 to a unit at a battlefield.",
+    "variantNumber": "OGN-014",
+    "type": "Spell",
+    "super": null,
+    "energy": 8,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Fury"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Smoke Screen",
+    "description": "[Reaction] (Play any time, even before spells and abilities resolve.)\nGive a unit -4 [Might] this turn, to a minimum of 1 [Might].",
+    "variantNumber": "OGN-093",
+    "type": "Spell",
+    "super": null,
+    "energy": 2,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Mind"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Sneaky Deckhand",
+    "description": "You may play me to an open battlefield.",
+    "variantNumber": "OGN-176",
+    "type": "Unit",
+    "super": null,
+    "energy": 3,
+    "power": 0,
+    "might": 2,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": [
+      "Bilgewater",
+      "Pirate"
+    ]
+  },
+  {
+    "name": "Soaring Scout",
+    "description": "[DEATHKNELL] - Channel 1 rune exhausted. (When I die, get the effect.)",
+    "variantNumber": "OGN-216",
+    "type": "Unit",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 1,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Freljord",
+      "Bird"
+    ]
+  },
+  {
+    "name": "Solari Chief",
+    "description": "When you play me, choose an enemy unit. If it is stunned, kill it. Otherwise, stun it. (it doesn't deal combat damage this turn.)",
+    "variantNumber": "OGN-225",
+    "type": "Unit",
+    "super": null,
+    "energy": 5,
+    "power": 1,
+    "might": 4,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Mount Targon"
+    ]
+  },
+  {
+    "name": "Solari Shieldbearer",
+    "description": "When you play me, stun a unit. (It doesn't deal combat damage this turn.)",
+    "variantNumber": "OGN-051",
+    "type": "Unit",
+    "super": null,
+    "energy": 3,
+    "power": 0,
+    "might": 2,
+    "colors": [
+      "Calm"
+    ],
+    "tags": [
+      "Mount Targon"
+    ]
+  },
+  {
+    "name": "Solari Shrine",
+    "description": "When you kill a stunned enemy unit, you may exhaust this to draw 1.",
+    "variantNumber": "OGN-072",
+    "type": "Gear",
+    "super": null,
+    "energy": 3,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Calm"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Sona, Harmonious",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nAt the end of your turn, if I'm at a battlefield, ready up to 4\nfriendly runes.",
+    "variantNumber": "OGN-073",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 4,
+    "power": 1,
+    "might": 4,
+    "colors": [
+      "Calm"
+    ],
+    "tags": [
+      "Sona",
+      "Demacia"
+    ]
+  },
+  {
+    "name": "Soulgorger",
+    "description": "When you play me, you may play a unit from your trash, ignoring its Energy cost.",
+    "variantNumber": "OGN-196",
+    "type": "Unit",
+    "super": null,
+    "energy": 8,
+    "power": 2,
+    "might": 5,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Spectral Matron",
+    "description": "When you play me, you may play a unit costing no more than [3] and no more than [RUNE] from your trash, ignoring its cost.",
+    "variantNumber": "OGN-226",
+    "type": "Unit",
+    "super": null,
+    "energy": 4,
+    "power": 2,
+    "might": 4,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Shadow Isles",
+      "Spirit"
+    ]
+  },
+  {
+    "name": "Spirit's Refuge",
+    "description": "When you play this, buff a friendly unit. (If it doesn't have a buff, it gets a +1 [Might] buff.)\nFriendly buffed units have [DEFLECT] if they didn't already. (Opponents must pay [Rune] to choose those units with a spell or ability.)",
+    "variantNumber": "OGN-063",
+    "type": "Gear",
+    "super": null,
+    "energy": 2,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Calm"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Spoils of War",
+    "description": "[Reaction] (Play any time, even before spells and abilities resolve.)\nIf an enemy unit has died this turn, this costs [2] less.\nDraw 2.",
+    "variantNumber": "OGN-144",
+    "type": "Spell",
+    "super": null,
+    "energy": 4,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Body"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Sprite",
+    "description": "[Temporary] (Kill me at the start of your Beginning Phase, before scoring.)",
+    "variantNumber": "OGN-274",
+    "type": "Unit",
+    "super": "Token",
+    "energy": 0,
+    "power": 0,
+    "might": 3,
+    "colors": [],
+    "tags": [
+      "Fae"
+    ]
+  },
+  {
+    "name": "Sprite Call",
+    "description": "[HIDDEN] (Hide now for [Rune] to react with later for [0].)\n[ACTION] (Play on your turn or in showdowns.)\n\nPlay a ready 3 [Might] Sprite unit token with [TEMPORARY]. (Kill it at the start of its controller's Beginning Phase, before scoring.)",
+    "variantNumber": "OGN-094",
+    "type": "Spell",
+    "super": null,
+    "energy": 3,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Mind"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Sprite Mother",
+    "description": "When you play me, play a ready 3 [Might] Sprite unit token with [Temporary] here. (Kill it at the start of its controller's Beginning Phase, before scoring.)",
+    "variantNumber": "OGN-106",
+    "type": "Unit",
+    "super": null,
+    "energy": 4,
+    "power": 1,
+    "might": 3,
+    "colors": [
+      "Mind"
+    ],
+    "tags": [
+      "Fae"
+    ]
+  },
+  {
+    "name": "Stacked Deck",
+    "description": "[Action] (play on your turn or in showdowns.) \nLook at the top 3 cards of your Main Deck. Put 1 into your hand and recycle the rest.",
+    "variantNumber": "OGN-183",
+    "type": "Spell",
+    "super": null,
+    "energy": 1,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Stalwart Poro",
+    "description": "[Shield1] (I have +1 might while defending)",
+    "variantNumber": "OGN-052",
+    "type": "Unit",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 2,
+    "colors": [
+      "Calm"
+    ],
+    "tags": [
+      "Poro"
+    ]
+  },
+  {
+    "name": "Stand United",
+    "description": "[HIDDEN] (Hide now for [Rune] to react with later for [0].)\n[ACTION] (Play on your turn or in showdowns.)\nBuff a friendly unit. Buffs give an additional +1 [Might] to friendly units this turn. (To buff a unit, give it a +1 [Might] buff if it doesn't already have one.)",
+    "variantNumber": "OGN-053",
+    "type": "Spell",
+    "super": null,
+    "energy": 3,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Calm"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Startipped Peak",
+    "description": "When you hold here, you may channel 1 rune exhausted.",
+    "variantNumber": "OGN-288",
+    "type": "Battlefield",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [],
+    "tags": []
+  },
+  {
+    "name": "Stealthy Pursuer",
+    "description": "When a friendly unit moves from my location, I may be moved with it.",
+    "variantNumber": "OGN-177",
+    "type": "Unit",
+    "super": null,
+    "energy": 4,
+    "power": 1,
+    "might": 4,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": [
+      "Shurima"
+    ]
+  },
+  {
+    "name": "Stormbringer",
+    "description": "Choose a friendly unit in your base. Deal damage equal to its Might to all enemy units at a battlefield, then move your unit there.",
+    "variantNumber": "OGN-250",
+    "type": "Spell",
+    "super": "Signature",
+    "energy": 6,
+    "power": 2,
+    "might": 0,
+    "colors": [
+      "Body",
+      "Fury"
+    ],
+    "tags": [
+      "Volibear"
+    ]
+  },
+  {
+    "name": "Stormclaw Ursine",
+    "description": "[TANK] (I must be assigned combat damage first.)\nWhen you play me, channel 1 rune exhausted.",
+    "variantNumber": "OGN-137",
+    "type": "Unit",
+    "super": null,
+    "energy": 7,
+    "power": 0,
+    "might": 6,
+    "colors": [
+      "Body"
+    ],
+    "tags": [
+      "Freljord"
+    ]
+  },
+  {
+    "name": "Stupefy",
+    "description": "[REACTION] (Play any time, even before spells and abilities resolve.)\nGive a unit -1 [Might] this turn, to a minimum of 1 [Might]. Draw 1.",
+    "variantNumber": "OGN-095",
+    "type": "Spell",
+    "super": null,
+    "energy": 1,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Mind"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Sun Disc",
+    "description": "[TAP]: [LEGION] - The next unit you play this turn enters ready. (Get the effect if you've played another card this turn.)",
+    "variantNumber": "OGN-021",
+    "type": "Gear",
+    "super": null,
+    "energy": 2,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Fury"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Sunlit Guardian",
+    "description": "[Shield] (+1 [Might] while I'm a defender.)\n[Tank] (I must be assigned combat damage first.)",
+    "variantNumber": "OGN-054",
+    "type": "Unit",
+    "super": null,
+    "energy": 3,
+    "power": 0,
+    "might": 3,
+    "colors": [
+      "Calm"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Super Mega Death Rocket!",
+    "description": "Deal 5 to a unit.\nWhen you conquer, you may discard 1 to return this from your trash to your hand.",
+    "variantNumber": "OGN-252",
+    "type": "Spell",
+    "super": "Signature",
+    "energy": 4,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Fury",
+      "Chaos"
+    ],
+    "tags": [
+      "Jinx"
+    ]
+  },
+  {
+    "name": "Symbol of the Solari",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nIf a combat where you are the attacker ends in a tie that\nwould recall any of your units, recall all units at that\nbattlefield instead. (Send them to base. This isn't a move.\nTies are calculated after combat damage is dealt.)",
+    "variantNumber": "OGN-227",
+    "type": "Gear",
+    "super": null,
+    "energy": 1,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Order"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Targon's Peak",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nWhen you conquer here, ready up to 2 runes at the end of\nthis turn.",
+    "variantNumber": "OGN-289",
+    "type": "Battlefield",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [],
+    "tags": []
+  },
+  {
+    "name": "Taric, Protector",
+    "description": "[Shield] (+1 [Might] while I'm a defender.)\n[Tank] (I must be assigned combat damage first.)\nOther friendly units here have [Shield].",
+    "variantNumber": "OGN-074",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 4,
+    "power": 1,
+    "might": 4,
+    "colors": [
+      "Calm"
+    ],
+    "tags": [
+      "Taric",
+      "Mount Targon"
+    ]
+  },
+  {
+    "name": "Tasty Faefolk",
+    "description": "[Accelerate] (You may play [1] [Calm] as an additional cost to have me enter ready.)\n[Deathknell] - Channel 2 runes exhausted and draw 1. (When I die, get the effect.)",
+    "variantNumber": "OGN-075",
+    "type": "Unit",
+    "super": null,
+    "energy": 7,
+    "power": 0,
+    "might": 6,
+    "colors": [
+      "Calm"
+    ],
+    "tags": [
+      "Bandle City",
+      "Fae"
+    ]
+  },
+  {
+    "name": "Teemo, Scout",
+    "description": "[HIDDEN] (Hide now for [Rune] to react with later for [0].)\nWhen you play me, give me +3 [Might] this turn.",
+    "variantNumber": "OGN-197",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 2,
+    "power": 0,
+    "might": 1,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": [
+      "Teemo",
+      "Bandle City",
+      "Yordle"
+    ]
+  },
+  {
+    "name": "Teemo, Strategist",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[Hidden] (Hide now for [A] to react with later for [0].)\nWhen I defend, choose an enemy unit here and reveal the\ntop 5 cards of your Main Deck. Deal 1 to that unit for each\ncard with [Hidden] revealed this way, then recycle the\nrevealed cards.",
+    "variantNumber": "OGN-121",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 2,
+    "power": 1,
+    "might": 2,
+    "colors": [
+      "Mind"
+    ],
+    "tags": [
+      "Teemo",
+      "Bandle City",
+      "Yordle"
+    ]
+  },
+  {
+    "name": "Teemo, Swift Scout",
+    "description": "You may pay [1] to hide a card with [HIDDEN] instead of [Rune].\n[1], [Tap]: Put a Teemo unit you own into your hand from your Champion Zone or the board.",
+    "variantNumber": "OGN-263",
+    "type": "Legend",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Mind",
+      "Chaos"
+    ],
+    "tags": [
+      "Teemo"
+    ]
+  },
+  {
+    "name": "The Arena's Greatest",
+    "description": "At the start of each player's first Beginning Phase, that player gains 1 point.",
+    "variantNumber": "OGN-290",
+    "type": "Battlefield",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [],
+    "tags": []
+  },
+  {
+    "name": "The Candlelit Sanctum",
+    "description": "When you conquer here, look at the top two cards of your Main Deck. You may recycle one or both of them. Put those you don't back in any order.",
+    "variantNumber": "OGN-291",
+    "type": "Battlefield",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [],
+    "tags": []
+  },
+  {
+    "name": "The Dreaming Tree",
+    "description": "The first time you choose a friendly unit with a spell here each turn, draw 1.",
+    "variantNumber": "OGN-292",
+    "type": "Battlefield",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [],
+    "tags": []
+  },
+  {
+    "name": "The Grand Plaza",
+    "description": "When you hold here, if you have 7+ units here, you win the game.",
+    "variantNumber": "OGN-293",
+    "type": "Battlefield",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [],
+    "tags": []
+  },
+  {
+    "name": "The Harrowing",
+    "description": "Play a unit from your trash, ignoring its Energy cost. (You must still pay its Power cost.)",
+    "variantNumber": "OGN-198",
+    "type": "Spell",
+    "super": null,
+    "energy": 6,
+    "power": 2,
+    "might": 0,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Thermo Beam",
+    "description": "[ACTION] (Play on your turn or in showdowns)\nKill all gear.",
+    "variantNumber": "OGN-022",
+    "type": "Spell",
+    "super": null,
+    "energy": 5,
+    "power": 2,
+    "might": 0,
+    "colors": [
+      "Fury"
+    ],
+    "tags": []
+  },
+  {
+    "name": "The Syren",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[1], [TAP]: Move a friendly unit at a battlefield to its base.",
+    "variantNumber": "OGN-184",
+    "type": "Gear",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Thousand-Tailed Watcher",
+    "description": "[Accelerate] (You may pay [1] [Mind] as an additional cost to have me enter ready.)\nWhen you play me, give enemy units -3 [Might] this turn, to a minimum of 1 [Might].",
+    "variantNumber": "OGN-116",
+    "type": "Unit",
+    "super": null,
+    "energy": 7,
+    "power": 1,
+    "might": 7,
+    "colors": [
+      "Mind"
+    ],
+    "tags": [
+      "Ionia"
+    ]
+  },
+  {
+    "name": "Tideturner",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[Hidden] (Hide now for [Power] to react with later for [0].)\nWhen you play me, you may choose a unit you control at\nanother location. Move me to its location and it to my\noriginal location.",
+    "variantNumber": "OGN-199",
+    "type": "Unit",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 2,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Time Warp",
+    "description": "Take a turn after this one. Banish this.",
+    "variantNumber": "OGN-122",
+    "type": "Spell",
+    "super": null,
+    "energy": 10,
+    "power": 4,
+    "might": 0,
+    "colors": [
+      "Mind"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Traveling Merchant",
+    "description": "When I move, discard 1, then draw 1.",
+    "variantNumber": "OGN-185",
+    "type": "Unit",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 2,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": [
+      "Bilgewater"
+    ]
+  },
+  {
+    "name": "Treasure Trove",
+    "description": "When this leaves the board, draw 1 and channel 1 rune exhausted.",
+    "variantNumber": "OGN-186",
+    "type": "Gear",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Trifarian Gloryseeker",
+    "description": "[LEGION] When you play me, buff me. (If I don't have a buff, I get a +1 [Might] buff. Get the effect if you've played another card this turn.)",
+    "variantNumber": "OGN-217",
+    "type": "Unit",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 2,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Noxus",
+      "Trifarian"
+    ]
+  },
+  {
+    "name": "Trifarian War Camp",
+    "description": "Units here have +1 [Might]. (This includes attackers.)",
+    "variantNumber": "OGN-294",
+    "type": "Battlefield",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [],
+    "tags": []
+  },
+  {
+    "name": "Tryndamere, Barbarian",
+    "description": "When I conquer after an attack, if you assigned 5 or more excess damage to enemy units, you score 1 Point.",
+    "variantNumber": "OGN-034",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 7,
+    "power": 2,
+    "might": 8,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [
+      "Tryndamere",
+      "Freljord"
+    ]
+  },
+  {
+    "name": "Twisted Fate, Gambler",
+    "description": "When I attack, reveal the top rune of your rune deck, then recycle it. Do one of the following based on its domain:\n[Fury] - Deal 2 to an enemy unit here and 1 to all other enemy units here.\n[Mind] - Draw 1.\n[Order] - Stun an enemy unit.",
+    "variantNumber": "OGN-200",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 4,
+    "power": 0,
+    "might": 4,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": [
+      "Twisted Fate",
+      "Bilgewater"
+    ]
+  },
+  {
+    "name": "Udyr, Wildman",
+    "description": "Spend my buff: Choose one you've not chosen turn --\n\nDeal 2 to a unit at a battlefield.\nStun a unit at a battlefield\nReady me.\nGive me [GANKING] this turn.",
+    "variantNumber": "OGN-157",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 6,
+    "power": 1,
+    "might": 6,
+    "colors": [
+      "Body"
+    ],
+    "tags": [
+      "Udyr",
+      "Freljord"
+    ]
+  },
+  {
+    "name": "Unchecked Power",
+    "description": "Exhaust all friendly units, then deal 12 to all units at battlefields.",
+    "variantNumber": "OGN-123",
+    "type": "Spell",
+    "super": null,
+    "energy": 7,
+    "power": 2,
+    "might": 0,
+    "colors": [
+      "Mind"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Undercover Agent",
+    "description": "[DEATHKNELL] - Discard 2, then draw 2. (When I die, get the effect.)",
+    "variantNumber": "OGN-178",
+    "type": "Unit",
+    "super": null,
+    "energy": 5,
+    "power": 1,
+    "might": 5,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Unlicensed Armory",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nDiscard 1, [Tap]: Choose a friendly unit. The next time it would\ndie this turn, you may pay [Fury] to heal it, exhaust it, and\nrecall it instead. (Send it to base. This isn't a move.)",
+    "variantNumber": "OGN-023",
+    "type": "Gear",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Fury"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Unyielding Spirit",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[Reaction] Prevent all damage that would be dealt this turn by spells\nand abilities.",
+    "variantNumber": "OGN-145",
+    "type": "Spell",
+    "super": null,
+    "energy": 1,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Body"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Vanguard Captain",
+    "description": "[LEGION] - When you play me, play two 1 [Might] Recruit unit token here. (Get the effect if you've played another card this turn.)",
+    "variantNumber": "OGN-218",
+    "type": "Unit",
+    "super": null,
+    "energy": 3,
+    "power": 1,
+    "might": 3,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Demacia",
+      "Elite"
+    ]
+  },
+  {
+    "name": "Vanguard Helm",
+    "description": "When a buffed friendly unit dies, buff another friendly unit. (If it doesn't have a buff, it gets a +1 [might] buff.)",
+    "variantNumber": "OGN-228",
+    "type": "Gear",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Order"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Vanguard Sergeant",
+    "description": ".",
+    "variantNumber": "OGN-219",
+    "type": "Unit",
+    "super": null,
+    "energy": 4,
+    "power": 0,
+    "might": 4,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Demacia",
+      "Elite"
+    ]
+  },
+  {
+    "name": "Vayne, Hunter",
+    "description": "[ASSAULT 3] (+3 [Might] while I'm an attacker.)\nIf an opponent controls a battlefield, I enter ready.\nWhen I conquer, you may pay [1] to return me to my owner's hand.",
+    "variantNumber": "OGN-035",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 4,
+    "power": 1,
+    "might": 2,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [
+      "Vayne",
+      "Demacia"
+    ]
+  },
+  {
+    "name": "Vengeance",
+    "description": "Kill a unit.",
+    "variantNumber": "OGN-229",
+    "type": "Spell",
+    "super": null,
+    "energy": 4,
+    "power": 2,
+    "might": 0,
+    "colors": [
+      "Order"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Vi, Destructive",
+    "description": "[GANKING] (I can move from battlefield to battlefield.)\nRecycle 1 from your trash: Give me +1 [Might] this turn.",
+    "variantNumber": "OGN-036",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 2,
+    "power": 1,
+    "might": 3,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [
+      "Vi",
+      "Piltover"
+    ]
+  },
+  {
+    "name": "Viktor, Herald of the Arcane",
+    "description": "[1], [Tap]: Play a 1 [Might] Recruit unit token.",
+    "variantNumber": "OGN-265",
+    "type": "Legend",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Order",
+      "Mind"
+    ],
+    "tags": [
+      "Viktor"
+    ]
+  },
+  {
+    "name": "Viktor, Innovator",
+    "description": "When you play a card on an opponent's turn, play a 1 [Might] Recruit unit token in your base.",
+    "variantNumber": "OGN-117",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 4,
+    "power": 1,
+    "might": 3,
+    "colors": [
+      "Mind"
+    ],
+    "tags": [
+      "Viktor",
+      "Zaun"
+    ]
+  },
+  {
+    "name": "Viktor, Leader",
+    "description": "When another non-Recruit unit you control dies, play a 1 [Might] Recruit unit token into your base.",
+    "variantNumber": "OGN-246",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 4,
+    "power": 1,
+    "might": 4,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Viktor",
+      "Zaun"
+    ]
+  },
+  {
+    "name": "Vilemaw's Lair",
+    "description": "Units can't move from here to base.",
+    "variantNumber": "OGN-295",
+    "type": "Battlefield",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [],
+    "tags": []
+  },
+  {
+    "name": "Void Gate",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nSpells and abilities deal 1 Bonus Damage to units here.\n(Each instance of damage the spell deals to a unit here is\nincreased by 1.)",
+    "variantNumber": "OGN-296",
+    "type": "Battlefield",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [],
+    "tags": []
+  },
+  {
+    "name": "Void Seeker",
+    "description": "[ACTION] (Play on your turn or in showdowns.)\n\nDeal 4 to a unit at a battlefield. Draw 1.",
+    "variantNumber": "OGN-024",
+    "type": "Spell",
+    "super": null,
+    "energy": 3,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Fury"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Volibear, Furious",
+    "description": "[DEFLECT 2] (Opponents must play [Rune][Rune] to choose me with a spell or effect.)\nWhen I attack, deal 5 damage split among any number of enemy units here.",
+    "variantNumber": "OGN-041",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 10,
+    "power": 2,
+    "might": 9,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [
+      "Volibear",
+      "Freljord"
+    ]
+  },
+  {
+    "name": "Volibear, Imposing",
+    "description": "[SHIELD 3] (+3 [Might] while I'm a defender.)\n[TANK] (I must be assigned combat damage first.)\nWhen an opponent moves to a battlefield other than mine, draw 1. (Bases are not battlefields.)",
+    "variantNumber": "OGN-158",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 12,
+    "power": 2,
+    "might": 10,
+    "colors": [
+      "Body"
+    ],
+    "tags": [
+      "Volibear",
+      "Freljord"
+    ]
+  },
+  {
+    "name": "Volibear, Relentless Storm",
+    "description": "When you play a [MIGHTY] unit, you may exhaust me to channel 1 rune exhausted. (A unit is Mighty while it has 5+ [Might]",
+    "variantNumber": "OGN-300",
+    "type": "Legend",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Body",
+      "Fury"
+    ],
+    "tags": [
+      "Volibear"
+    ]
+  },
+  {
+    "name": "Wallop",
+    "description": "[Action] (Play on your turn or in showdowns.)\nAs you play this, you may spend a buff as an additional cost. If you do, ignore this spell's cost. Ready a unit.",
+    "variantNumber": "OGN-146",
+    "type": "Spell",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Body"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Warwick, Hunter",
+    "description": "I enter ready.\nWhen I attack, kill all damaged enemy units here.",
+    "variantNumber": "OGN-159",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 6,
+    "power": 1,
+    "might": 5,
+    "colors": [
+      "Body"
+    ],
+    "tags": [
+      "Warwick",
+      "Zaun",
+      "Dog"
+    ]
+  },
+  {
+    "name": "Watchful Sentry",
+    "description": "[DEATHKNELL] - Draw 1. (When I die, get the effect.)",
+    "variantNumber": "OGN-096",
+    "type": "Unit",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 1,
+    "colors": [
+      "Mind"
+    ],
+    "tags": [
+      "Freljord"
+    ]
+  },
+  {
+    "name": "Whirlwind",
+    "description": "Starting with the next player, each player may return a unit to its owner's hand.",
+    "variantNumber": "OGN-187",
+    "type": "Spell",
+    "super": null,
+    "energy": 4,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Whiteflame Protector",
+    "description": "When you play me, give a unit +8 [Might] this turn.",
+    "variantNumber": "OGN-082",
+    "type": "Unit",
+    "super": null,
+    "energy": 8,
+    "power": 2,
+    "might": 8,
+    "colors": [
+      "Calm"
+    ],
+    "tags": [
+      "Mount Targon",
+      "Dragon"
+    ]
+  },
+  {
+    "name": "Wielder of Water",
+    "description": "While I'm attacking or defending alone, I have +2 [Might].",
+    "variantNumber": "OGN-055",
+    "type": "Unit",
+    "super": null,
+    "energy": 3,
+    "power": 0,
+    "might": 2,
+    "colors": [
+      "Calm"
+    ],
+    "tags": [
+      "Ionia"
+    ]
+  },
+  {
+    "name": "Wildclaw Shaman",
+    "description": "When you play me, you may spend a buff to buff me and ready me. (If I don't have a buff, I get a +1 [Might] buff.)",
+    "variantNumber": "OGN-147",
+    "type": "Unit",
+    "super": null,
+    "energy": 4,
+    "power": 0,
+    "might": 3,
+    "colors": [
+      "Body"
+    ],
+    "tags": [
+      "Freljord"
+    ]
+  },
+  {
+    "name": "Windswept Hillock",
+    "description": "Units here have [GANKING]. (They can move from battlefield to battlefield.)",
+    "variantNumber": "OGN-297",
+    "type": "Battlefield",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [],
+    "tags": []
+  },
+  {
+    "name": "Wind Wall",
+    "description": "[REACTION] (Play any time, even before spells and abilities resolve.)\nCounter a spell.",
+    "variantNumber": "OGN-064",
+    "type": "Spell",
+    "super": null,
+    "energy": 3,
+    "power": 2,
+    "might": 0,
+    "colors": [
+      "Calm"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Wizened Elder",
+    "description": "While I'm buffed, I have an additional +1 [Might].",
+    "variantNumber": "OGN-065",
+    "type": "Unit",
+    "super": null,
+    "energy": 4,
+    "power": 0,
+    "might": 4,
+    "colors": [
+      "Calm"
+    ],
+    "tags": [
+      "Ionia"
+    ]
+  },
+  {
+    "name": "Wraith of Echoes",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nThe first time another friendly unit dies each turn, draw 1",
+    "variantNumber": "OGN-118",
+    "type": "Unit",
+    "super": null,
+    "energy": 6,
+    "power": 1,
+    "might": 5,
+    "colors": [
+      "Mind"
+    ],
+    "tags": [
+      "Shadow Isles",
+      "Spirit"
+    ]
+  },
+  {
+    "name": "Yasuo, Remorseful",
+    "description": "When I attack, deal damage equal to my Might to an enemy unit here.",
+    "variantNumber": "OGN-076",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 6,
+    "power": 2,
+    "might": 6,
+    "colors": [
+      "Calm"
+    ],
+    "tags": [
+      "Yasuo",
+      "Ionia"
+    ]
+  },
+  {
+    "name": "Yasuo, Unforgiven",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[2], [Tap]: Move a friendly unit to or from its base.",
+    "variantNumber": "OGN-259",
+    "type": "Legend",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Calm",
+      "Chaos"
+    ],
+    "tags": [
+      "Yasuo"
+    ]
+  },
+  {
+    "name": "Yasuo, Windrider",
+    "description": "[GANKING] (I can move from battlefield to battlefield.)\nThe third time I move in a turn, you score 1 point.",
+    "variantNumber": "OGN-205",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 5,
+    "power": 1,
+    "might": 4,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": [
+      "Yasuo",
+      "Ionia"
+    ]
+  },
+  {
+    "name": "Zaunite Bouncer",
+    "description": "When you play me, return another unit at a battlefield to its owner's hand.",
+    "variantNumber": "OGN-188",
+    "type": "Unit",
+    "super": null,
+    "energy": 4,
+    "power": 2,
+    "might": 2,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Zaun Warrens",
+    "description": "When you conquer here, discard 1, then draw 1.",
+    "variantNumber": "OGN-298",
+    "type": "Battlefield",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [],
+    "tags": []
+  },
+  {
+    "name": "Zenith Blade",
+    "description": "[ACTION] (Play on your turn or in showdowns.)\nStun an enemy at a battlefield. You may move a friendly unit to that enemy unit's battlefield. (A stunned unit doesn't deal combat damage this turn.)",
+    "variantNumber": "OGN-262",
+    "type": "Spell",
+    "super": "Signature",
+    "energy": 3,
+    "power": 2,
+    "might": 0,
+    "colors": [
+      "Calm",
+      "Order"
+    ],
+    "tags": [
+      "Leona"
+    ]
+  },
+  {
+    "name": "Zhonya's Hourglass",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[Hidden] (Hide now for [A] to react with later for [0].)\nIf a friendly unit would die, kill this instead. Heal that unit,\nexhaust it, and recall it. (Send it to base. This isn't a move.)",
+    "variantNumber": "OGN-077",
+    "type": "Gear",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Calm"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Annie, Dark Child",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nAt the end of your turn, ready up to 2 runes.",
+    "variantNumber": "OGS-017",
+    "type": "Legend",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Fury",
+      "Chaos"
+    ],
+    "tags": [
+      "Annie"
+    ]
+  },
+  {
+    "name": "Annie, Fiery",
+    "description": "Your spells and abilities deal 1 Bonus Damage. (Each instance of damage they deal is increased by 1.)",
+    "variantNumber": "OGS-001",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 5,
+    "power": 1,
+    "might": 4,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [
+      "Annie",
+      "Noxus"
+    ]
+  },
+  {
+    "name": "Annie, Stubborn",
+    "description": "When you play me, return a spell from your trash to your hand.",
+    "variantNumber": "OGS-010",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 4,
+    "power": 1,
+    "might": 3,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": [
+      "Annie",
+      "Noxus"
+    ]
+  },
+  {
+    "name": "Blast of Power",
+    "description": "[ACTION] (Play on your turn or in showdowns.)\nKill a unit at a battlefield.",
+    "variantNumber": "OGS-012",
+    "type": "Spell",
+    "super": null,
+    "energy": 6,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Order"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Decisive Strike",
+    "description": "[ACTION] (Play on your turn or in showdowns.)\nGive friendly units +2 [Might] this turn.",
+    "variantNumber": "OGS-024",
+    "type": "Spell",
+    "super": "Signature",
+    "energy": 5,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Body",
+      "Order"
+    ],
+    "tags": [
+      "Garen"
+    ]
+  },
+  {
+    "name": "Final Spark",
+    "description": "[ACTION] (Play on your turn or in showdowns.)\nDeal 8 to a unit.",
+    "variantNumber": "OGS-022",
+    "type": "Spell",
+    "super": "Signature",
+    "energy": 8,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Order",
+      "Mind"
+    ],
+    "tags": [
+      "Lux"
+    ]
+  },
+  {
+    "name": "Firestorm",
+    "description": "Deal 3 to all enemy units at a battlefield.",
+    "variantNumber": "OGS-002",
+    "type": "Spell",
+    "super": null,
+    "energy": 6,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Fury"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Flash",
+    "description": "[REACTION] (Play at any time, even before spells and abilities resolve.)\nMove up to 2 friendly units to base.",
+    "variantNumber": "OGS-011",
+    "type": "Spell",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Garen, Commander",
+    "description": "Other friendly units have +1 [Might] here.",
+    "variantNumber": "OGS-013",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 6,
+    "power": 1,
+    "might": 5,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Garen",
+      "Elite",
+      "Demacia"
+    ]
+  },
+  {
+    "name": "Garen, Might of Demacia",
+    "description": "When you conquer, if you have 4+ units at that battlefield, draw 2.",
+    "variantNumber": "OGS-023",
+    "type": "Legend",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Body",
+      "Order"
+    ],
+    "tags": [
+      "Garen"
+    ]
+  },
+  {
+    "name": "Garen, Rugged",
+    "description": "[Assault 2], [Shield 2] (+2 [Might] while I'm an attacker or defender.)",
+    "variantNumber": "OGS-007",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 6,
+    "power": 1,
+    "might": 5,
+    "colors": [
+      "Body"
+    ],
+    "tags": [
+      "Garen",
+      "Elite",
+      "Demacia"
+    ]
+  },
+  {
+    "name": "Gentlemen's Duel",
+    "description": "[Action] (Play on your turn or in showdowns.)\nGive a friendly unit +3 [Might] this turn. Then, choose an enemy unit. They deal damage equal to their Mights to each other.",
+    "variantNumber": "OGS-008",
+    "type": "Spell",
+    "super": null,
+    "energy": 6,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Body"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Highlander",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[Reaction] (Play any time, even before spells and abilities\nresolve.)\nChoose a friendly unit. The next time it dies this turn, heal\nit, exhaust it, and recall it instead. (Send it to base. This\nisn't a move.)",
+    "variantNumber": "OGS-020",
+    "type": "Spell",
+    "super": "Signature",
+    "energy": 4,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Body",
+      "Calm"
+    ],
+    "tags": [
+      "Master Yi"
+    ]
+  },
+  {
+    "name": "Incinerate",
+    "description": "[ACTION] (play on your turn or in showdowns.) \nDeal 2 to a unit at a battlefield.",
+    "variantNumber": "OGS-003",
+    "type": "Spell",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Fury"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Lux, Crownguard",
+    "description": "[Tap]: [REACTION] - [ADD] [2] Use only to play spells. (Abilities that add resources can't be reacted to.)",
+    "variantNumber": "OGS-014",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 4,
+    "power": 0,
+    "might": 2,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Lux",
+      "Demacia"
+    ]
+  },
+  {
+    "name": "Lux, Illuminated",
+    "description": "When you play a spell that costs [5] or more, give me +3 [Might] this turn.",
+    "variantNumber": "OGS-006",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 6,
+    "power": 1,
+    "might": 5,
+    "colors": [
+      "Mind"
+    ],
+    "tags": [
+      "Lux",
+      "Demacia"
+    ]
+  },
+  {
+    "name": "Lux, Lady of Luminosity",
+    "description": "When you play a spell that costs [5] or more, draw a 1.",
+    "variantNumber": "OGS-021",
+    "type": "Legend",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Order",
+      "Mind"
+    ],
+    "tags": [
+      "Lux"
+    ]
+  },
+  {
+    "name": "Master Yi, Honed",
+    "description": "[GANKING] (I can move from battlefield to battlefield.)\nI enter ready.",
+    "variantNumber": "OGS-009",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 7,
+    "power": 1,
+    "might": 6,
+    "colors": [
+      "Body"
+    ],
+    "tags": [
+      "Master Yi",
+      "Ionia"
+    ]
+  },
+  {
+    "name": "Master Yi, Meditative",
+    "description": "While you have 8+ runes, I have +4 [Might].",
+    "variantNumber": "OGS-004",
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 5,
+    "power": 1,
+    "might": 4,
+    "colors": [
+      "Calm"
+    ],
+    "tags": [
+      "Master Yi",
+      "Ionia"
+    ]
+  },
+  {
+    "name": "Master Yi, Wuju Bladesman",
+    "description": "While a friendly unit defends alone, it gets +2 [Might].",
+    "variantNumber": "OGS-019",
+    "type": "Legend",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Body",
+      "Calm"
+    ],
+    "tags": [
+      "Master Yi"
+    ]
+  },
+  {
+    "name": "Recruit the Vanguard",
+    "description": "[ACTION] (Play on your turn or in showdowns.)\nPlay four 1 [Might] Recruit unit tokens. (They can be played to your base or to battlefields you control.)",
+    "variantNumber": "OGS-015",
+    "type": "Spell",
+    "super": null,
+    "energy": 6,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Order"
+    ],
+    "tags": []
+  },
+  {
+    "name": "Tibbers",
+    "description": "When you play me, deal 3 damage to all units at battlefields.",
+    "variantNumber": "OGS-018",
+    "type": "Unit",
+    "super": "Signature",
+    "energy": 8,
+    "power": 2,
+    "might": 7,
+    "colors": [
+      "Fury",
+      "Chaos"
+    ],
+    "tags": [
+      "Annie"
+    ]
+  },
+  {
+    "name": "Vanguard Attendant",
+    "description": "I enter ready.",
+    "variantNumber": "OGS-016",
+    "type": "Unit",
+    "super": null,
+    "energy": 6,
+    "power": 1,
+    "might": 5,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Demacia",
+      "Elite"
+    ]
+  },
+  {
+    "name": "Zephyr Sage",
+    "description": "[SHIELD] (+1 [Might] while I'm a defender.)",
+    "variantNumber": "OGS-005",
+    "type": "Unit",
+    "super": null,
+    "energy": 6,
+    "power": 1,
+    "might": 6,
+    "colors": [
+      "Calm"
+    ],
+    "tags": [
+      "Bird",
+      "Ionia"
+    ]
+  }
+]
