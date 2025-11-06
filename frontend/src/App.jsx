@@ -152,9 +152,12 @@ function App() {
       // Store the card being dragged and its position
       const cardBeingDragged = sideDeck[index];
       
-      // Remove card from side deck immediately when picked up (set to null)
-      const newSideDeck = [...sideDeck];
-      newSideDeck[index] = null;
+      // Remove card from side deck immediately when picked up (shift cards down)
+      const newSideDeck = sideDeck.filter((_, i) => i !== index);
+      // Pad to 8 with nulls to maintain array length
+      while (newSideDeck.length < 8) {
+        newSideDeck.push(null);
+      }
       setSideDeck(newSideDeck);
       
       setIsDragging(true);
@@ -272,7 +275,19 @@ function App() {
         
         if (isDraggingFromSideDeck) {
           // Dropping within side deck - reorder (always allowed)
+          // Card is already removed from sideDeck, so newSideDeck has it removed
+          // dropIndex is already the correct position in the shifted array
+          // Insert at dropIndex (which inserts before the element at that position)
           newSideDeck.splice(dropIndex, 0, draggedCard);
+          
+          // Ensure array is exactly 8 elements (it should already be padded)
+          while (newSideDeck.length > 8) {
+            newSideDeck.pop();
+          }
+          while (newSideDeck.length < 8) {
+            newSideDeck.push(null);
+          }
+          
           setSideDeck(newSideDeck);
         } else {
           // Dropping from main deck or other source into side deck
@@ -376,7 +391,17 @@ function App() {
             if (dragIndex !== null && dragIndex < 8) {
               setSideDeck(prevSideDeck => {
                 const newSideDeck = [...prevSideDeck];
-                newSideDeck[dragIndex] = oldCard;
+                // Insert at the original position, adjusting for the fact that card was already removed
+                const insertIndex = dragIndex;
+                // Remove any null at that position if there is one, then insert
+                newSideDeck.splice(insertIndex, 0, oldCard);
+                // Ensure array is exactly 8 elements
+                while (newSideDeck.length > 8) {
+                  newSideDeck.pop();
+                }
+                while (newSideDeck.length < 8) {
+                  newSideDeck.push(null);
+                }
                 return newSideDeck;
               });
             }
@@ -407,7 +432,15 @@ function App() {
               if (dragIndex !== null && dragIndex < 8) {
                 setSideDeck(prevSideDeck => {
                   const newSideDeck = [...prevSideDeck];
-                  newSideDeck[dragIndex] = draggedCard;
+                  // Insert at the original position
+                  newSideDeck.splice(dragIndex, 0, draggedCard);
+                  // Ensure array is exactly 8 elements
+                  while (newSideDeck.length > 8) {
+                    newSideDeck.pop();
+                  }
+                  while (newSideDeck.length < 8) {
+                    newSideDeck.push(null);
+                  }
                   return newSideDeck;
                 });
               }
@@ -465,7 +498,15 @@ function App() {
               if (dragIndex !== null && dragIndex < 8) {
                 setSideDeck(prevSideDeck => {
                   const newSideDeck = [...prevSideDeck];
-                  newSideDeck[dragIndex] = draggedCard;
+                  // Insert at the original position
+                  newSideDeck.splice(dragIndex, 0, draggedCard);
+                  // Ensure array is exactly 8 elements
+                  while (newSideDeck.length > 8) {
+                    newSideDeck.pop();
+                  }
+                  while (newSideDeck.length < 8) {
+                    newSideDeck.push(null);
+                  }
                   return newSideDeck;
                 });
               }
@@ -498,7 +539,15 @@ function App() {
             if (dragIndex !== null && dragIndex < 8) {
               setSideDeck(prevSideDeck => {
                 const newSideDeck = [...prevSideDeck];
-                newSideDeck[dragIndex] = draggedCard;
+                // Insert at the original position
+                newSideDeck.splice(dragIndex, 0, draggedCard);
+                // Ensure array is exactly 8 elements
+                while (newSideDeck.length > 8) {
+                  newSideDeck.pop();
+                }
+                while (newSideDeck.length < 8) {
+                  newSideDeck.push(null);
+                }
                 return newSideDeck;
               });
             }
