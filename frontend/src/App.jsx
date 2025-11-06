@@ -8,6 +8,15 @@ function App() {
     return cardsData.find(card => card.variantNumber === variantNumber);
   };
   
+  // Function to get card image URL - easily changeable for different image sources
+  const getCardImageUrl = (cardId) => {
+    if (!cardId) return '';
+    // Current source: Riftmana
+    // Change this function to use different image sources as needed
+    return `https://cdn.piltoverarchive.com/cards/${cardId}.webp`
+    return `https://riftmana.com/wp-content/uploads/Cards/${cardId}.webp`;
+  };
+  
   const initialLegend = "OGN-247";
 
   // Initial deck with 40 cards
@@ -68,7 +77,27 @@ function App() {
   const [selectedCard, setSelectedCard] = useState(legendCard || "OGN-247");
   
   // Dark mode state
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
+  
+  // Search Panel state
+  const [searchFilters, setSearchFilters] = useState({
+    cardName: '',
+    cardText: '',
+    cardType: '',
+    cardColor: '',
+    energyMin: '',
+    energyMax: '',
+    powerMin: '',
+    powerMax: '',
+    mightMin: '',
+    mightMax: ''
+  });
+  const [searchResults, setSearchResults] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isDraggingFromSearch, setIsDraggingFromSearch] = useState(false);
+  const [sortOrder, setSortOrder] = useState('A-Z');
+  const [sortDescending, setSortDescending] = useState(false);
   
   // Drag and drop state
   const [draggedCard, setDraggedCard] = useState(null);
@@ -79,6 +108,205 @@ function App() {
   const [isDraggingFromBattlefield, setIsDraggingFromBattlefield] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  
+  // Deck validation state
+  const [deckValidation, setDeckValidation] = useState({
+    isValid: false,
+    messages: []
+  });
+  
+  // Modal state
+  const [modal, setModal] = useState({
+    isOpen: false,
+    type: 'notification', // 'notification' or 'confirmation'
+    title: '',
+    message: '',
+    onConfirm: null,
+    onCancel: null
+  });
+  
+  // Show notification modal (OK button only)
+  const showNotification = (title, message) => {
+    return new Promise((resolve) => {
+      setModal({
+        isOpen: true,
+        type: 'notification',
+        title,
+        message,
+        onConfirm: () => {
+          setModal({ isOpen: false, type: 'notification', title: '', message: '', onConfirm: null, onCancel: null });
+          resolve(true);
+        },
+        onCancel: null
+      });
+    });
+  };
+  
+  // Show confirmation modal (Confirm/Cancel buttons)
+  const showConfirmation = (title, message) => {
+    return new Promise((resolve) => {
+      setModal({
+        isOpen: true,
+        type: 'confirmation',
+        title,
+        message,
+        onConfirm: () => {
+          setModal({ isOpen: false, type: 'confirmation', title: '', message: '', onConfirm: null, onCancel: null });
+          resolve(true);
+        },
+        onCancel: () => {
+          setModal({ isOpen: false, type: 'confirmation', title: '', message: '', onConfirm: null, onCancel: null });
+          resolve(false);
+        }
+      });
+    });
+  };
+  
+  // Handle backdrop click (outside modal)
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      if (modal.type === 'notification') {
+        // Clicking outside notification = OK
+        modal.onConfirm?.();
+      } else {
+        // Clicking outside confirmation = Cancel
+        modal.onCancel?.();
+      }
+    }
+  };
+  
+  // Validate deck based on rules
+  const validateDeck = () => {
+    const messages = [];
+    let isValid = true;
+    
+    // Rule 1: Legend is 1/1
+    if (!legendCard) {
+      messages.push("Legend is missing (must be 1/1)");
+      isValid = false;
+    } else {
+      messages.push("✓ Legend is 1/1");
+    }
+    
+    // Rule 2: Battlefields are 3/3
+    if (battlefields.length !== 3) {
+      messages.push(`Battlefields are ${battlefields.length}/3 (must be exactly 3)`);
+      isValid = false;
+    } else {
+      messages.push("✓ Battlefields are 3/3");
+    }
+    
+    // Rule 3: Main deck is 40/40
+    const mainDeckCount = mainDeck.filter(c => c).length + (chosenChampion ? 1 : 0);
+    if (mainDeckCount !== 40) {
+      messages.push(`Main deck is ${mainDeckCount}/40 (must be exactly 40)`);
+      isValid = false;
+    } else {
+      messages.push("✓ Main deck is 40/40");
+    }
+    
+    // Rule 4: Main and side deck cards' colors must be subset of legend's colors
+    const legendData = getCardDetails(legendCard);
+    const legendColors = legendData?.colors || [];
+    
+    if (legendCard && legendColors.length > 0) {
+      const allDeckCards = [...mainDeck.filter(c => c), ...sideDeck.filter(c => c)];
+      if (chosenChampion) {
+        allDeckCards.push(chosenChampion);
+      }
+      
+      let invalidColorCards = [];
+      for (const cardId of allDeckCards) {
+        const cardData = getCardDetails(cardId);
+        if (cardData && cardData.colors && cardData.colors.length > 0) {
+          // Check if any color in the card is not in legend's colors
+          const hasInvalidColor = cardData.colors.some(color => !legendColors.includes(color));
+          if (hasInvalidColor) {
+            invalidColorCards.push(cardData.name || cardId);
+          }
+        }
+      }
+      
+      if (invalidColorCards.length > 0) {
+        messages.push(`Cards with invalid colors: ${invalidColorCards.slice(0, 5).join(", ")}${invalidColorCards.length > 5 ? "..." : ""}`);
+        isValid = false;
+      } else {
+        messages.push("✓ All cards' colors are valid (subset of legend's colors)");
+      }
+    } else if (!legendCard) {
+      messages.push("Cannot validate colors: Legend is missing");
+      isValid = false;
+    } else {
+      messages.push("✓ Legend has no colors to validate");
+    }
+    
+    // Rule 5: Chosen champion and legend share a Tag
+    if (chosenChampion && legendCard) {
+      const championData = getCardDetails(chosenChampion);
+      const championTags = championData?.tags || [];
+      const legendTags = legendData?.tags || [];
+      
+      const sharedTags = championTags.filter(tag => legendTags.includes(tag));
+      
+      if (sharedTags.length === 0) {
+        messages.push(`Champion and Legend do not share any tags`);
+        isValid = false;
+      } else {
+        messages.push(`✓ Champion and Legend share tag(s): ${sharedTags.join(", ")}`);
+      }
+    } else {
+      if (!chosenChampion) {
+        messages.push("Cannot validate tag sharing: Champion is missing");
+      }
+      if (!legendCard) {
+        messages.push("Cannot validate tag sharing: Legend is missing");
+      }
+      if (!chosenChampion || !legendCard) {
+        isValid = false;
+      }
+    }
+    
+    // Rule 6: No more than 3 copies of any individual card across main and side
+    const cardCounts = {};
+    const allCards = [...mainDeck.filter(c => c), ...sideDeck.filter(c => c)];
+    if (chosenChampion) {
+      allCards.push(chosenChampion);
+    }
+    
+    for (const cardId of allCards) {
+      cardCounts[cardId] = (cardCounts[cardId] || 0) + 1;
+    }
+    
+    const exceedingCards = Object.entries(cardCounts)
+      .filter(([cardId, count]) => count > 3)
+      .map(([cardId]) => {
+        const cardData = getCardDetails(cardId);
+        return cardData?.name || cardId;
+      });
+    
+    if (exceedingCards.length > 0) {
+      messages.push(`Cards exceeding 3 copies: ${exceedingCards.slice(0, 5).join(", ")}${exceedingCards.length > 5 ? "..." : ""}`);
+      isValid = false;
+    } else {
+      messages.push("✓ No card exceeds 3 copies");
+    }
+    
+    // Rule 7: Chosen champion exists
+    if (!chosenChampion) {
+      messages.push("Chosen champion is missing");
+      isValid = false;
+    } else {
+      messages.push("✓ Chosen champion exists");
+    }
+    
+    setDeckValidation({ isValid, messages });
+  };
+  
+  // Update validation whenever deck changes
+  useEffect(() => {
+    validateDeck();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [legendCard, battlefields, mainDeck, sideDeck, chosenChampion]);
   const [containerScale, setContainerScale] = useState(1);
   
   // Toggle dark mode
@@ -121,6 +349,36 @@ function App() {
   // Handle mouse down: start dragging from main deck
   const handleMouseDown = (e, index) => {
     if (e.button === 0 && mainDeck[index]) { // Left mouse button
+      if (e.shiftKey) {
+        // Shift + left-click: Move to side deck if there's room
+        e.preventDefault();
+        const cardId = mainDeck[index];
+        const currentSideDeckCount = sideDeck.filter(c => c).length;
+        
+        // Count copies excluding the one we're moving from main deck
+        const mainDeckCopies = mainDeck.filter(id => id === cardId).length - 1; // Exclude the one we're moving
+        const championCopies = (chosenChampion === cardId) ? 1 : 0;
+        const sideDeckCopies = sideDeck.filter(id => id === cardId).length;
+        const totalCopyCountAfterMove = mainDeckCopies + championCopies + sideDeckCopies + 1; // +1 for the new position in side deck
+        
+        if (currentSideDeckCount < 8 && totalCopyCountAfterMove <= 3) {
+          // Remove from main deck
+          const newMainDeck = mainDeck.filter((_, i) => i !== index);
+          setMainDeck(newMainDeck);
+          
+          // Add to side deck
+          const newSideDeck = [...sideDeck];
+          const emptyIndex = newSideDeck.findIndex(c => !c);
+          if (emptyIndex !== -1) {
+            newSideDeck[emptyIndex] = cardId;
+          } else {
+            newSideDeck.push(cardId);
+          }
+          setSideDeck(compactSideDeck(newSideDeck));
+        }
+        return; // Don't start dragging
+      }
+      
       e.preventDefault(); // Prevent text selection and default drag behavior
       
       // Use viewport coordinates - this is what position: fixed uses
@@ -142,6 +400,29 @@ function App() {
   // Handle mouse down: start dragging from side deck
   const handleSideDeckMouseDown = (e, index) => {
     if (e.button === 0 && sideDeck[index]) { // Left mouse button
+      if (e.shiftKey) {
+        // Shift + left-click: Move to main deck if there's room
+        e.preventDefault();
+        const cardId = sideDeck[index];
+        const totalCards = mainDeck.length + (chosenChampion ? 1 : 0);
+        
+        // Count copies excluding the one we're moving from side deck
+        const mainDeckCopies = mainDeck.filter(id => id === cardId).length;
+        const championCopies = (chosenChampion === cardId) ? 1 : 0;
+        const sideDeckCopies = sideDeck.filter(id => id === cardId).length - 1; // Exclude the one we're moving
+        const totalCopyCountAfterMove = mainDeckCopies + championCopies + sideDeckCopies + 1; // +1 for the new position in main deck
+        
+        if (totalCards < 40 && totalCopyCountAfterMove <= 3) {
+          // Remove from side deck
+          const newSideDeck = sideDeck.filter((_, i) => i !== index);
+          setSideDeck(compactSideDeck(newSideDeck));
+          
+          // Add to main deck
+          setMainDeck(prev => [...prev, cardId]);
+        }
+        return; // Don't start dragging
+      }
+      
       e.preventDefault(); // Prevent text selection and default drag behavior
       
       setMousePosition({ 
@@ -154,11 +435,8 @@ function App() {
       
       // Remove card from side deck immediately when picked up (shift cards down)
       const newSideDeck = sideDeck.filter((_, i) => i !== index);
-      // Pad to 8 with nulls to maintain array length
-      while (newSideDeck.length < 8) {
-        newSideDeck.push(null);
-      }
-      setSideDeck(newSideDeck);
+      // Compact and pad to 8 with nulls
+      setSideDeck(compactSideDeck(newSideDeck));
       
       setIsDragging(true);
       setDraggedCard(cardBeingDragged);
@@ -188,6 +466,297 @@ function App() {
     }
   };
   
+  // Handle mouse down: start dragging from search results
+  const handleSearchResultMouseDown = (e, cardId) => {
+    if (e.button === 0 && cardId) { // Left mouse button
+      e.preventDefault();
+      
+      setMousePosition({ 
+        x: e.clientX, 
+        y: e.clientY 
+      });
+      
+      setIsDragging(true);
+      setDraggedCard(cardId);
+      setDragIndex(null);
+      setIsDraggingFromSearch(true);
+    } else if (e.shiftKey) {
+      // Prevent text selection when shift is held
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
+  
+  // Handle search result context menu (right-click)
+  const handleSearchResultContext = (e, cardId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const cardData = getCardDetails(cardId);
+    const cardType = cardData?.type;
+    
+    // Legends and Battlefields can't go to main/side deck, so shift+right-click does nothing
+    if (e.shiftKey) {
+      if (cardType === 'Legend' || cardType === 'Battlefield') {
+        return; // Do nothing for legends/battlefields on shift+right-click
+      }
+      // Shift + right-click: Add to side deck (for non-Legend/Battlefield cards)
+      const currentSideDeckCount = sideDeck.filter(c => c).length;
+      const totalCopyCount = countTotalCardCopies(cardId);
+      if (cardId && currentSideDeckCount < 8 && totalCopyCount < 3) {
+        const newSideDeck = [...sideDeck];
+        // Find first empty slot or add to end
+        const emptyIndex = newSideDeck.findIndex(c => !c);
+        if (emptyIndex !== -1) {
+          newSideDeck[emptyIndex] = cardId;
+        } else {
+          newSideDeck.push(cardId);
+        }
+        // Ensure array is exactly 8 elements
+        while (newSideDeck.length > 8) {
+          newSideDeck.pop();
+        }
+        while (newSideDeck.length < 8) {
+          newSideDeck.push(null);
+        }
+        setSideDeck(newSideDeck);
+      }
+    } else {
+      // Right-click handling
+      if (cardType === 'Legend') {
+        // Right-click on Legend: Add to legend slot if empty
+        if (!legendCard) {
+          setLegendCard(cardId);
+        }
+      } else if (cardType === 'Battlefield') {
+        // Right-click on Battlefield: Add to battlefield slot if there's room (max 3) and not already present
+        if (battlefields.length < 3 && !battlefields.includes(cardId)) {
+          setBattlefields([...battlefields, cardId]);
+        }
+      } else {
+        // Right-click: Add to main deck (for non-Legend/Battlefield cards)
+        const totalCards = mainDeck.length + (chosenChampion ? 1 : 0);
+        const totalCopyCount = countTotalCardCopies(cardId);
+        if (cardId && totalCards < 40 && totalCopyCount < 3) {
+          setMainDeck(prev => [...prev, cardId]);
+        }
+      }
+    }
+  };
+  
+  // Helper function to get color square emoji
+  const getColorCircle = (color) => {
+    const colorMap = {
+      "Calm": "🟩",
+      "Body": "🟧",
+      "Mind": "🟦",
+      "Fury": "🟥",
+      "Order": "🟨",
+      "Chaos": "🟪"
+    };
+    return colorMap[color] || "";
+  };
+
+  // Helper function to get legend colors display
+  const getLegendColorsDisplay = () => {
+    if (!legendCard) {
+      return "Legend Colors";
+    }
+    const legendData = getCardDetails(legendCard);
+    const colors = legendData?.colors || [];
+    const circles = colors.map(color => getColorCircle(color)).join("");
+    return `Legend Colors ${circles}`;
+  };
+
+  // Helper function to convert wildcard pattern to regex
+  const wildcardToRegex = (pattern) => {
+    const escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regexStr = escaped.replace(/\*/g, '.*');
+    return new RegExp(regexStr, 'i');
+  };
+
+  // Handle search function
+  const handleSearch = () => {
+    // Filter cards based on search criteria
+    const filtered = cardsData.filter(card => {
+      // Exclude Rune cards from all search results
+      if (card.type === 'Rune') {
+        return false;
+      }
+      
+      // Exclude Token cards (cards with super === "Token")
+      if (card.super === 'Token') {
+        return false;
+      }
+      
+      // Exclude Legends and Battlefields if Energy or Power filters have values
+      if ((searchFilters.energyMin || searchFilters.energyMax || searchFilters.powerMin || searchFilters.powerMax) && 
+          (card.type === 'Legend' || card.type === 'Battlefield')) {
+        return false;
+      }
+      
+      // Exclude Legends, Battlefields, Gears, and Spells if Might filters have values
+      if ((searchFilters.mightMin || searchFilters.mightMax) && 
+          (card.type === 'Legend' || card.type === 'Battlefield' || card.type === 'Gear' || card.type === 'Spell')) {
+        return false;
+      }
+      
+      // Card Name filter with wildcard support
+      if (searchFilters.cardName) {
+        const namePattern = wildcardToRegex(searchFilters.cardName);
+        if (!namePattern.test(card.name || '')) {
+          return false;
+        }
+      }
+      
+      // Card Text filter (description) with wildcard support
+      if (searchFilters.cardText) {
+        const textPattern = wildcardToRegex(searchFilters.cardText);
+        if (!textPattern.test(card.description || '')) {
+          return false;
+        }
+      }
+      
+      // Card Type filter
+      if (searchFilters.cardType) {
+        if (searchFilters.cardType === 'Champion') {
+          // Champion filter: must be Unit type with super === "Champion"
+          if (card.type !== 'Unit' || card.super !== 'Champion') {
+            return false;
+          }
+        } else {
+          // Other types: match type exactly
+          if (card.type !== searchFilters.cardType) {
+            return false;
+          }
+        }
+      }
+      
+      // Card Color filter (skip if Battlefield)
+      if (searchFilters.cardColor && searchFilters.cardType !== 'Battlefield') {
+        if (searchFilters.cardColor === "Legend Colors") {
+          // Get legend colors from current legend in deck
+          const legendData = getCardDetails(legendCard);
+          const legendColors = legendData?.colors || [];
+          
+          // Match if card's colors are a subset of legend's colors (no colors outside legend)
+          if (!card.colors || card.colors.length === 0) {
+            return false;
+          }
+          // Check that every color in the card is in the legend's colors
+          if (!card.colors.every(color => legendColors.includes(color))) {
+            return false;
+          }
+        } else {
+          // Regular color filter
+          if (!card.colors || !card.colors.includes(searchFilters.cardColor)) {
+            return false;
+          }
+        }
+      }
+      
+      // Energy range filter (skip if Legend or Battlefield)
+      if (searchFilters.cardType !== 'Legend' && searchFilters.cardType !== 'Battlefield') {
+        const energy = card.energy || 0;
+        if (searchFilters.energyMin && energy < parseInt(searchFilters.energyMin)) {
+          return false;
+        }
+        if (searchFilters.energyMax && energy > parseInt(searchFilters.energyMax)) {
+          return false;
+        }
+      }
+      
+      // Power range filter (skip if Legend or Battlefield)
+      if (searchFilters.cardType !== 'Legend' && searchFilters.cardType !== 'Battlefield') {
+        const power = card.power || 0;
+        if (searchFilters.powerMin && power < parseInt(searchFilters.powerMin)) {
+          return false;
+        }
+        if (searchFilters.powerMax && power > parseInt(searchFilters.powerMax)) {
+          return false;
+        }
+      }
+      
+      // Might range filter (skip if Gear, Spell, Legend, or Battlefield)
+      if (searchFilters.cardType !== 'Gear' && searchFilters.cardType !== 'Spell' && searchFilters.cardType !== 'Legend' && searchFilters.cardType !== 'Battlefield') {
+        const might = card.might || 0;
+        if (searchFilters.mightMin && might < parseInt(searchFilters.mightMin)) {
+          return false;
+        }
+        if (searchFilters.mightMax && might > parseInt(searchFilters.mightMax)) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
+    
+    // Sort filtered cards based on sort order
+    const sorted = [...filtered].sort((a, b) => {
+      // Helper function to get color sort value (alphabetical order of first color)
+      const getColorSortValue = (card) => {
+        const colors = card.colors || [];
+        if (colors.length === 0) return 'ZZZ'; // No color cards go to end
+        if (colors.length > 1) return 'ZZY'; // Multiple color cards go to end (after no colors)
+        return colors.sort()[0]; // Single color cards sorted alphabetically
+      };
+      
+      // Primary sort: based on selected sort order
+      let primaryDiff = 0;
+      switch (sortOrder) {
+        case 'Energy':
+          primaryDiff = (a.energy || 0) - (b.energy || 0);
+          break;
+        case 'Power':
+          primaryDiff = (a.power || 0) - (b.power || 0);
+          break;
+        case 'Might':
+          primaryDiff = (a.might || 0) - (b.might || 0);
+          break;
+        case 'Color':
+          primaryDiff = getColorSortValue(a).localeCompare(getColorSortValue(b));
+          break;
+        case 'A-Z':
+          primaryDiff = (a.name || '').localeCompare(b.name || '');
+          break;
+        default:
+          primaryDiff = 0;
+      }
+      
+      if (primaryDiff !== 0) return sortDescending ? -primaryDiff : primaryDiff;
+      
+      // Secondary sort: Energy -> Power -> Alphabetical
+      const energyDiff = (a.energy || 0) - (b.energy || 0);
+      if (energyDiff !== 0) return sortDescending ? -energyDiff : energyDiff;
+      
+      const powerDiff = (a.power || 0) - (b.power || 0);
+      if (powerDiff !== 0) return sortDescending ? -powerDiff : powerDiff;
+      
+      // Tertiary sort: Alphabetical
+      const nameDiff = (a.name || '').localeCompare(b.name || '');
+      return sortDescending ? -nameDiff : nameDiff;
+    });
+    
+    // Store filtered cards (not just variantNumbers) for pagination
+    setSearchResults(sorted);
+    setCurrentPage(1);
+    setTotalPages(Math.ceil(sorted.length / 24)); // 15 cards per page (3x5)
+  };
+  
+  // Handle pagination
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
+  };
+  
+  // Get current page results
+  const getCurrentPageResults = () => {
+    const startIndex = (currentPage - 1) * 24;
+    const endIndex = startIndex + 24;
+    return searchResults.slice(startIndex, endIndex);
+  };
+  
   // Handle mouse move: update drag position
   const handleMouseMove = (e) => {
     if (isDragging) {
@@ -206,6 +775,15 @@ function App() {
     return mainDeck.filter(id => id === cardId).length;
   };
   
+  // Helper function to compact side deck (remove nulls from middle, pad to 8 at end)
+  const compactSideDeck = (deck) => {
+    const nonNulls = deck.filter(c => c !== null);
+    while (nonNulls.length < 8) {
+      nonNulls.push(null);
+    }
+    return nonNulls;
+  };
+
   // Count total copies of a card across main deck (including champion) and side deck
   const countTotalCardCopies = (cardId) => {
     const mainDeckCopies = mainDeck.filter(id => id === cardId).length;
@@ -249,46 +827,144 @@ function App() {
       // Handle dropping onto battlefield slot
       if (battlefieldSlot) {
         const droppedCard = getCardDetails(draggedCard);
+        const cardType = droppedCard?.type;
         
-        if (droppedCard?.type === "Battlefield") {
-          const dropIndex = parseInt(battlefieldSlot.getAttribute('data-battlefield-index'));
-          const newBattlefields = [...battlefields];
-          
-          if (isDraggingFromBattlefield) {
-            // Dropping within battlefield section - reorder
+          // Only Battlefields can go in battlefield slot - do nothing for other types
+        if (cardType !== "Battlefield") {
+          // Restore card if it was dragged from somewhere
+          if (isDraggingFromSearch) {
+            // From search, do nothing (already handled)
+          } else if (isDraggingFromLegend) {
+            setLegendCard(draggedCard);
+          } else if (isDraggingFromSideDeck) {
+            setSideDeck(prev => {
+              const newSideDeck = [...prev];
+              newSideDeck.splice(dragIndex, 0, draggedCard);
+              return compactSideDeck(newSideDeck);
+            });
+          } else if (isDraggingFromChampion) {
+            setChosenChampion(draggedCard);
+          } else if (dragIndex !== null && dragIndex !== undefined) {
+            // Restore to main deck
+            const newMainDeck = [...mainDeck];
+            newMainDeck.splice(dragIndex, 0, draggedCard);
+            setMainDeck(newMainDeck);
+          }
+          // Clear drag state
+          setIsDragging(false);
+          setDraggedCard(null);
+          setDragIndex(null);
+          setIsDraggingFromChampion(false);
+          setIsDraggingFromLegend(false);
+          setIsDraggingFromSideDeck(false);
+          setIsDraggingFromBattlefield(false);
+          setIsDraggingFromSearch(false);
+          setSelectedCard(null);
+          return; // Do nothing, card type can't go here
+        }
+        
+        const dropIndex = parseInt(battlefieldSlot.getAttribute('data-battlefield-index'));
+        const newBattlefields = [...battlefields];
+        
+        if (isDraggingFromSearch) {
+          // Dragged from search results - only add if under 3 battlefields and not already present
+          if (battlefields.length < 3 && !battlefields.includes(draggedCard)) {
+            newBattlefields.splice(dropIndex, 0, draggedCard);
+            setBattlefields(newBattlefields);
+          }
+          // If already at 3 or already present, do nothing
+        } else if (isDraggingFromBattlefield) {
+          // Dropping within battlefield section - reorder (always allowed, max stays 3)
+          newBattlefields.splice(dropIndex, 0, draggedCard);
+          setBattlefields(newBattlefields);
+        } else {
+          // Dropping from another section - only add if under 3 battlefields and not already present
+          if (battlefields.length < 3 && !battlefields.includes(draggedCard)) {
             newBattlefields.splice(dropIndex, 0, draggedCard);
             setBattlefields(newBattlefields);
           } else {
-            // Dropping from another section
-            newBattlefields.splice(dropIndex, 0, draggedCard);
-            setBattlefields(newBattlefields);
+            // If already at 3 or already present, restore card to original location
+            if (isDraggingFromLegend) {
+              setLegendCard(draggedCard);
+            } else if (isDraggingFromSideDeck) {
+              setSideDeck(prev => {
+                const newSideDeck = [...prev];
+                newSideDeck.splice(dragIndex, 0, draggedCard);
+                while (newSideDeck.length > 8) newSideDeck.pop();
+                while (newSideDeck.length < 8) newSideDeck.push(null);
+                return newSideDeck;
+              });
+            } else if (isDraggingFromChampion) {
+              setChosenChampion(draggedCard);
+            } else if (dragIndex !== null && dragIndex !== undefined) {
+              const newMainDeck = [...mainDeck];
+              newMainDeck.splice(dragIndex, 0, draggedCard);
+              setMainDeck(newMainDeck);
+            }
           }
         }
       }
       // Handle dropping onto side deck slot
       else if (sideDeckSlot) {
+        const droppedCard = getCardDetails(draggedCard);
+        const cardType = droppedCard?.type;
+        
+        // Legends and Battlefields can't go to side deck - do nothing
+        if (cardType === 'Legend' || cardType === 'Battlefield') {
+          // Restore card if it was dragged from somewhere
+          if (isDraggingFromLegend) {
+            setLegendCard(draggedCard);
+          } else if (isDraggingFromBattlefield && dragIndex !== null && dragIndex !== undefined) {
+            setBattlefields(prev => {
+              const newBattlefields = [...prev];
+              newBattlefields.splice(dragIndex, 0, draggedCard);
+              return newBattlefields;
+            });
+          } else if (isDraggingFromChampion) {
+            setChosenChampion(draggedCard);
+          } else if (!isDraggingFromSearch && dragIndex !== null && dragIndex !== undefined) {
+            // Restore to main deck
+            const newMainDeck = [...mainDeck];
+            newMainDeck.splice(dragIndex, 0, draggedCard);
+            setMainDeck(newMainDeck);
+          }
+          // Clear drag state
+          setIsDragging(false);
+          setDraggedCard(null);
+          setDragIndex(null);
+          setIsDraggingFromChampion(false);
+          setIsDraggingFromLegend(false);
+          setIsDraggingFromSideDeck(false);
+          setIsDraggingFromBattlefield(false);
+          setIsDraggingFromSearch(false);
+          setSelectedCard(null);
+          return; // Do nothing, card type can't go here
+        }
+        
         const dropIndex = parseInt(sideDeckSlot.getAttribute('data-side-deck-index'));
         const newSideDeck = [...sideDeck];
         
         // Count non-null cards in side deck
         const currentSideDeckCount = sideDeck.filter(c => c).length;
         
-        if (isDraggingFromSideDeck) {
+        if (isDraggingFromSearch) {
+          // Dragged from search results into side deck
+          // Only add if side deck has space and under copy limit - don't swap if full
+          if (currentSideDeckCount < 8) {
+            const totalCopyCount = countTotalCardCopies(draggedCard);
+            if (totalCopyCount < 3) {
+              newSideDeck.splice(dropIndex, 0, draggedCard);
+              setSideDeck(newSideDeck);
+            }
+          }
+          // If side deck is full or too many copies, do nothing (don't add/swaps)
+        } else if (isDraggingFromSideDeck) {
           // Dropping within side deck - reorder (always allowed)
           // Card is already removed from sideDeck, so newSideDeck has it removed
           // dropIndex is already the correct position in the shifted array
           // Insert at dropIndex (which inserts before the element at that position)
           newSideDeck.splice(dropIndex, 0, draggedCard);
-          
-          // Ensure array is exactly 8 elements (it should already be padded)
-          while (newSideDeck.length > 8) {
-            newSideDeck.pop();
-          }
-          while (newSideDeck.length < 8) {
-            newSideDeck.push(null);
-          }
-          
-          setSideDeck(newSideDeck);
+          setSideDeck(compactSideDeck(newSideDeck));
         } else {
           // Dropping from main deck or other source into side deck
           if (currentSideDeckCount >= 8) {
@@ -298,7 +974,7 @@ function App() {
             if (totalCopyCount < 3) {
               const oldCard = newSideDeck[dropIndex];
               newSideDeck[dropIndex] = draggedCard;
-              setSideDeck(newSideDeck);
+              setSideDeck(compactSideDeck(newSideDeck));
               
               // Put the old side deck card back to where it came from
               if (!isDraggingFromSideDeck && !isDraggingFromLegend && !isDraggingFromBattlefield && !isDraggingFromChampion) {
@@ -322,7 +998,7 @@ function App() {
             const totalCopyCount = countTotalCardCopies(draggedCard);
             if (totalCopyCount < 3) {
               newSideDeck.splice(dropIndex, 0, draggedCard);
-              setSideDeck(newSideDeck);
+              setSideDeck(compactSideDeck(newSideDeck));
             }
             // If too many copies, card just doesn't get added
           }
@@ -331,22 +1007,62 @@ function App() {
       // Handle dropping onto legend slot
       else if (legendSlot) {
         const droppedCard = getCardDetails(draggedCard);
+        const cardType = droppedCard?.type;
         
-        if (droppedCard?.type === "Legend") {
-          if (isDraggingFromLegend) {
-            // Dropping the legend back onto itself, just restore it
-            setLegendCard(draggedCard);
-          } else {
-            // Swapping legends - dragging a legend from deck onto legend slot
-            const oldLegend = legendCard;
-            setLegendCard(draggedCard);
-            
-            // Add old legend to deck only if it doesn't already have 3 total copies
-            if (oldLegend) {
-              const legendCopyCount = countTotalCardCopies(oldLegend);
-              if (legendCopyCount < 3) {
-                setMainDeck(prev => [...prev, oldLegend]);
-              }
+        // Only Legends can go in legend slot - do nothing for other types
+        if (cardType !== "Legend") {
+          // Restore card if it was dragged from somewhere
+          if (isDraggingFromSearch) {
+            // From search, do nothing (already handled)
+          } else if (isDraggingFromBattlefield && dragIndex !== null && dragIndex !== undefined) {
+            setBattlefields(prev => {
+              const newBattlefields = [...prev];
+              newBattlefields.splice(dragIndex, 0, draggedCard);
+              return newBattlefields;
+            });
+          } else if (isDraggingFromSideDeck) {
+            setSideDeck(prev => {
+              const newSideDeck = [...prev];
+              newSideDeck.splice(dragIndex, 0, draggedCard);
+              return compactSideDeck(newSideDeck);
+            });
+          } else if (isDraggingFromChampion) {
+            setChosenChampion(draggedCard);
+          } else if (dragIndex !== null && dragIndex !== undefined) {
+            // Restore to main deck
+            const newMainDeck = [...mainDeck];
+            newMainDeck.splice(dragIndex, 0, draggedCard);
+            setMainDeck(newMainDeck);
+          }
+          // Clear drag state
+          setIsDragging(false);
+          setDraggedCard(null);
+          setDragIndex(null);
+          setIsDraggingFromChampion(false);
+          setIsDraggingFromLegend(false);
+          setIsDraggingFromSideDeck(false);
+          setIsDraggingFromBattlefield(false);
+          setIsDraggingFromSearch(false);
+          setSelectedCard(null);
+          return; // Do nothing, card type can't go here
+        }
+        
+        if (isDraggingFromSearch) {
+          // Dragged from search results - just overwrite legend, don't add previous to deck
+          setLegendCard(draggedCard);
+        } else if (isDraggingFromLegend) {
+          // Dropping the legend back onto itself, just restore it
+          setLegendCard(draggedCard);
+        } else {
+          // Swapping legends - dragging a legend from deck onto legend slot
+          const oldLegend = legendCard;
+          setLegendCard(draggedCard);
+          
+          // Add old legend to deck only if it doesn't already have 3 total copies
+          if (oldLegend) {
+            const legendCopyCount = countTotalCardCopies(oldLegend);
+            if (legendCopyCount < 3) {
+              setMainDeck(prev => [...prev, oldLegend]);
             }
           }
         }
@@ -356,7 +1072,24 @@ function App() {
         const droppedCard = getCardDetails(draggedCard);
         
         if (droppedCard?.super === "Champion") {
-          if (isDraggingFromChampion) {
+          if (isDraggingFromSearch) {
+            // Dragged from search results - swap champions
+            const oldChampion = chosenChampion;
+            setChosenChampion(draggedCard);
+            
+            // Add old champion to deck if there's space and under copy limit
+            // Count copies AFTER removing from slot (the old champion is no longer in slot)
+            if (oldChampion) {
+              const mainDeckCopies = mainDeck.filter(id => id === oldChampion).length;
+              const sideDeckCopies = sideDeck.filter(id => id === oldChampion).length;
+              const totalOldChampionCopies = mainDeckCopies + sideDeckCopies; // No longer in slot
+            
+              const totalCards = mainDeck.length + 1; // +1 for the new champion that's now in slot
+              if (totalCards < 40 && totalOldChampionCopies < 3) {
+                setMainDeck(prev => [...prev, oldChampion]);
+              }
+            }
+          } else if (isDraggingFromChampion) {
             // Dropping the champion back onto itself, just restore it
             setChosenChampion(draggedCard);
           } else {
@@ -364,10 +1097,15 @@ function App() {
             const oldChampion = chosenChampion;
             setChosenChampion(draggedCard);
             
-            // Add old champion to deck only if it doesn't already have 3 total copies
+            // Add old champion to deck if there's space and under copy limit
+            // Count copies AFTER removing from slot (the old champion is no longer in slot)
             if (oldChampion) {
-              const championCopyCount = countTotalCardCopies(oldChampion);
-              if (championCopyCount < 3) {
+              const mainDeckCopies = mainDeck.filter(id => id === oldChampion).length;
+              const sideDeckCopies = sideDeck.filter(id => id === oldChampion).length;
+              const totalOldChampionCopies = mainDeckCopies + sideDeckCopies; // No longer in slot
+            
+              const totalCards = mainDeck.length + 1; // +1 for the new champion that's now in slot
+              if (totalCards < 40 && totalOldChampionCopies < 3) {
                 setMainDeck(prev => [...prev, oldChampion]);
               }
             }
@@ -375,10 +1113,58 @@ function App() {
         }
       } else if (cardElement) {
         // Dropped on a card slot in main deck
+        const droppedCard = getCardDetails(draggedCard);
+        const cardType = droppedCard?.type;
+        
+        // Legends and Battlefields can't go to main deck - do nothing
+        if (cardType === 'Legend' || cardType === 'Battlefield') {
+          // Restore card if it was dragged from somewhere
+          if (isDraggingFromLegend) {
+            setLegendCard(draggedCard);
+          } else if (isDraggingFromBattlefield && dragIndex !== null && dragIndex !== undefined) {
+            setBattlefields(prev => {
+              const newBattlefields = [...prev];
+              newBattlefields.splice(dragIndex, 0, draggedCard);
+              return newBattlefields;
+            });
+          } else if (isDraggingFromSideDeck) {
+            setSideDeck(prev => {
+              const newSideDeck = [...prev];
+              newSideDeck.splice(dragIndex, 0, draggedCard);
+              return compactSideDeck(newSideDeck);
+            });
+          } else if (isDraggingFromChampion) {
+            setChosenChampion(draggedCard);
+          }
+          // Clear drag state
+          setIsDragging(false);
+          setDraggedCard(null);
+          setDragIndex(null);
+          setIsDraggingFromChampion(false);
+          setIsDraggingFromLegend(false);
+          setIsDraggingFromSideDeck(false);
+          setIsDraggingFromBattlefield(false);
+          setIsDraggingFromSearch(false);
+          setSelectedCard(null);
+          return; // Do nothing, card type can't go here
+        }
+        
         const dropIndex = parseInt(cardElement.getAttribute('data-card-index'));
         const newDeck = [...mainDeck];
         
-        if (isDraggingFromSideDeck) {
+        if (isDraggingFromSearch) {
+          // Dragged from search results - check copy limit and deck size
+          const totalCards = newDeck.length + (chosenChampion ? 1 : 0);
+          const totalCopyCount = countTotalCardCopies(draggedCard);
+          
+          // Only add if deck has space and under copy limit - don't swap if full
+          if (totalCards < 40 && totalCopyCount < 3) {
+            // Main deck has space, insert the card
+            newDeck.splice(dropIndex, 0, draggedCard);
+            setMainDeck(newDeck);
+          }
+          // If deck is full or too many copies, do nothing (don't add/swaps)
+        } else if (isDraggingFromSideDeck) {
           // Dragged from side deck - check if it would exceed 40 cards
           const totalCards = newDeck.length + (chosenChampion ? 1 : 0);
           if (totalCards >= 40) {
@@ -395,14 +1181,7 @@ function App() {
                 const insertIndex = dragIndex;
                 // Remove any null at that position if there is one, then insert
                 newSideDeck.splice(insertIndex, 0, oldCard);
-                // Ensure array is exactly 8 elements
-                while (newSideDeck.length > 8) {
-                  newSideDeck.pop();
-                }
-                while (newSideDeck.length < 8) {
-                  newSideDeck.push(null);
-                }
-                return newSideDeck;
+                return compactSideDeck(newSideDeck);
               });
             }
           } else {
@@ -421,11 +1200,7 @@ function App() {
                     newSideDeck.push(prevSideDeck[i]);
                   }
                 }
-                // Pad to 8 with nulls
-                while (newSideDeck.length < 8) {
-                  newSideDeck.push(null);
-                }
-                return newSideDeck;
+                return compactSideDeck(newSideDeck);
               });
             } else {
               // Too many copies, restore card to side deck
@@ -434,22 +1209,14 @@ function App() {
                   const newSideDeck = [...prevSideDeck];
                   // Insert at the original position
                   newSideDeck.splice(dragIndex, 0, draggedCard);
-                  // Ensure array is exactly 8 elements
-                  while (newSideDeck.length > 8) {
-                    newSideDeck.pop();
-                  }
-                  while (newSideDeck.length < 8) {
-                    newSideDeck.push(null);
-                  }
-                  return newSideDeck;
+                  return compactSideDeck(newSideDeck);
                 });
               }
             }
           }
         } else if (isDraggingFromLegend) {
-          // Dragged from legend slot - add to deck
-          newDeck.splice(dropIndex, 0, draggedCard);
-          setMainDeck(newDeck);
+          // Dragged from legend slot - legends can't go to main deck, restore to legend slot
+          setLegendCard(draggedCard);
         } else if (isDraggingFromChampion) {
           // Dragged from champion slot
           // Check if champion already has 3 copies total (main + side + champion)
@@ -473,7 +1240,14 @@ function App() {
         // Check if dropped in the grid area
         const gridElement = elementBelow?.closest('[data-is-grid]');
         if (gridElement) {
-          if (isDraggingFromSideDeck) {
+          if (isDraggingFromSearch) {
+            // Add to end of deck, but check copy limit and deck size
+            const totalCards = mainDeck.length + (chosenChampion ? 1 : 0);
+            const totalCopyCount = countTotalCardCopies(draggedCard);
+            if (totalCards < 40 && totalCopyCount < 3) {
+              setMainDeck([...mainDeck, draggedCard]);
+            }
+          } else if (isDraggingFromSideDeck) {
             // Add to end of deck, but check copy limit and deck size
             const totalCards = mainDeck.length + (chosenChampion ? 1 : 0);
             const totalCopyCount = countTotalCardCopies(draggedCard);
@@ -500,23 +1274,13 @@ function App() {
                   const newSideDeck = [...prevSideDeck];
                   // Insert at the original position
                   newSideDeck.splice(dragIndex, 0, draggedCard);
-                  // Ensure array is exactly 8 elements
-                  while (newSideDeck.length > 8) {
-                    newSideDeck.pop();
-                  }
-                  while (newSideDeck.length < 8) {
-                    newSideDeck.push(null);
-                  }
-                  return newSideDeck;
+                  return compactSideDeck(newSideDeck);
                 });
               }
             }
           } else if (isDraggingFromLegend) {
-            // Add to end of deck - check copy limit
-            const totalCopyCount = countTotalCardCopies(draggedCard);
-            if (totalCopyCount < 3) {
-              setMainDeck([...mainDeck, draggedCard]);
-            }
+            // Legends can't go to main deck - restore to legend slot
+            setLegendCard(draggedCard);
           } else if (isDraggingFromChampion) {
             // Add to end of deck - check copy limit
             const totalCopyCount = countTotalCardCopies(draggedCard);
@@ -552,11 +1316,8 @@ function App() {
               });
             }
           } else if (isDraggingFromLegend) {
-            // If dragging legend outside, add to end of deck - check copy limit
-            const totalCopyCount = countTotalCardCopies(draggedCard);
-            if (totalCopyCount < 3) {
-              setMainDeck([...mainDeck, draggedCard]);
-            }
+            // Legends can't go to main deck - restore to legend slot
+            setLegendCard(draggedCard);
           } else if (isDraggingFromChampion) {
             // If dragging champion outside, add to end of deck - check copy limit
             const totalCopyCount = countTotalCardCopies(draggedCard);
@@ -576,6 +1337,7 @@ function App() {
       setIsDraggingFromLegend(false);
       setIsDraggingFromSideDeck(false);
       setIsDraggingFromBattlefield(false);
+      setIsDraggingFromSearch(false);
     }
   };
   
@@ -598,6 +1360,41 @@ function App() {
     return () => window.removeEventListener('resize', updateScale);
   }, []);
 
+  // Auto-disable/reset filters based on card type
+  useEffect(() => {
+    if (searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield') {
+      // Disable and reset Energy and Power filters for Legend/Battlefield
+      setSearchFilters(prev => ({
+        ...prev,
+        energyMin: '',
+        energyMax: '',
+        powerMin: '',
+        powerMax: ''
+      }));
+    }
+  }, [searchFilters.cardType]);
+
+  useEffect(() => {
+    if (searchFilters.cardType === 'Gear' || searchFilters.cardType === 'Spell' || searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield') {
+      // Disable and reset Might filter for Gear/Spell/Legend/Battlefield
+      setSearchFilters(prev => ({
+        ...prev,
+        mightMin: '',
+        mightMax: ''
+      }));
+    }
+  }, [searchFilters.cardType]);
+
+  useEffect(() => {
+    if (searchFilters.cardType === 'Battlefield') {
+      // Disable and reset Color filter for Battlefield
+      setSearchFilters(prev => ({
+        ...prev,
+        cardColor: ''
+      }));
+    }
+  }, [searchFilters.cardType]);
+
   // Global mouse event listeners for dragging
   useEffect(() => {
     if (isDragging) {
@@ -615,11 +1412,12 @@ function App() {
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDragging, draggedCard, isDraggingFromChampion, isDraggingFromLegend, isDraggingFromSideDeck, chosenChampion, mainDeck]);
+  }, [isDragging, draggedCard, isDraggingFromChampion, isDraggingFromLegend, isDraggingFromSideDeck, isDraggingFromBattlefield, isDraggingFromSearch, chosenChampion, mainDeck]);
   
   // Handle right-click: remove card or add card (with Shift)
   const handleCardContext = (e, index) => {
     e.preventDefault();
+    e.stopPropagation();
     
     if (e.shiftKey) {
       // Shift + right-click: Add a copy of the card at this position
@@ -640,6 +1438,7 @@ function App() {
   // Handle right-click: remove card or add card (with Shift) for side deck
   const handleSideDeckContext = (e, index) => {
     e.preventDefault();
+    e.stopPropagation();
     
     if (e.shiftKey) {
       // Shift + right-click: Add a copy of the card at this position
@@ -648,12 +1447,12 @@ function App() {
       if (cardId && sideDeck.filter(c => c).length < 8 && currentTotalCount < 3) {
         const newSideDeck = [...sideDeck];
         newSideDeck.splice(index, 0, cardId);
-        setSideDeck(newSideDeck);
+        setSideDeck(compactSideDeck(newSideDeck));
       }
     } else {
       // Right-click: Remove the card
       const newSideDeck = sideDeck.filter((_, i) => i !== index);
-      setSideDeck(newSideDeck);
+      setSideDeck(compactSideDeck(newSideDeck));
     }
   };
   
@@ -682,7 +1481,7 @@ function App() {
       if (cardId && sideDeck.filter(c => c).length < 8 && currentTotalCount < 3) {
         const newSideDeck = [...sideDeck];
         newSideDeck.splice(index, 0, cardId);
-        setSideDeck(newSideDeck);
+        setSideDeck(compactSideDeck(newSideDeck));
       }
     }
   };
@@ -691,8 +1490,17 @@ function App() {
   const handleChampionContext = (e) => {
     e.preventDefault();
     if (chosenChampion) {
-      // Remove champion and auto-fill
-      autoFillChampion();
+      if (e.shiftKey) {
+        // Shift + right-click: Add a copy to the main deck
+        const totalCards = mainDeck.length + (chosenChampion ? 1 : 0);
+        const totalCopyCount = countTotalCardCopies(chosenChampion);
+        if (totalCards < 40 && totalCopyCount < 3) {
+          setMainDeck(prev => [...prev, chosenChampion]);
+        }
+      } else {
+        // Right-click: Remove champion and auto-fill
+        autoFillChampion();
+      }
     }
   };
   
@@ -713,11 +1521,7 @@ function App() {
   const handleLegendContext = (e) => {
     e.preventDefault();
     if (legendCard) {
-      // Remove legend from slot (add back to deck if not already there)
-      const legendCount = mainDeck.filter(id => id === legendCard).length;
-      if (legendCount < 3) {
-        setMainDeck(prev => [...prev, legendCard]);
-      }
+      // Remove legend from slot - just clear it, don't add to deck
       setLegendCard(null);
     }
   };
@@ -776,7 +1580,13 @@ function App() {
     };
     
     const sortedMainDeck = [...mainDeck].sort(sortCompare);
-    const sortedSideDeck = [...sideDeck].sort(sortCompare);
+    // Filter out nulls, sort, then pad to 8 with nulls at the end
+    const sortedSideDeck = [...sideDeck]
+      .filter(c => c !== null)
+      .sort(sortCompare);
+    while (sortedSideDeck.length < 8) {
+      sortedSideDeck.push(null);
+    }
     
     setMainDeck(sortedMainDeck);
     setSideDeck(sortedSideDeck);
@@ -804,7 +1614,13 @@ function App() {
     };
     
     const sortedMainDeck = [...mainDeck].sort(sortCompare);
-    const sortedSideDeck = [...sideDeck].sort(sortCompare);
+    // Filter out nulls, sort, then pad to 8 with nulls at the end
+    const sortedSideDeck = [...sideDeck]
+      .filter(c => c !== null)
+      .sort(sortCompare);
+    while (sortedSideDeck.length < 8) {
+      sortedSideDeck.push(null);
+    }
     
     setMainDeck(sortedMainDeck);
     setSideDeck(sortedSideDeck);
@@ -868,6 +1684,22 @@ function App() {
     }
   };
   
+  // Handle clear deck
+  const handleClearDeck = async () => {
+    const confirmed = await showConfirmation(
+      'Clear Deck',
+      'Are you sure you want to clear the deck? This will remove all cards from the legend, main deck, battlefields, and side deck.'
+    );
+    
+    if (confirmed) {
+      setLegendCard(null);
+      setChosenChampion(null);
+      setMainDeck([]);
+      setBattlefields([]);
+      setSideDeck(compactSideDeck([]));
+    }
+  };
+  
   // Handle import deck from clipboard
   const handleImportDeck = async () => {
     try {
@@ -894,7 +1726,7 @@ function App() {
       const foundValidCards = parsedCards.some(cardId => getCardDetails(cardId) !== undefined);
       
       if (parsedCards.length === 0 || !foundValidCards) {
-        alert('Invalid deck in clipboard');
+        await showNotification('Invalid Deck', 'Invalid deck in clipboard');
         return;
       }
       
@@ -1038,11 +1870,14 @@ function App() {
       // Side deck - up to 8 cards
       setSideDeck(sideDeckCards.slice(0, 8));
       
-      alert(`Deck imported successfully!\nLegend: ${legendCard ? 'Yes' : 'No'}\nMain: ${mainDeckCards.length}\nBattlefields: ${battlefieldCards.length}\nRunes: ${runeCards.length}\nSide: ${sideDeckCards.length}`);
+      await showNotification(
+        'Deck Imported',
+        `Deck imported successfully!\nLegend: ${legendCard ? 'Yes' : 'No'}\nMain: ${mainDeckCards.length}\nBattlefields: ${battlefieldCards.length}\nRunes: ${runeCards.length}\nSide: ${sideDeckCards.length}`
+      );
       
     } catch (error) {
       console.error('Error importing deck:', error);
-      alert('Failed to import deck. Please ensure clipboard contains valid deck format.');
+      await showNotification('Import Failed', 'Failed to import deck. Please ensure clipboard contains valid deck format.');
     }
   };
   
@@ -1052,11 +1887,11 @@ function App() {
         {/* Content is sized in pixels based on 1920x1080 reference */}
         <div className={`w-[1920px] h-[1080px] flex ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
         {/* Left Panel - 20% (384px) */}
-        <div className={`w-[384px] h-full border-r-2 flex flex-col p-4 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-blue-50 border-gray-300'}`}>
+        <div className={`w-[384px] h-full border-r-2 flex flex-col px-4 py-4 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-blue-50 border-gray-300'}`}>
           {/* Card Image - auto height */}
           <div className="w-full flex-shrink-0 mb-2">
             <img 
-              src={`https://riftmana.com/wp-content/uploads/Cards/${selectedCard}.webp`}
+              src={getCardImageUrl(selectedCard)}
               alt={`Card ${selectedCard}`}
               className="w-full object-contain"
               style={{ aspectRatio: '515/719' }}
@@ -1121,7 +1956,9 @@ function App() {
                 <button className="py-1 px-2 rounded text-[11px] font-medium bg-red-600 text-white shadow-md hover:bg-red-700 active:bg-red-800 transition-colors">
                   Delete Deck
                 </button>
-                <button className="py-1 px-2 rounded text-[11px] font-medium bg-red-600 text-white shadow-md hover:bg-red-700 active:bg-red-800 transition-colors">
+                <button 
+                  onClick={handleClearDeck}
+                  className="py-1 px-2 rounded text-[11px] font-medium bg-red-600 text-white shadow-md hover:bg-red-700 active:bg-red-800 transition-colors">
                   Clear Deck
                 </button>
 
@@ -1171,11 +2008,30 @@ function App() {
           {/* Main Deck - 60% height */}
           <div className={`flex-[0.6] border-2 rounded p-4 min-h-0 flex flex-col ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-blue-100 border-gray-400'}`}>
             {/* Header row with stats and controls */}
-            <div className="mb-4 flex items-center justify-between px-2">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <span className={`text-[14px] font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-700'}`}>Main Deck:</span>
-                  <span className={`text-[14px] ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{mainDeck.filter(c => c).length + (chosenChampion ? 1 : 0)}/40</span>
+            <div className="mb-4 flex items-center justify-between px-2 relative">
+              <div className="flex items-center gap-2">
+                <span className={`text-[14px] font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-700'}`}>Main Deck:</span>
+                <span className={`text-[14px] ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{mainDeck.filter(c => c).length + (chosenChampion ? 1 : 0)}/40</span>
+              </div>
+              {/* Deck Validation Indicator - Centered */}
+              <div className="absolute left-1/2 transform -translate-x-1/2">
+                <div className="relative group">
+                  <div className="flex items-center gap-2 cursor-help">
+                    <span className="text-lg">{deckValidation.isValid ? "✅" : "❌"}</span>
+                    <span className={`text-[14px] font-medium ${deckValidation.isValid ? 'text-green-600' : 'text-red-600'}`}>
+                      {deckValidation.isValid ? "Valid" : "Invalid"}
+                    </span>
+                  </div>
+                  {/* Tooltip */}
+                  <div className={`absolute left-1/2 transform -translate-x-1/2 top-full mt-2 z-50 w-64 p-3 rounded shadow-lg border-2 ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-400'} opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity`}>
+                    <div className="text-sm space-y-1">
+                      {deckValidation.messages.map((msg, idx) => (
+                        <div key={idx} className={msg.startsWith("✓") ? 'text-green-600' : 'text-red-600'}>
+                          {msg.startsWith("✓") ? "• " : "• "}{msg.replace("✓ ", "")}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -1201,12 +2057,17 @@ function App() {
             </div>
             
             {/* Card grid */}
-            <div className="flex-1 grid grid-cols-10 gap-1 min-h-0" data-is-grid>
+            <div 
+              className="flex-1 grid grid-cols-10 gap-1 min-h-0" 
+              data-is-grid
+              style={{ gridTemplateRows: 'repeat(4, minmax(0, 1fr))' }}
+            >
               {/* Champion slot (index 0) */}
               <div 
                 key="champion"
                 data-champion-slot
                 className={`rounded border-2 flex items-center justify-center overflow-hidden cursor-pointer transition-colors ${isDarkMode ? 'bg-gray-700 border-yellow-600 hover:border-yellow-500' : 'bg-yellow-100 border-yellow-600 hover:border-yellow-700'}`}
+                style={{ aspectRatio: '515/685' }}
                 onMouseDown={handleChampionMouseDown}
                 onMouseEnter={() => chosenChampion && setSelectedCard(chosenChampion)}
                 onContextMenu={handleChampionContext}
@@ -1214,7 +2075,7 @@ function App() {
               >
                 {chosenChampion ? (
                   <img
-                    src={`https://riftmana.com/wp-content/uploads/Cards/${chosenChampion}.webp`}
+                    src={getCardImageUrl(chosenChampion)}
                     alt={`Chosen Champion ${chosenChampion}`}
                     className="w-[92%] object-contain pointer-events-none"
                     style={{ aspectRatio: '515/719' }}
@@ -1231,7 +2092,8 @@ function App() {
                   <div 
                     key={index}
                     data-card-index={index}
-                    className={`rounded border flex items-center justify-center overflow-hidden cursor-pointer transition-colors ${isDarkMode ? 'bg-gray-700 border-gray-600 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`}
+                    className={`rounded border flex items-center justify-center overflow-hidden cursor-pointer transition-colors select-none ${isDarkMode ? 'bg-gray-700 border-gray-600 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`}
+                    style={{ aspectRatio: '515/685' }}
                     onMouseDown={(e) => cardId && handleMouseDown(e, index)}
                     onMouseEnter={() => cardId && setSelectedCard(cardId)}
                     onContextMenu={(e) => cardId && handleCardContext(e, index)}
@@ -1239,7 +2101,7 @@ function App() {
                   >
                     {cardId ? (
                       <img
-                        src={`https://riftmana.com/wp-content/uploads/Cards/${cardId}.webp`}
+                        src={getCardImageUrl(cardId)}
                         alt={`Card ${cardId} slot ${index + 1}`}
                         className="w-[92%] object-contain pointer-events-none"
                         style={{ aspectRatio: '515/719' }}
@@ -1271,7 +2133,7 @@ function App() {
               >
                 {legendCard ? (
                   <img
-                    src={`https://riftmana.com/wp-content/uploads/Cards/${legendCard}.webp`}
+                    src={getCardImageUrl(legendCard)}
                     alt={`Legend ${legendCard}`}
                     className="w-full h-full object-contain pointer-events-none"
                   />
@@ -1357,7 +2219,7 @@ function App() {
                         >
                           {cardId ? (
                             <img
-                              src={`https://riftmana.com/wp-content/uploads/Cards/${cardId}.webp`}
+                              src={getCardImageUrl(cardId)}
                               alt={`Battlefield ${cardId}`}
                               className="w-[116%] h-[116%] object-contain pointer-events-none"
                               style={{ transform: 'rotate(90deg)' }}
@@ -1378,7 +2240,7 @@ function App() {
                     {/* Rune A slot */}
                     <div className="flex flex-col items-center justify-start flex-1 h-full">
                       <div 
-                        className={`rounded border flex items-center justify-center overflow-hidden mb-1 w-full max-w-[85px] cursor-pointer transition-colors ${isDarkMode ? 'bg-gray-700 border-gray-600 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`} 
+                        className={`rounded border flex items-center justify-center overflow-hidden mb-1 w-full max-w-[80px] cursor-pointer transition-colors ${isDarkMode ? 'bg-gray-700 border-gray-600 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`} 
                         style={{ aspectRatio: '515/719' }}
                         onMouseEnter={() => {
                           const { runeA } = getRuneCards();
@@ -1389,7 +2251,7 @@ function App() {
                           const { runeA } = getRuneCards();
                           return runeA ? (
                             <img
-                              src={`https://riftmana.com/wp-content/uploads/Cards/${runeA}.webp`}
+                              src={getCardImageUrl(runeA)}
                               alt="Rune A"
                               className="w-[92%] object-contain pointer-events-none"
                               style={{ aspectRatio: '515/719' }}
@@ -1421,7 +2283,7 @@ function App() {
                     {/* Rune B slot */}
                     <div className="flex flex-col items-center justify-start flex-1 h-full">
                       <div 
-                        className={`rounded border flex items-center justify-center overflow-hidden mb-1 w-full max-w-[85px] cursor-pointer transition-colors ${isDarkMode ? 'bg-gray-700 border-gray-600 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`} 
+                        className={`rounded border flex items-center justify-center overflow-hidden mb-1 w-full max-w-[80px] cursor-pointer transition-colors ${isDarkMode ? 'bg-gray-700 border-gray-600 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`} 
                         style={{ aspectRatio: '515/719' }}
                         onMouseEnter={() => {
                           const { runeB } = getRuneCards();
@@ -1432,7 +2294,7 @@ function App() {
                           const { runeB } = getRuneCards();
                           return runeB ? (
                             <img
-                              src={`https://riftmana.com/wp-content/uploads/Cards/${runeB}.webp`}
+                              src={getCardImageUrl(runeB)}
                               alt="Rune B"
                               className="w-[92%] object-contain pointer-events-none"
                               style={{ aspectRatio: '515/719' }}
@@ -1459,18 +2321,19 @@ function App() {
                       <div 
                         key={index}
                         data-side-deck-index={index}
-                        className={`rounded border flex items-center justify-center overflow-hidden cursor-pointer transition-colors ${isDarkMode ? 'bg-gray-700 border-gray-600 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`}
+                        className={`rounded border flex items-center justify-center overflow-hidden cursor-pointer transition-colors select-none ${isDarkMode ? 'bg-gray-700 border-gray-600 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`}
                         onMouseDown={(e) => cardId && handleSideDeckMouseDown(e, index)}
                         onMouseEnter={() => cardId && setSelectedCard(cardId)}
                         onContextMenu={(e) => cardId && handleSideDeckContext(e, index)}
                         onAuxClick={(e) => cardId && handleSideDeckMiddleClick(e, index)}
+                        style={{ aspectRatio: '515/685' }}
                       >
                         {cardId ? (
                           <img
-                            src={`https://riftmana.com/wp-content/uploads/Cards/${cardId}.webp`}
+                            src={getCardImageUrl(cardId)}
                             alt={`Side Deck Card ${cardId} slot ${index + 1}`}
                             className="w-[92%] object-contain pointer-events-none"
-                            style={{ aspectRatio: '515/719' }}
+                style={{ aspectRatio: '515/685' }}
                           />
                         ) : (
                           <div className={`${isDarkMode ? 'text-gray-500' : 'text-gray-400'} text-[20px]`}>+</div>
@@ -1484,11 +2347,267 @@ function App() {
           </div>
         </div>
 
-        {/* Right Panel - 20% (384px) */}
-        <div className={`w-[384px] h-full border-l-2 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-purple-50 border-gray-300'}`}>
-          <div className="p-8 text-center">
-            <h2 className={`text-[48px] font-bold mb-4 ${isDarkMode ? 'text-gray-100' : 'text-gray-700'}`}>Search Panel</h2>
-            <p className={`text-[18px] ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>To be implemented</p>
+        {/* Right Panel - Search Panel - 20% (384px) */}
+        <div className={`w-[384px] h-full border-l-2 flex flex-col px-4 py-4 gap-4 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-purple-50 border-gray-300'}`}>
+          {/* Filter Box */}
+          <div className={`border-2 rounded p-3 flex flex-col gap-2 ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-400'}`}>
+            {/* Card Name */}
+            <div className="flex flex-col">
+              <label className={`text-[11px] font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Card Name</label>
+              <input
+                type="text"
+                value={searchFilters.cardName}
+                onChange={(e) => setSearchFilters({...searchFilters, cardName: e.target.value})}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSearch();
+                  }
+                }}
+                className={`w-full px-2 py-1 text-[11px] rounded border ${isDarkMode ? 'bg-gray-600 border-gray-500 text-gray-100' : 'bg-white border-gray-300 text-gray-800'}`}
+                placeholder="Search by name..."
+              />
+            </div>
+            
+            {/* Card Text */}
+            <div className="flex flex-col">
+              <label className={`text-[11px] font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Card Text</label>
+              <input
+                type="text"
+                value={searchFilters.cardText}
+                onChange={(e) => setSearchFilters({...searchFilters, cardText: e.target.value})}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSearch();
+                  }
+                }}
+                className={`w-full px-2 py-1 text-[11px] rounded border ${isDarkMode ? 'bg-gray-600 border-gray-500 text-gray-100' : 'bg-white border-gray-300 text-gray-800'}`}
+                placeholder="Search in description..."
+              />
+            </div>
+            
+            {/* Card Type and Color - Same line */}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="flex flex-col">
+                <label className={`text-[11px] font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Card Type</label>
+                <select
+                  value={searchFilters.cardType}
+                  onChange={(e) => setSearchFilters({...searchFilters, cardType: e.target.value})}
+                  className={`w-full px-2 py-1 text-[11px] rounded border ${isDarkMode ? 'bg-gray-600 border-gray-500 text-gray-100' : 'bg-white border-gray-300 text-gray-800'}`}
+                >
+                  <option value="">All Types</option>
+                  <option value="Unit">Unit</option>
+                  <option value="Spell">Spell</option>
+                  <option value="Legend">Legend</option>
+                  <option value="Battlefield">Battlefield</option>
+                  <option value="Champion">Champion</option>
+                  <option value="Gear">Gear</option>
+                </select>
+              </div>
+              <div className="flex flex-col">
+                <label className={`text-[11px] font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Card Color</label>
+                <select
+                  value={searchFilters.cardColor}
+                  onChange={(e) => setSearchFilters({...searchFilters, cardColor: e.target.value})}
+                  disabled={searchFilters.cardType === 'Battlefield'}
+                  className={`w-full px-2 py-1 text-[11px] rounded border ${isDarkMode ? 'bg-gray-600 border-gray-500 text-gray-100' : 'bg-white border-gray-300 text-gray-800'} ${searchFilters.cardType === 'Battlefield' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  <option value="">All Colors</option>
+                  <option value="Legend Colors">{getLegendColorsDisplay()}</option>
+                  <option value="Calm">Calm 🟩</option>
+                  <option value="Body">Body 🟧</option>
+                  <option value="Mind">Mind 🟦</option>
+                  <option value="Fury">Fury 🟥</option>
+                  <option value="Order">Order 🟨</option>
+                  <option value="Chaos">Chaos 🟪</option>
+                </select>
+              </div>
+            </div>
+            
+            {/* Energy and Power range filters - Same row */}
+            <div className="grid grid-cols-2 gap-2">
+              {/* Energy Range */}
+              <div className="flex flex-col">
+                <label className={`text-[11px] font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Energy</label>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    value={searchFilters.energyMin}
+                    onChange={(e) => setSearchFilters({...searchFilters, energyMin: e.target.value})}
+                    disabled={searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield'}
+                    className={`w-12 px-1 py-1 text-[10px] rounded border ${isDarkMode ? 'bg-gray-600 border-gray-500 text-gray-100' : 'bg-white border-gray-300 text-gray-800'} ${(searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield') ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    placeholder="Min"
+                  />
+                  <span className={`text-[10px] ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>≤</span>
+                  <span className={`text-[10px] ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Energy</span>
+                  <span className={`text-[10px] ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>≤</span>
+                  <input
+                    type="number"
+                    value={searchFilters.energyMax}
+                    onChange={(e) => setSearchFilters({...searchFilters, energyMax: e.target.value})}
+                    disabled={searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield'}
+                    className={`w-12 px-1 py-1 text-[10px] rounded border ${isDarkMode ? 'bg-gray-600 border-gray-500 text-gray-100' : 'bg-white border-gray-300 text-gray-800'} ${(searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield') ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    placeholder="Max"
+                  />
+                </div>
+              </div>
+              
+              {/* Power Range */}
+              <div className="flex flex-col">
+                <label className={`text-[11px] font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Power</label>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    value={searchFilters.powerMin}
+                    onChange={(e) => setSearchFilters({...searchFilters, powerMin: e.target.value})}
+                    disabled={searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield'}
+                    className={`w-12 px-1 py-1 text-[10px] rounded border ${isDarkMode ? 'bg-gray-600 border-gray-500 text-gray-100' : 'bg-white border-gray-300 text-gray-800'} ${(searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield') ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    placeholder="Min"
+                  />
+                  <span className={`text-[10px] ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>≤</span>
+                  <span className={`text-[10px] ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Power</span>
+                  <span className={`text-[10px] ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>≤</span>
+                  <input
+                    type="number"
+                    value={searchFilters.powerMax}
+                    onChange={(e) => setSearchFilters({...searchFilters, powerMax: e.target.value})}
+                    disabled={searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield'}
+                    className={`w-12 px-1 py-1 text-[10px] rounded border ${isDarkMode ? 'bg-gray-600 border-gray-500 text-gray-100' : 'bg-white border-gray-300 text-gray-800'} ${(searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield') ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    placeholder="Max"
+                  />
+                </div>
+              </div>
+            </div>
+            
+            {/* Might range and Sort Order - Same line */}
+            <div className="flex items-end gap-2">
+              <div className="flex flex-col">
+                <label className={`text-[11px] font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Might</label>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    value={searchFilters.mightMin}
+                    onChange={(e) => setSearchFilters({...searchFilters, mightMin: e.target.value})}
+                    disabled={searchFilters.cardType === 'Gear' || searchFilters.cardType === 'Spell' || searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield'}
+                    className={`w-12 px-1 py-1 text-[10px] rounded border ${isDarkMode ? 'bg-gray-600 border-gray-500 text-gray-100' : 'bg-white border-gray-300 text-gray-800'} ${(searchFilters.cardType === 'Gear' || searchFilters.cardType === 'Spell' || searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield') ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    placeholder="Min"
+                  />
+                  <span className={`text-[10px] ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>≤</span>
+                  <span className={`text-[10px] ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>Might</span>
+                  <span className={`text-[10px] ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>≤</span>
+                  <input
+                    type="number"
+                    value={searchFilters.mightMax}
+                    onChange={(e) => setSearchFilters({...searchFilters, mightMax: e.target.value})}
+                    disabled={searchFilters.cardType === 'Gear' || searchFilters.cardType === 'Spell' || searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield'}
+                    className={`w-12 px-1 py-1 text-[10px] rounded border ${isDarkMode ? 'bg-gray-600 border-gray-500 text-gray-100' : 'bg-white border-gray-300 text-gray-800'} ${(searchFilters.cardType === 'Gear' || searchFilters.cardType === 'Spell' || searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield') ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    placeholder="Max"
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col flex-1">
+                <label className={`text-[11px] font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Sort Order</label>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={sortOrder}
+                    onChange={(e) => setSortOrder(e.target.value)}
+                    className={`flex-1 px-2 py-1 text-[11px] rounded border ${isDarkMode ? 'bg-gray-600 border-gray-500 text-gray-100' : 'bg-white border-gray-300 text-gray-800'}`}
+                  >
+                    <option value="A-Z">A-Z</option>
+                    <option value="Energy">Energy</option>
+                    <option value="Power">Power</option>
+                    <option value="Might">Might</option>
+                    <option value="Color">Color</option>
+                  </select>
+                  <div className="flex items-center gap-1">
+                    <label htmlFor="sortDesc" className={`text-[10px] ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Desc</label>
+                    <input
+                      type="checkbox"
+                      id="sortDesc"
+                      checked={sortDescending}
+                      onChange={(e) => setSortDescending(e.target.checked)}
+                      className={`w-4 h-4 ${isDarkMode ? 'accent-blue-500' : 'accent-blue-600'}`}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Search button - Full width row */}
+            <div className="w-full">
+              <button
+                onClick={handleSearch}
+                className={`w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-medium rounded shadow-md transition-colors ${isDarkMode ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
+              >
+                Search
+              </button>
+            </div>
+          </div>
+          
+          {/* Results Box */}
+          <div className={`flex-1 border-2 rounded px-3 py-3 flex flex-col min-h-0 ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-400'}`}>
+            {/* Pagination */}
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <button
+                onClick={() => handlePageChange(1)}
+                disabled={currentPage === 1}
+                className={`px-4 py-1 text-[11px] font-medium rounded ${isDarkMode ? 'bg-gray-600 text-gray-300 disabled:bg-gray-700 disabled:text-gray-600' : 'bg-gray-200 text-gray-700 disabled:bg-gray-100 disabled:text-gray-400'} ${currentPage === 1 ? 'cursor-not-allowed' : 'hover:bg-gray-300'}`}
+              >
+                &lt;&lt;
+              </button>
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={`px-4 py-1 text-[11px] font-medium rounded ${isDarkMode ? 'bg-gray-600 text-gray-300 disabled:bg-gray-700 disabled:text-gray-600' : 'bg-gray-200 text-gray-700 disabled:bg-gray-100 disabled:text-gray-400'} ${currentPage === 1 ? 'cursor-not-allowed' : 'hover:bg-gray-300'}`}
+              >
+                &lt;
+              </button>
+              <span className={`text-[11px] font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                {searchResults.length} Results ({currentPage}/{totalPages || 1})
+              </span>
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages || totalPages === 0}
+                className={`px-4 py-1 text-[11px] font-medium rounded ${isDarkMode ? 'bg-gray-600 text-gray-300 disabled:bg-gray-700 disabled:text-gray-600' : 'bg-gray-200 text-gray-700 disabled:bg-gray-100 disabled:text-gray-400'} ${currentPage === totalPages || totalPages === 0 ? 'cursor-not-allowed' : 'hover:bg-gray-300'}`}
+              >
+                &gt;
+              </button>
+              <button
+                onClick={() => handlePageChange(totalPages)}
+                disabled={currentPage === totalPages || totalPages === 0}
+                className={`px-4 py-1 text-[11px] font-medium rounded ${isDarkMode ? 'bg-gray-600 text-gray-300 disabled:bg-gray-700 disabled:text-gray-600' : 'bg-gray-200 text-gray-700 disabled:bg-gray-100 disabled:text-gray-400'} ${currentPage === totalPages || totalPages === 0 ? 'cursor-not-allowed' : 'hover:bg-gray-300'}`}
+              >
+                &gt;&gt;
+              </button>
+            </div>
+            
+            {/* Results Grid - 3 columns x 5 rows */}
+            <div className="flex-1 grid grid-cols-4 gap-2 min-h-0" data-is-search-grid>
+              {Array.from({ length: 24 }).map((_, index) => {
+                const currentResults = getCurrentPageResults();
+                const cardId = currentResults[index]?.variantNumber || null;
+                return (
+                  <div
+                    key={index}
+                    className={`rounded border flex items-center justify-center overflow-hidden cursor-pointer transition-colors select-none ${isDarkMode ? 'bg-gray-600 border-gray-500 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`}
+                    onMouseDown={(e) => cardId && handleSearchResultMouseDown(e, cardId)}
+                    onMouseEnter={() => cardId && setSelectedCard(cardId)}
+                    onContextMenu={(e) => cardId && handleSearchResultContext(e, cardId)}
+                    style={{ aspectRatio: '460/650', padding: '2px' }}
+                  >
+                    {cardId ? (
+                      <img
+                        src={getCardImageUrl(cardId)}
+                        alt={`Search Result ${cardId}`}
+                        className="w-full h-full object-contain pointer-events-none"
+                        style={{ aspectRatio: '460/650' }}
+                      />
+                    ) : (
+                      <div className={`${isDarkMode ? 'text-gray-500' : 'text-gray-400'} text-[14px]`}>+</div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
         
@@ -1517,7 +2636,7 @@ function App() {
             }}
           >
             <img
-              src={`https://riftmana.com/wp-content/uploads/Cards/${draggedCard}.webp`}
+              src={getCardImageUrl(draggedCard)}
               alt={`Dragging ${draggedCard}`}
               style={{
                 ...size,
@@ -1529,6 +2648,66 @@ function App() {
           </div>
         );
       })()}
+      
+      {/* Modal */}
+      {modal.isOpen && (
+        <div 
+          className="fixed inset-0 z-[9999] flex items-center justify-center"
+          onClick={handleBackdropClick}
+        >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black bg-opacity-50" />
+          
+          {/* Modal Content */}
+          <div 
+            className={`relative z-10 w-96 max-w-[90%] rounded-lg shadow-2xl border-2 ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-400'}`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className={`px-6 py-4 border-b ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`}>
+              <h2 className={`text-xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                {modal.title}
+              </h2>
+            </div>
+            
+            {/* Body */}
+            <div className={`px-6 py-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              <div className="whitespace-pre-wrap">{modal.message}</div>
+            </div>
+            
+            {/* Footer */}
+            <div className={`px-6 py-4 border-t flex gap-3 justify-center ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`}>
+              {modal.type === 'confirmation' ? (
+                <>
+                  <button
+                    onClick={modal.onCancel}
+                    className={`px-4 py-2 rounded font-medium transition-colors ${
+                      isDarkMode 
+                        ? 'bg-gray-600 text-gray-200 hover:bg-gray-500' 
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={modal.onConfirm}
+                    className="px-4 py-2 rounded font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                  >
+                    Confirm
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={modal.onConfirm}
+                  className="px-4 py-2 rounded font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                >
+                  Confirm
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
