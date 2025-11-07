@@ -1,6 +1,18 @@
 import { useState, useEffect } from 'react';
 import LayoutContainer from './components/LayoutContainer';
 import cardsData from './data/cards.json';
+import {
+  loadDecks,
+  saveDecks,
+  ensureAtLeastOneDeck,
+  findDeckByNameCI,
+  createDeck,
+  getLastDeckId,
+  setLastDeckId,
+  getTheme,
+  setTheme,
+  validateDeckName
+} from './utils/deckStorage';
 
 function App() {
   // Function to get card details by variant number
@@ -10,33 +22,12 @@ function App() {
   
   // Function to get card image URL - easily changeable for different image sources
   const getCardImageUrl = (cardId) => {
-    if (!cardId) return '';
+    if (!cardId) return 'https://cdn.piltoverarchive.com/Cardback.webp';
     // Current source: Riftmana
     // Change this function to use different image sources as needed
     return `https://cdn.piltoverarchive.com/cards/${cardId}.webp`
     return `https://riftmana.com/wp-content/uploads/Cards/${cardId}.webp`;
   };
-  
-  const initialLegend = "OGN-247";
-
-  // Initial deck with 40 cards
-  const initialDeck = [
-    "OGN-039", "OGN-095", "OGN-095", "OGN-095", "OGN-004", "OGN-004", "OGN-004", "OGN-009", "OGN-009", "OGN-009",
-    "OGN-104", "OGN-104", "OGN-013", "OGN-013", "OGN-103", "OGN-103", "OGN-103", "OGN-029", "OGN-029", "OGN-029",
-    "OGN-093", "OGN-093", "OGN-093", "OGN-096", "OGN-096", "OGN-096", "OGN-087", "OGN-087", "OGN-087", "OGN-024",
-    "OGN-024", "OGN-024", "OGN-012", "OGN-012", "OGN-012", "OGN-027", "OGN-027", "OGN-027", "OGN-116", "OGN-116"
-  ];
-
-  const initialSideDeck = [
-    "OGN-106", "OGN-106", "OGN-106", "OGN-116", "OGN-248", "OGN-248", "OGN-122", "OGN-122"
-  ];
-  
-  const initialBattlefields = [
-    "OGN-289", "OGN-292", "OGN-285"
-  ];
-  
-  const initialRuneACount = 7;
-  const initialRuneBCount = 5;
   
   // Find first champion in the deck to use as chosen champion
   const findFirstChampion = (deck) => {
@@ -49,35 +40,55 @@ function App() {
     return null;
   };
   
-  // Separate state for chosen champion and main deck (39 cards)
-  const [chosenChampion, setChosenChampion] = useState(() => {
-    const firstChampion = findFirstChampion(initialDeck);
-    return firstChampion || initialDeck[0];
-  });
+  // Try to set a card as chosen champion if it's a champion and chosenChampion is null
+  // Returns true if the card was set as champion (and should be removed from mainDeck if adding there)
+  const trySetChampionIfNeeded = (cardId) => {
+    if (!chosenChampion && cardId) {
+      const card = getCardDetails(cardId);
+      if (card?.super === "Champion") {
+        setChosenChampion(cardId);
+        return true;
+      }
+    }
+    return false;
+  };
   
-  const [mainDeck, setMainDeck] = useState(() => {
-    const champion = findFirstChampion(initialDeck);
-    return initialDeck.filter(id => id !== champion);
-  });
+  // Separate state for chosen champion and main deck (39 cards)
+  const [chosenChampion, setChosenChampion] = useState(null);
+  
+  const [mainDeck, setMainDeck] = useState([]);
   
   // Array of 8 card IDs for the side deck (initially empty)
-  const [sideDeck, setSideDeck] = useState(initialSideDeck);
+  const [sideDeck, setSideDeck] = useState([]);
   
   // Array of 3 battlefield cards
-  const [battlefields, setBattlefields] = useState(initialBattlefields);
+  const [battlefields, setBattlefields] = useState([]);
   
   // Rune counts (A and B, must total 12)
-  const [runeACount, setRuneACount] = useState(initialRuneACount);
-  const [runeBCount, setRuneBCount] = useState(initialRuneBCount);
+  const [runeACount, setRuneACount] = useState(0);
+  const [runeBCount, setRuneBCount] = useState(0);
   
   // State for Legend card (separate from champion)
-  const [legendCard, setLegendCard] = useState(initialLegend);
+  const [legendCard, setLegendCard] = useState(null);
   
   // State for the currently hovered/selected card
-  const [selectedCard, setSelectedCard] = useState(legendCard || "OGN-247");
+  const [selectedCard, setSelectedCard] = useState(null);
   
-  // Dark mode state
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  // Dark mode state - initialize from localStorage
+  const [isDarkMode, setIsDarkMode] = useState(() => getTheme() === 'dark');
+  
+  // Deck management state
+  const [decks, setDecks] = useState([]);
+  const [currentDeckId, setCurrentDeckId] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // Name input modal state
+  const [nameModal, setNameModal] = useState({
+    isOpen: false,
+    type: 'new', // 'new', 'saveAs', 'rename'
+    value: '',
+    error: null
+  });
   
   // Search Panel state
   const [searchFilters, setSearchFilters] = useState({
@@ -123,6 +134,12 @@ function App() {
     message: '',
     onConfirm: null,
     onCancel: null
+  });
+  
+  // Export deck modal state
+  const [exportModal, setExportModal] = useState({
+    isOpen: false,
+    deckCode: ''
   });
   
   // Show notification modal (OK button only)
@@ -309,9 +326,308 @@ function App() {
   }, [legendCard, battlefields, mainDeck, sideDeck, chosenChampion]);
   const [containerScale, setContainerScale] = useState(1);
   
-  // Toggle dark mode
+  // Toggle dark mode with persistence
   const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
+    const newMode = !isDarkMode;
+    setIsDarkMode(newMode);
+    setTheme(newMode ? 'dark' : 'light');
+  };
+  
+  // Convert editor state to CardEntry format
+  const getCurrentDeckCards = () => {
+    return {
+      mainDeck: [...mainDeck],
+      chosenChampion: chosenChampion,
+      sideDeck: [...sideDeck.filter(c => c)],
+      battlefields: [...battlefields.filter(c => c)],
+      runeACount: runeACount,
+      runeBCount: runeBCount,
+      legendCard: legendCard
+    };
+  };
+  
+  // Load deck cards into editor state
+  const loadDeckCards = (cards) => {
+    setMainDeck(cards.mainDeck || []);
+    setChosenChampion(cards.chosenChampion || null);
+    setSideDeck(compactSideDeck(cards.sideDeck || []));
+    setBattlefields(cards.battlefields || []);
+    
+    // Normalize rune counts: if they don't total 12, set to 6-6
+    const runeA = cards.runeACount || 0;
+    const runeB = cards.runeBCount || 0;
+    if (runeA + runeB !== 12) {
+      setRuneACount(6);
+      setRuneBCount(6);
+    } else {
+      setRuneACount(runeA);
+      setRuneBCount(runeB);
+    }
+    
+    setLegendCard(cards.legendCard || null);
+  };
+  
+  // Bootstrap: Initialize decks and load last selected deck
+  useEffect(() => {
+    try {
+      // Ensure at least one deck exists
+      let initialDecks = ensureAtLeastOneDeck();
+      setDecks(initialDecks);
+      
+      // Try to load last selected deck
+      const lastId = getLastDeckId();
+      let selectedDeck = null;
+      
+      if (lastId) {
+        selectedDeck = initialDecks.find(d => d.id === lastId);
+      }
+      
+      // If no last deck or not found, use first deck
+      if (!selectedDeck && initialDecks.length > 0) {
+        selectedDeck = initialDecks[0];
+      }
+      
+      if (selectedDeck) {
+        setCurrentDeckId(selectedDeck.id);
+        loadDeckCards(selectedDeck.cards);
+        setLastDeckId(selectedDeck.id);
+        // Set selected card to the legend of the loaded deck (or null if empty)
+        setSelectedCard(selectedDeck.cards.legendCard || null);
+      }
+    } catch (error) {
+      console.error('Error initializing decks:', error);
+      // Reset to single empty deck on error
+      try {
+        const emptyDeck = createDeck('Empty Deck');
+        setDecks([emptyDeck]);
+        setCurrentDeckId(emptyDeck.id);
+        loadDeckCards(emptyDeck.cards);
+        setLastDeckId(emptyDeck.id);
+        // Set selected card to null for empty deck
+        setSelectedCard(null);
+        // Show notification asynchronously to avoid blocking initialization
+        setTimeout(() => {
+          showNotification('Deck Data Reset', 'There was an error loading your decks. A new empty deck has been created.').catch(console.error);
+        }, 100);
+      } catch (fallbackError) {
+        console.error('Critical error during deck initialization:', fallbackError);
+      }
+    }
+  }, []); // Run only on mount
+  
+  // Apply theme on mount
+  useEffect(() => {
+    const theme = getTheme();
+    setIsDarkMode(theme === 'dark');
+    // Apply theme class to document
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+  
+  // Update theme class when isDarkMode changes
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+  
+  // Select a deck
+  const handleSelectDeck = (deckId) => {
+    const deck = decks.find(d => d.id === deckId);
+    if (deck) {
+      setCurrentDeckId(deckId);
+      loadDeckCards(deck.cards);
+      setLastDeckId(deckId);
+      // Set selected card to the legend of the newly loaded deck (or null if empty)
+      setSelectedCard(deck.cards.legendCard || null);
+    }
+  };
+  
+  // Open name modal
+  const openNameModal = (type, initialValue = '') => {
+    setNameModal({
+      isOpen: true,
+      type,
+      value: initialValue,
+      error: null
+    });
+  };
+  
+  // Close name modal
+  const closeNameModal = () => {
+    setNameModal({
+      isOpen: false,
+      type: 'new',
+      value: '',
+      error: null
+    });
+  };
+  
+  // Handle name modal input change
+  const handleNameModalChange = (value) => {
+    setNameModal(prev => ({ ...prev, value, error: null }));
+  };
+  
+  // Handle name modal confirm
+  const handleNameModalConfirm = () => {
+    const trimmed = nameModal.value.trim();
+    const validation = validateDeckName(trimmed, decks, nameModal.type === 'rename' ? currentDeckId : null);
+    
+    if (!validation.valid) {
+      setNameModal(prev => ({ ...prev, error: validation.error }));
+      return;
+    }
+    
+    if (nameModal.type === 'new') {
+      handleNewDeck(validation.normalized);
+    } else if (nameModal.type === 'saveAs') {
+      handleSaveAs(validation.normalized);
+    } else if (nameModal.type === 'rename') {
+      handleRenameDeck(validation.normalized);
+    }
+    
+    closeNameModal();
+  };
+  
+  // New Deck handler
+  const handleNewDeck = (name) => {
+    const newDeck = createDeck(name);
+    const updatedDecks = [...decks, newDeck];
+    setDecks(updatedDecks);
+    saveDecks(updatedDecks);
+    setCurrentDeckId(newDeck.id);
+    loadDeckCards(newDeck.cards);
+    setLastDeckId(newDeck.id);
+    // Set selected card to null for empty deck
+    setSelectedCard(null);
+    showNotification('Deck Created', `Deck "${name}" has been created.`);
+  };
+  
+  // Save Deck handler
+  const handleSaveDeck = async () => {
+    if (!currentDeckId) return;
+    
+    setIsSaving(true);
+    try {
+      const updatedDecks = decks.map(deck => {
+        if (deck.id === currentDeckId) {
+          return {
+            ...deck,
+            cards: getCurrentDeckCards(),
+            updatedAt: new Date().toISOString()
+          };
+        }
+        return deck;
+      });
+      
+      setDecks(updatedDecks);
+      saveDecks(updatedDecks);
+      await showNotification('Deck Saved', 'Deck saved successfully.');
+    } catch (error) {
+      console.error('Error saving deck:', error);
+      await showNotification('Error', 'Failed to save deck.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+  
+  // Save As handler
+  const handleSaveAs = (name) => {
+    if (!currentDeckId) return;
+    
+    const currentDeck = decks.find(d => d.id === currentDeckId);
+    if (!currentDeck) return;
+    
+    const newDeck = {
+      ...createDeck(name),
+      cards: getCurrentDeckCards()
+    };
+    
+    const updatedDecks = [...decks, newDeck];
+    setDecks(updatedDecks);
+    saveDecks(updatedDecks);
+    setCurrentDeckId(newDeck.id);
+    setLastDeckId(newDeck.id);
+    // Set selected card to the legend of the newly saved deck (or null if empty)
+    setSelectedCard(newDeck.cards.legendCard || null);
+    showNotification('Deck Saved As', `Deck saved as "${name}".`);
+  };
+  
+  // Rename Deck handler
+  const handleRenameDeck = (name) => {
+    if (!currentDeckId) return;
+    
+    const updatedDecks = decks.map(deck => {
+      if (deck.id === currentDeckId) {
+        return {
+          ...deck,
+          name,
+          updatedAt: new Date().toISOString()
+        };
+      }
+      return deck;
+    });
+    
+    setDecks(updatedDecks);
+    saveDecks(updatedDecks);
+    showNotification('Deck Renamed', `Deck renamed to "${name}".`);
+  };
+  
+  // Delete Deck handler
+  const handleDeleteDeck = async () => {
+    if (!currentDeckId) return;
+    
+    // Check if only one deck exists
+    if (decks.length === 1) {
+      await showNotification(
+        'Cannot Delete Deck',
+        'You must always have at least one deck. Deleting the last deck is not allowed.'
+      );
+      return;
+    }
+    
+    const currentDeck = decks.find(d => d.id === currentDeckId);
+    if (!currentDeck) return;
+    
+    const confirmed = await showConfirmation(
+      'Delete Deck',
+      `Delete "${currentDeck.name}"?`
+    );
+    
+    if (!confirmed) return;
+    
+    // Find next deck to select
+    const currentIndex = decks.findIndex(d => d.id === currentDeckId);
+    let nextDeck = null;
+    
+    if (currentIndex < decks.length - 1) {
+      // Select next deck
+      nextDeck = decks[currentIndex + 1];
+    } else if (currentIndex > 0) {
+      // Select previous deck
+      nextDeck = decks[currentIndex - 1];
+    }
+    
+    // Remove deck
+    const updatedDecks = decks.filter(d => d.id !== currentDeckId);
+    setDecks(updatedDecks);
+    saveDecks(updatedDecks);
+    
+    // Select next deck
+    if (nextDeck) {
+      setCurrentDeckId(nextDeck.id);
+      loadDeckCards(nextDeck.cards);
+      setLastDeckId(nextDeck.id);
+      // Set selected card to the legend of the newly loaded deck (or null if empty)
+      setSelectedCard(nextDeck.cards.legendCard || null);
+    }
+    
+    showNotification('Deck Deleted', `Deck "${currentDeck.name}" has been deleted.`);
   };
   
   // Handle mouse down from champion slot
@@ -417,8 +733,12 @@ function App() {
           const newSideDeck = sideDeck.filter((_, i) => i !== index);
           setSideDeck(compactSideDeck(newSideDeck));
           
-          // Add to main deck
-          setMainDeck(prev => [...prev, cardId]);
+          // Try to set as champion if it's a champion and chosenChampion is null
+          const wasSetAsChampion = trySetChampionIfNeeded(cardId);
+          // Only add to main deck if it wasn't set as champion
+          if (!wasSetAsChampion) {
+            setMainDeck(prev => [...prev, cardId]);
+          }
         }
         return; // Don't start dragging
       }
@@ -504,6 +824,9 @@ function App() {
       const currentSideDeckCount = sideDeck.filter(c => c).length;
       const totalCopyCount = countTotalCardCopies(cardId);
       if (cardId && currentSideDeckCount < 8 && totalCopyCount < 3) {
+        // Try to set as champion if it's a champion and chosenChampion is null
+        trySetChampionIfNeeded(cardId);
+        
         const newSideDeck = [...sideDeck];
         // Find first empty slot or add to end
         const emptyIndex = newSideDeck.findIndex(c => !c);
@@ -538,7 +861,12 @@ function App() {
         const totalCards = mainDeck.length + (chosenChampion ? 1 : 0);
         const totalCopyCount = countTotalCardCopies(cardId);
         if (cardId && totalCards < 40 && totalCopyCount < 3) {
-          setMainDeck(prev => [...prev, cardId]);
+          // Try to set as champion if it's a champion and chosenChampion is null
+          const wasSetAsChampion = trySetChampionIfNeeded(cardId);
+          // Only add to main deck if it wasn't set as champion
+          if (!wasSetAsChampion) {
+            setMainDeck(prev => [...prev, cardId]);
+          }
         }
       }
     }
@@ -953,6 +1281,9 @@ function App() {
           if (currentSideDeckCount < 8) {
             const totalCopyCount = countTotalCardCopies(draggedCard);
             if (totalCopyCount < 3) {
+              // Try to set as champion if it's a champion and chosenChampion is null
+              trySetChampionIfNeeded(draggedCard);
+              
               newSideDeck.splice(dropIndex, 0, draggedCard);
               setSideDeck(newSideDeck);
             }
@@ -988,8 +1319,10 @@ function App() {
                   setMainDeck([...mainDeck, oldCard]);
                 }
               } else if (isDraggingFromChampion) {
-                // Restore to main deck
+                // Moving champion to side deck - restore old card to main deck and auto-fill champion
                 setMainDeck([...mainDeck, oldCard]);
+                // Auto-fill champion slot with next available champion from deck
+                autoFillChampion();
               }
             }
             // If too many copies, don't swap
@@ -997,6 +1330,14 @@ function App() {
             // Side deck has space, check copy limit before adding
             const totalCopyCount = countTotalCardCopies(draggedCard);
             if (totalCopyCount < 3) {
+              // If moving champion to side deck, auto-fill champion slot
+              if (isDraggingFromChampion) {
+                autoFillChampion();
+              } else {
+                // Try to set as champion if it's a champion and chosenChampion is null
+                trySetChampionIfNeeded(draggedCard);
+              }
+              
               newSideDeck.splice(dropIndex, 0, draggedCard);
               setSideDeck(compactSideDeck(newSideDeck));
             }
@@ -1159,9 +1500,13 @@ function App() {
           
           // Only add if deck has space and under copy limit - don't swap if full
           if (totalCards < 40 && totalCopyCount < 3) {
-            // Main deck has space, insert the card
-            newDeck.splice(dropIndex, 0, draggedCard);
-            setMainDeck(newDeck);
+            // Try to set as champion if it's a champion and chosenChampion is null
+            const wasSetAsChampion = trySetChampionIfNeeded(draggedCard);
+            // Only add to main deck if it wasn't set as champion
+            if (!wasSetAsChampion) {
+              newDeck.splice(dropIndex, 0, draggedCard);
+              setMainDeck(newDeck);
+            }
           }
           // If deck is full or too many copies, do nothing (don't add/swaps)
         } else if (isDraggingFromSideDeck) {
@@ -1188,11 +1533,15 @@ function App() {
             // Main deck has space, check if we can add (max 3 copies total)
             const totalCopyCount = countTotalCardCopies(draggedCard);
             if (totalCopyCount < 3) {
-              // Can add the card
-              newDeck.splice(dropIndex, 0, draggedCard);
-              setMainDeck(newDeck);
+              // Try to set as champion if it's a champion and chosenChampion is null
+              const wasSetAsChampion = trySetChampionIfNeeded(draggedCard);
+              // Only add to main deck if it wasn't set as champion
+              if (!wasSetAsChampion) {
+                newDeck.splice(dropIndex, 0, draggedCard);
+                setMainDeck(newDeck);
+              }
               
-              // Successfully added to main deck, so clean up the null placeholder and shift the array
+              // Successfully added to main deck (or set as champion), so clean up the null placeholder and shift the array
               setSideDeck(prevSideDeck => {
                 const newSideDeck = [];
                 for (let i = 0; i < prevSideDeck.length; i++) {
@@ -1245,14 +1594,24 @@ function App() {
             const totalCards = mainDeck.length + (chosenChampion ? 1 : 0);
             const totalCopyCount = countTotalCardCopies(draggedCard);
             if (totalCards < 40 && totalCopyCount < 3) {
-              setMainDeck([...mainDeck, draggedCard]);
+              // Try to set as champion if it's a champion and chosenChampion is null
+              const wasSetAsChampion = trySetChampionIfNeeded(draggedCard);
+              // Only add to main deck if it wasn't set as champion
+              if (!wasSetAsChampion) {
+                setMainDeck([...mainDeck, draggedCard]);
+              }
             }
           } else if (isDraggingFromSideDeck) {
             // Add to end of deck, but check copy limit and deck size
             const totalCards = mainDeck.length + (chosenChampion ? 1 : 0);
             const totalCopyCount = countTotalCardCopies(draggedCard);
             if (totalCards < 40 && totalCopyCount < 3) {
-              setMainDeck([...mainDeck, draggedCard]);
+              // Try to set as champion if it's a champion and chosenChampion is null
+              const wasSetAsChampion = trySetChampionIfNeeded(draggedCard);
+              // Only add to main deck if it wasn't set as champion
+              if (!wasSetAsChampion) {
+                setMainDeck([...mainDeck, draggedCard]);
+              }
               
               // Clean up side deck
               setSideDeck(prevSideDeck => {
@@ -1684,6 +2043,65 @@ function App() {
     }
   };
   
+  // Handle export deck
+  const handleExportDeck = () => {
+    const deckCodeParts = [];
+    
+    // 1. Legend first (if exists)
+    if (legendCard) {
+      deckCodeParts.push(legendCard);
+    }
+    
+    // 2. Main deck (champion first, then rest of main deck)
+    if (chosenChampion) {
+      deckCodeParts.push(chosenChampion);
+    }
+    const mainDeckCards = mainDeck.filter(c => c !== null);
+    deckCodeParts.push(...mainDeckCards);
+    
+    // 3. Battlefields (0-3)
+    const battlefieldCards = battlefields.filter(c => c !== null);
+    deckCodeParts.push(...battlefieldCards);
+    
+    // 4. Runes (based on runeACount and runeBCount)
+    const { runeA, runeB } = getRuneCards();
+    if (runeA) {
+      for (let i = 0; i < runeACount; i++) {
+        deckCodeParts.push(runeA);
+      }
+    }
+    if (runeB) {
+      for (let i = 0; i < runeBCount; i++) {
+        deckCodeParts.push(runeB);
+      }
+    }
+    
+    // 5. Side deck (0-8)
+    const sideDeckCards = sideDeck.filter(c => c !== null);
+    deckCodeParts.push(...sideDeckCards);
+    
+    const deckCode = deckCodeParts.join(' ');
+    setExportModal({
+      isOpen: true,
+      deckCode
+    });
+  };
+  
+  // Handle copy deck code
+  const handleCopyDeckCode = async () => {
+    const deckCode = exportModal.deckCode;
+    // Close export modal first
+    setExportModal({ isOpen: false, deckCode: '' });
+    
+    try {
+      await navigator.clipboard.writeText(deckCode);
+      await showNotification('Copied', 'Deck code copied to clipboard!');
+    } catch (error) {
+      console.error('Error copying to clipboard:', error);
+      await showNotification('Copy Failed', 'Failed to copy deck code to clipboard.');
+    }
+  };
+  
   // Handle clear deck
   const handleClearDeck = async () => {
     const confirmed = await showConfirmation(
@@ -1697,6 +2115,8 @@ function App() {
       setMainDeck([]);
       setBattlefields([]);
       setSideDeck(compactSideDeck([]));
+      setRuneACount(6);
+      setRuneBCount(6);
     }
   };
   
@@ -1735,8 +2155,8 @@ function App() {
       setMainDeck([]);
       setSideDeck([]);
       setBattlefields([null, null, null]);
-      setRuneACount(0);
-      setRuneBCount(0);
+      setRuneACount(6);
+      setRuneBCount(6);
       setLegendCard(null);
       
       // Parse deck structure:
@@ -1863,8 +2283,18 @@ function App() {
           return card?.colors?.[0] === colors[1];
         }).length;
         
-        setRuneACount(Math.min(newRuneACount, 12));
-        setRuneBCount(Math.min(newRuneBCount, 12));
+        // If total doesn't equal 12, normalize to 6-6
+        if (newRuneACount + newRuneBCount !== 12) {
+          setRuneACount(6);
+          setRuneBCount(6);
+        } else {
+          setRuneACount(Math.min(newRuneACount, 12));
+          setRuneBCount(Math.min(newRuneBCount, 12));
+        }
+      } else {
+        // No legend card, ensure runes are 6-6
+        setRuneACount(6);
+        setRuneBCount(6);
       }
       
       // Side deck - up to 8 cards
@@ -1885,7 +2315,7 @@ function App() {
     <>
       <LayoutContainer isDarkMode={isDarkMode}>
         {/* Content is sized in pixels based on 1920x1080 reference */}
-        <div className={`w-[1920px] h-[1080px] flex ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
+        <div className={`w-[1920px] h-[1080px] flex ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`} data-screenshot-container>
         {/* Left Panel - 20% (384px) */}
         <div className={`w-[384px] h-full border-r-2 flex flex-col px-4 py-4 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-blue-50 border-gray-300'}`}>
           {/* Card Image - auto height */}
@@ -1904,6 +2334,11 @@ function App() {
             <div className={`flex-[0.4] border-2 rounded p-3 overflow-y-auto min-h-0 ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-400'}`}>
               <div className={`text-[18px] leading-relaxed font-serif ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>
                 {(() => {
+                  if (!selectedCard) {
+                    return (
+                      <p className="mb-3 text-[16px] text-gray-500 italic">No card selected</p>
+                    );
+                  }
                   const cardInfo = getCardDetails(selectedCard);
                   if (!cardInfo) {
                     return (
@@ -1948,12 +2383,17 @@ function App() {
                   className="py-1 px-2 rounded text-[11px] font-medium bg-blue-600 text-white shadow-md hover:bg-blue-700 active:bg-blue-800 transition-colors">
                   Import Deck
                 </button>
-                <button className="py-1 px-2 rounded text-[11px] font-medium bg-blue-600 text-white shadow-md hover:bg-blue-700 active:bg-blue-800 transition-colors">
+                <button 
+                  onClick={handleExportDeck}
+                  className="py-1 px-2 rounded text-[11px] font-medium bg-blue-600 text-white shadow-md hover:bg-blue-700 active:bg-blue-800 transition-colors">
                   Export Deck
                 </button>
 
                 {/* Row 2 */}
-                <button className="py-1 px-2 rounded text-[11px] font-medium bg-red-600 text-white shadow-md hover:bg-red-700 active:bg-red-800 transition-colors">
+                <button 
+                  onClick={handleDeleteDeck}
+                  disabled={isSaving}
+                  className={`py-1 px-2 rounded text-[11px] font-medium bg-red-600 text-white shadow-md hover:bg-red-700 active:bg-red-800 transition-colors ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   Delete Deck
                 </button>
                 <button 
@@ -1963,24 +2403,54 @@ function App() {
                 </button>
 
                 {/* Deck Dropdown - spans 2 columns */}
-                <div className="col-span-2 py-1 px-2 rounded text-[11px] font-medium bg-gray-100 text-gray-800 border border-gray-300 shadow-sm flex items-center justify-between cursor-pointer hover:bg-gray-200 transition-colors">
-                  <span>My Deck (default)</span>
-                  <span className="text-gray-500">▼</span>
-                </div>
+                <select
+                  value={currentDeckId || ''}
+                  onChange={(e) => handleSelectDeck(e.target.value)}
+                  className={`col-span-2 py-1 px-2 rounded text-[11px] font-medium border shadow-sm cursor-pointer transition-colors ${
+                    isDarkMode 
+                      ? 'bg-gray-600 border-gray-500 text-gray-100 hover:bg-gray-500' 
+                      : 'bg-gray-100 border-gray-300 text-gray-800 hover:bg-gray-200'
+                  }`}
+                >
+                  {decks.map(deck => (
+                    <option key={deck.id} value={deck.id}>
+                      {deck.name}
+                    </option>
+                  ))}
+                </select>
 
                 {/* Row 3 */}
-                <button className="py-1 px-2 rounded text-[11px] font-medium bg-blue-600 text-white shadow-md hover:bg-blue-700 active:bg-blue-800 transition-colors">
+                <button 
+                  onClick={() => openNameModal('new')}
+                  className="py-1 px-2 rounded text-[11px] font-medium bg-blue-600 text-white shadow-md hover:bg-blue-700 active:bg-blue-800 transition-colors">
                   New Deck
                 </button>
-                <button className="py-1 px-2 rounded text-[11px] font-medium bg-blue-600 text-white shadow-md hover:bg-blue-700 active:bg-blue-800 transition-colors">
+                <button 
+                  onClick={() => {
+                    const currentDeck = decks.find(d => d.id === currentDeckId);
+                    if (currentDeck) {
+                      openNameModal('rename', currentDeck.name);
+                    }
+                  }}
+                  className="py-1 px-2 rounded text-[11px] font-medium bg-blue-600 text-white shadow-md hover:bg-blue-700 active:bg-blue-800 transition-colors">
                   Rename Deck
                 </button>
 
                 {/* Row 4 */}
-                <button className="py-1 px-2 rounded text-[11px] font-medium bg-green-600 text-white shadow-md hover:bg-green-700 active:bg-green-800 transition-colors">
+                <button 
+                  onClick={() => {
+                    const currentDeck = decks.find(d => d.id === currentDeckId);
+                    if (currentDeck) {
+                      openNameModal('saveAs', `Copy of ${currentDeck.name}`);
+                    }
+                  }}
+                  className="py-1 px-2 rounded text-[11px] font-medium bg-green-600 text-white shadow-md hover:bg-green-700 active:bg-green-800 transition-colors">
                   Save As
                 </button>
-                <button className="py-1 px-2 rounded text-[11px] font-medium bg-green-600 text-white shadow-md hover:bg-green-700 active:bg-green-800 transition-colors">
+                <button 
+                  onClick={handleSaveDeck}
+                  disabled={isSaving}
+                  className={`py-1 px-2 rounded text-[11px] font-medium bg-green-600 text-white shadow-md hover:bg-green-700 active:bg-green-800 transition-colors ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   Save Deck
                 </button>
 
@@ -2652,7 +3122,7 @@ function App() {
       {/* Modal */}
       {modal.isOpen && (
         <div 
-          className="fixed inset-0 z-[9999] flex items-center justify-center"
+          className="fixed inset-0 z-[10000] flex items-center justify-center"
           onClick={handleBackdropClick}
         >
           {/* Backdrop */}
@@ -2661,6 +3131,7 @@ function App() {
           {/* Modal Content */}
           <div 
             className={`relative z-10 w-96 max-w-[90%] rounded-lg shadow-2xl border-2 ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-400'}`}
+            style={{ transform: `scale(${containerScale})`, transformOrigin: 'center center' }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -2704,6 +3175,144 @@ function App() {
                   Confirm
                 </button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Export Deck Modal */}
+      {exportModal.isOpen && (
+        <div 
+          className="fixed inset-0 z-[9999] flex items-center justify-center"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setExportModal({ isOpen: false, deckCode: '' });
+            }
+          }}
+        >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black bg-opacity-50" />
+          
+          {/* Modal Content */}
+          <div 
+            className={`relative z-10 w-[600px] max-w-[90%] rounded-lg shadow-2xl border-2 ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-400'}`}
+            style={{ transform: `scale(${containerScale})`, transformOrigin: 'center center' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className={`px-6 py-4 border-b ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`}>
+              <h2 className={`text-xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                Export Deck
+              </h2>
+            </div>
+            
+            {/* Body */}
+            <div className={`px-6 py-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              <textarea
+                readOnly
+                value={exportModal.deckCode}
+                className={`w-full h-48 p-3 rounded border resize-none font-mono text-sm ${isDarkMode ? 'bg-gray-900 border-gray-600 text-gray-200' : 'bg-gray-50 border-gray-300 text-gray-800'}`}
+                onClick={(e) => e.target.select()}
+              />
+            </div>
+            
+            {/* Footer */}
+            <div className={`px-6 py-4 border-t flex gap-3 justify-center ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`}>
+              <button
+                onClick={() => setExportModal({ isOpen: false, deckCode: '' })}
+                className={`px-4 py-2 rounded font-medium transition-colors ${
+                  isDarkMode 
+                    ? 'bg-gray-600 text-gray-200 hover:bg-gray-500' 
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                Close
+              </button>
+              <button
+                onClick={handleCopyDeckCode}
+                className="px-4 py-2 rounded font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+              >
+                Copy
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Name Input Modal */}
+      {nameModal.isOpen && (
+        <div 
+          className="fixed inset-0 z-[9999] flex items-center justify-center"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              closeNameModal();
+            }
+          }}
+        >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black bg-opacity-50" />
+          
+          {/* Modal Content */}
+          <div 
+            className={`relative z-10 w-[400px] max-w-[90%] rounded-lg shadow-2xl border-2 ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-400'}`}
+            style={{ transform: `scale(${containerScale})`, transformOrigin: 'center center' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className={`px-6 py-4 border-b ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`}>
+              <h2 className={`text-xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                {nameModal.type === 'new' ? 'New Deck' : nameModal.type === 'saveAs' ? 'Save As' : 'Rename Deck'}
+              </h2>
+            </div>
+            
+            {/* Body */}
+            <div className={`px-6 py-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                Deck Name
+              </label>
+              <input
+                type="text"
+                value={nameModal.value}
+                onChange={(e) => handleNameModalChange(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleNameModalConfirm();
+                  } else if (e.key === 'Escape') {
+                    closeNameModal();
+                  }
+                }}
+                autoFocus
+                maxLength={64}
+                className={`w-full px-3 py-2 rounded border ${
+                  isDarkMode 
+                    ? 'bg-gray-700 border-gray-600 text-gray-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500' 
+                    : 'bg-white border-gray-300 text-gray-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
+                } ${nameModal.error ? 'border-red-500' : ''}`}
+                placeholder="Enter deck name"
+              />
+              {nameModal.error && (
+                <p className="mt-2 text-sm text-red-500">{nameModal.error}</p>
+              )}
+            </div>
+            
+            {/* Footer */}
+            <div className={`px-6 py-4 border-t flex gap-3 justify-end ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`}>
+              <button
+                onClick={closeNameModal}
+                className={`px-4 py-2 rounded font-medium transition-colors ${
+                  isDarkMode 
+                    ? 'bg-gray-600 text-gray-200 hover:bg-gray-500' 
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleNameModalConfirm}
+                className="px-4 py-2 rounded font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+              >
+                Confirm
+              </button>
             </div>
           </div>
         </div>
