@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import LayoutContainer from './components/LayoutContainer';
 import cardsData from './data/cards.json';
+import { domToPng } from 'modern-screenshot';
 import {
   loadDecks,
   saveDecks,
@@ -11,6 +12,8 @@ import {
   setLastDeckId,
   getTheme,
   setTheme,
+  getScreenshotMode,
+  setScreenshotMode,
   validateDeckName
 } from './utils/deckStorage';
 
@@ -89,6 +92,17 @@ function App() {
     value: '',
     error: null
   });
+  
+  // Screenshot modal state
+  const [screenshotModal, setScreenshotModal] = useState({
+    isOpen: false,
+    fullBlobUrl: null,
+    deckBlobUrl: null,
+    currentView: 'full' // 'full' or 'deck'
+  });
+  
+  // Screenshot mode preference - initialize from localStorage
+  const [screenshotMode, setScreenshotModeState] = useState(() => getScreenshotMode());
   
   // Search Panel state
   const [searchFilters, setSearchFilters] = useState({
@@ -314,6 +328,15 @@ function App() {
       isValid = false;
     } else {
       messages.push("✓ Chosen champion exists");
+    }
+    
+    // Rule 8: Side deck must be exactly 0 or exactly 8 cards
+    const sideDeckCount = sideDeck.filter(c => c).length;
+    if (sideDeckCount !== 0 && sideDeckCount !== 8) {
+      messages.push(`Side deck is ${sideDeckCount}/8 (must be exactly 0 or exactly 8)`);
+      isValid = false;
+    } else {
+      messages.push(`✓ Side deck is ${sideDeckCount}/8`);
     }
     
     setDeckValidation({ isValid, messages });
@@ -1998,6 +2021,262 @@ function App() {
     setMainDeck(shuffled);
   };
   
+  // Convert data URL to blob
+  const dataURLtoBlob = (dataURL) => {
+    const arr = dataURL.split(',');
+    const mime = arr[0].match(/:(.*?);/)[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new Blob([u8arr], { type: mime });
+  };
+  
+  // Handle screenshot: capture the 16:9 container
+  const handleScreenshot = async () => {
+    try {
+      // Find the outer visible container (the one with border and aspect-ratio)
+      const outerContainer = document.querySelector('[data-visible-container]');
+      if (!outerContainer) {
+        console.error('Visible container not found');
+        return;
+      }
+      
+      // Find the middle panel (deck area)
+      const middlePanel = outerContainer.querySelector('[data-deck-panel]');
+      
+      // Find the scaled container (the one with transform scale) that wraps the content
+      const scaledContainer = outerContainer.querySelector('[style*="transform: scale"]');
+      
+      // Get the actual visible dimensions of the middle panel
+      let deckRect = null;
+      let scaledContainerRect = null;
+      if (middlePanel && scaledContainer) {
+        deckRect = middlePanel.getBoundingClientRect();
+        scaledContainerRect = scaledContainer.getBoundingClientRect();
+      }
+      
+      // Ensure form elements display their current values before capturing
+      const inputs = outerContainer.querySelectorAll('input, select, textarea');
+      inputs.forEach(element => {
+        if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+          // Set the value attribute to match the current value
+          element.setAttribute('value', element.value);
+        } else if (element.tagName === 'SELECT') {
+          // For select elements, ensure the selected option has the selected attribute
+          const selectedIndex = element.selectedIndex;
+          // Remove selected from all options
+          Array.from(element.options).forEach(option => {
+            option.removeAttribute('selected');
+          });
+          // Set selected on the currently selected option
+          if (selectedIndex >= 0 && element.options[selectedIndex]) {
+            element.options[selectedIndex].setAttribute('selected', 'selected');
+          }
+          // Force a reflow to ensure the value is rendered
+          element.offsetHeight;
+        }
+      });
+      
+      // Small delay to ensure form elements are rendered with their values
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
+      // Find the deck controls buttons
+      const deckControls = outerContainer.querySelector('[data-deck-controls]');
+      const deckValidation = outerContainer.querySelector('[data-deck-validation]');
+      let originalVisibility = null;
+      let originalValidationVisibility = null;
+      
+      // Capture full screenshot first (with buttons visible)
+      const fullDataUrl = await domToPng(outerContainer, {
+        quality: 1.0,
+        pixelRatio: window.devicePixelRatio || 1,
+      });
+      
+      // Hide buttons and validation for deck-only screenshot (keep space)
+      if (deckControls) {
+        originalVisibility = window.getComputedStyle(deckControls).visibility;
+        deckControls.style.visibility = 'hidden';
+      }
+      if (deckValidation) {
+        originalValidationVisibility = window.getComputedStyle(deckValidation).visibility;
+        deckValidation.style.visibility = 'hidden';
+      }
+      // Small delay to ensure DOM update
+      await new Promise(resolve => setTimeout(resolve, 50));
+      // Recalculate rects after hiding buttons (in case layout shifted)
+      if (middlePanel && scaledContainer) {
+        deckRect = middlePanel.getBoundingClientRect();
+        scaledContainerRect = scaledContainer.getBoundingClientRect();
+      }
+      
+      // Capture deck-only screenshot (without buttons)
+      let deckDataUrl = null;
+      if (middlePanel && scaledContainer && deckRect && scaledContainerRect) {
+        // Capture the full scaled container first
+        const scaledDataUrl = await domToPng(scaledContainer, {
+          quality: 1.0,
+          pixelRatio: window.devicePixelRatio || 1,
+        });
+        
+        // Calculate crop coordinates relative to the scaled container
+        const x = deckRect.left - scaledContainerRect.left;
+        const y = deckRect.top - scaledContainerRect.top;
+        
+        // Create a canvas to crop the image
+        const img = new Image();
+        img.src = scaledDataUrl;
+        await new Promise((resolve) => {
+          img.onload = resolve;
+        });
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = deckRect.width;
+        canvas.height = deckRect.height;
+        const ctx = canvas.getContext('2d');
+        
+        // Draw the cropped portion
+        ctx.drawImage(
+          img,
+          x, y, deckRect.width, deckRect.height,
+          0, 0, deckRect.width, deckRect.height
+        );
+        
+        deckDataUrl = canvas.toDataURL('image/png');
+      }
+      
+      // Restore buttons and validation visibility
+      if (deckControls && originalVisibility !== null) {
+        deckControls.style.visibility = originalVisibility;
+      }
+      if (deckValidation && originalValidationVisibility !== null) {
+        deckValidation.style.visibility = originalValidationVisibility;
+      }
+      
+      // Convert data URLs to blob URLs
+      const fullBlob = dataURLtoBlob(fullDataUrl);
+      const fullBlobUrl = URL.createObjectURL(fullBlob);
+      
+      let deckBlobUrl = null;
+      if (deckDataUrl) {
+        const deckBlob = dataURLtoBlob(deckDataUrl);
+        deckBlobUrl = URL.createObjectURL(deckBlob);
+      }
+      
+      // Initialize currentView from preference
+      const initialView = screenshotMode;
+      
+      setScreenshotModal({
+        isOpen: true,
+        fullBlobUrl,
+        deckBlobUrl: deckBlobUrl || fullBlobUrl, // Fallback to full if deck capture failed
+        currentView: initialView
+      });
+    } catch (error) {
+      console.error('Error taking screenshot:', error);
+    }
+  };
+  
+  // Handle copy screenshot to clipboard
+  const handleCopyScreenshot = async () => {
+    try {
+      const currentBlobUrl = screenshotModal.currentView === 'full' 
+        ? screenshotModal.fullBlobUrl 
+        : screenshotModal.deckBlobUrl;
+      
+      if (!currentBlobUrl) return;
+      
+      // Fetch blob from blob URL
+      const response = await fetch(currentBlobUrl);
+      const blob = await response.blob();
+      
+      // Copy to clipboard
+      await navigator.clipboard.write([
+        new ClipboardItem({ 'image/png': blob })
+      ]);
+      
+      // Show notification instead of closing modal
+      await showNotification('Image Copied', 'Screenshot has been copied to your clipboard.');
+    } catch (error) {
+      console.error('Error copying screenshot:', error);
+      await showNotification('Copy Failed', 'Failed to copy screenshot to clipboard.');
+    }
+  };
+  
+  // Handle download screenshot
+  const handleDownloadScreenshot = () => {
+    try {
+      const currentBlobUrl = screenshotModal.currentView === 'full' 
+        ? screenshotModal.fullBlobUrl 
+        : screenshotModal.deckBlobUrl;
+      
+      if (!currentBlobUrl) return;
+      
+      // Get current deck name and sanitize it
+      const currentDeck = decks.find(d => d.id === currentDeckId);
+      let deckName = 'deck';
+      if (currentDeck && currentDeck.name) {
+        // Remove special characters and replace spaces with hyphens
+        deckName = currentDeck.name
+          .replace(/[^a-zA-Z0-9\s-]/g, '') // Remove special characters
+          .replace(/\s+/g, '-') // Replace spaces with hyphens
+          .toLowerCase();
+      }
+      
+      // Get date in YYYY-MM-DD format
+      const date = new Date().toISOString().slice(0, 10);
+      
+      // Create a temporary anchor element to trigger download
+      const link = document.createElement('a');
+      link.download = `screenshot-${deckName}-${date}.png`;
+      link.href = currentBlobUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error('Error downloading screenshot:', error);
+    }
+  };
+  
+  // Handle close screenshot modal
+  const handleCloseScreenshotModal = () => {
+    // Revoke blob URLs to free memory
+    if (screenshotModal.fullBlobUrl) {
+      URL.revokeObjectURL(screenshotModal.fullBlobUrl);
+    }
+    if (screenshotModal.deckBlobUrl && screenshotModal.deckBlobUrl !== screenshotModal.fullBlobUrl) {
+      URL.revokeObjectURL(screenshotModal.deckBlobUrl);
+    }
+    setScreenshotModal({ isOpen: false, fullBlobUrl: null, deckBlobUrl: null, currentView: 'full' });
+  };
+  
+  // Handle toggle screenshot view
+  const handleToggleScreenshotView = () => {
+    const newView = screenshotModal.currentView === 'full' ? 'deck' : 'full';
+    setScreenshotModal(prev => ({ ...prev, currentView: newView }));
+    // Save preference
+    setScreenshotMode(newView);
+    setScreenshotModeState(newView);
+  };
+  
+  // Handle opening screenshot in new tab
+  const handleOpenScreenshotInNewTab = () => {
+    try {
+      const currentBlobUrl = screenshotModal.currentView === 'full' 
+        ? screenshotModal.fullBlobUrl 
+        : screenshotModal.deckBlobUrl;
+      
+      if (!currentBlobUrl) return;
+      
+      // Open blob URL in new tab (no conversion needed since we're already using blob URL)
+      window.open(currentBlobUrl, '_blank', 'noopener,noreferrer');
+    } catch (error) {
+      console.error('Error opening screenshot in new tab:', error);
+    }
+  };
+  
   // Helper function to get rune card ID based on color
   const getRuneCardId = (color) => {
     const colorMap = {
@@ -2026,16 +2305,16 @@ function App() {
     };
   };
   
-  // Handle rune arrow clicks
-  const handleRuneArrowClick = (direction) => {
-    if (direction === 'left') {
-      // Move from rune B to rune A
+  // Handle rune clicks - clicking a rune takes 1 from the other and adds to itself
+  const handleRuneClick = (runeType) => {
+    if (runeType === 'A') {
+      // Clicking rune A: take 1 from B, add 1 to A
       if (runeBCount > 0 && runeACount < 12) {
         setRuneBCount(runeBCount - 1);
         setRuneACount(runeACount + 1);
       }
     } else {
-      // Move from rune A to rune B
+      // Clicking rune B: take 1 from A, add 1 to B
       if (runeACount > 0 && runeBCount < 12) {
         setRuneACount(runeACount - 1);
         setRuneBCount(runeBCount + 1);
@@ -2474,7 +2753,7 @@ function App() {
         </div>
 
         {/* Middle Panel - 60% (1152px) */}
-        <div className={`flex-1 h-full px-4 py-2 pb-4 flex flex-col gap-2 ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
+        <div className={`flex-1 h-full px-4 py-2 pb-4 flex flex-col gap-2 ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`} data-deck-panel>
           {/* Main Deck - 60% height */}
           <div className={`flex-[0.6] border-2 rounded p-4 min-h-0 flex flex-col ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-blue-100 border-gray-400'}`}>
             {/* Header row with stats and controls */}
@@ -2482,10 +2761,8 @@ function App() {
               <div className="flex items-center gap-2">
                 <span className={`text-[14px] font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-700'}`}>Main Deck:</span>
                 <span className={`text-[14px] ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{mainDeck.filter(c => c).length + (chosenChampion ? 1 : 0)}/40</span>
-              </div>
-              {/* Deck Validation Indicator - Centered */}
-              <div className="absolute left-1/2 transform -translate-x-1/2">
-                <div className="relative group">
+                {/* Deck Validation Indicator */}
+                <div className="relative group" data-deck-validation>
                   <div className="flex items-center gap-2 cursor-help">
                     <span className="text-lg">{deckValidation.isValid ? "✅" : "❌"}</span>
                     <span className={`text-[14px] font-medium ${deckValidation.isValid ? 'text-green-600' : 'text-red-600'}`}>
@@ -2493,7 +2770,7 @@ function App() {
                     </span>
                   </div>
                   {/* Tooltip */}
-                  <div className={`absolute left-1/2 transform -translate-x-1/2 top-full mt-2 z-50 w-64 p-3 rounded shadow-lg border-2 ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-400'} opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity`}>
+                  <div className={`absolute left-0 top-full mt-2 z-50 w-64 p-3 rounded shadow-lg border-2 ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-400'} opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity`}>
                     <div className="text-sm space-y-1">
                       {deckValidation.messages.map((msg, idx) => (
                         <div key={idx} className={msg.startsWith("✓") ? 'text-green-600' : 'text-red-600'}>
@@ -2504,7 +2781,13 @@ function App() {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
+              {/* Deck Name - Centered */}
+              <div className="absolute left-1/2 transform -translate-x-1/2">
+                <span className={`text-[14px] font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-700'}`}>
+                  {decks.find(d => d.id === currentDeckId)?.name || 'No Deck Selected'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2" data-deck-controls>
                 <button 
                   onClick={handleSortAZ}
                   className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-medium rounded shadow-md transition-colors"
@@ -2522,6 +2805,13 @@ function App() {
                   className="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-[11px] font-medium rounded shadow-md transition-colors"
                 >
                   Randomize
+                </button>
+                <button 
+                  onClick={handleScreenshot}
+                  className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white text-[11px] font-medium rounded shadow-md transition-colors"
+                  title="Take Screenshot"
+                >
+                  📷
                 </button>
               </div>
             </div>
@@ -2626,7 +2916,7 @@ function App() {
                         {color1 ? (
                           <>
                             <img 
-                              src={`https://riftmana.com/wp-content/uploads/Icons/svg/${color1.toLowerCase()}.svg`}
+                              src={`/icons/${color1.toLowerCase()}.svg`}
                               alt={color1}
                               className="w-[75%] aspect-square object-contain"
                             />
@@ -2640,7 +2930,7 @@ function App() {
                         {color2 ? (
                           <>
                             <img 
-                              src={`https://riftmana.com/wp-content/uploads/Icons/svg/${color2.toLowerCase()}.svg`}
+                              src={`/icons/${color2.toLowerCase()}.svg`}
                               alt={color2}
                               className="w-[75%] aspect-square object-contain"
                             />
@@ -2706,12 +2996,14 @@ function App() {
                 {/* Runes Section - Right side */}
                 <div className={`flex-[0.35] border-2 rounded p-3 min-h-0 flex flex-col ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-yellow-100 border-gray-400'}`}>
                   <div className={`text-[12px] font-bold mb-2 ${isDarkMode ? 'text-gray-100' : 'text-gray-700'}`}>Runes:</div>
-                  <div className="flex items-center justify-center gap-2 flex-1 min-h-0 overflow-hidden">
+                  <div className="flex items-center justify-center gap-3 flex-1 min-h-0 overflow-hidden">
                     {/* Rune A slot */}
-                    <div className="flex flex-col items-center justify-start flex-1 h-full">
+                    <div className="flex items-center justify-center gap-2 flex-1 h-full select-none">
                       <div 
-                        className={`rounded border flex items-center justify-center overflow-hidden mb-1 w-full max-w-[80px] cursor-pointer transition-colors ${isDarkMode ? 'bg-gray-700 border-gray-600 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`} 
+                        className={`rounded border flex items-center justify-center overflow-hidden w-full max-w-[80px] cursor-pointer transition-colors select-none ${isDarkMode ? 'bg-gray-700 border-gray-600 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`} 
                         style={{ aspectRatio: '515/719' }}
+                        onClick={() => handleRuneClick('A')}
+                        onMouseDown={(e) => e.preventDefault()}
                         onMouseEnter={() => {
                           const { runeA } = getRuneCards();
                           if (runeA) setSelectedCard(runeA);
@@ -2731,30 +3023,20 @@ function App() {
                           );
                         })()}
                       </div>
-                      <div className={`text-[11px] text-center font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-700'}`}>{runeACount}</div>
+                      <div className={`text-[24px] font-bold w-8 text-center select-none ${isDarkMode ? 'text-gray-100' : 'text-gray-700'}`}>{runeACount}</div>
                     </div>
                     
-                    {/* Arrow buttons - left on top, right on bottom */}
-                    <div className="flex flex-col justify-center gap-1">
-                      <button 
-                        onClick={() => handleRuneArrowClick('left')}
-                        className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white text-[12px] font-bold rounded transition-colors shadow-md"
-                      >
-                        ←
-                      </button>
-                      <button 
-                        onClick={() => handleRuneArrowClick('right')}
-                        className="px-3 py-2 bg-blue-500 hover:bg-blue-600 text-white text-[12px] font-bold rounded transition-colors shadow-md"
-                      >
-                        →
-                      </button>
-                    </div>
+                    {/* Divider */}
+                    <div className={`h-12 w-px ${isDarkMode ? 'bg-gray-600' : 'bg-gray-400'}`}></div>
                     
                     {/* Rune B slot */}
-                    <div className="flex flex-col items-center justify-start flex-1 h-full">
+                    <div className="flex items-center justify-center gap-2 flex-1 h-full select-none">
+                      <div className={`text-[24px] font-bold w-8 text-center select-none ${isDarkMode ? 'text-gray-100' : 'text-gray-700'}`}>{runeBCount}</div>
                       <div 
-                        className={`rounded border flex items-center justify-center overflow-hidden mb-1 w-full max-w-[80px] cursor-pointer transition-colors ${isDarkMode ? 'bg-gray-700 border-gray-600 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`} 
+                        className={`rounded border flex items-center justify-center overflow-hidden w-full max-w-[80px] cursor-pointer transition-colors select-none ${isDarkMode ? 'bg-gray-700 border-gray-600 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`} 
                         style={{ aspectRatio: '515/719' }}
+                        onClick={() => handleRuneClick('B')}
+                        onMouseDown={(e) => e.preventDefault()}
                         onMouseEnter={() => {
                           const { runeB } = getRuneCards();
                           if (runeB) setSelectedCard(runeB);
@@ -2774,7 +3056,6 @@ function App() {
                           );
                         })()}
                       </div>
-                      <div className={`text-[11px] text-center font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-700'}`}>{runeBCount}</div>
                     </div>
                   </div>
                 </div>
@@ -3296,7 +3577,7 @@ function App() {
             </div>
             
             {/* Footer */}
-            <div className={`px-6 py-4 border-t flex gap-3 justify-end ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`}>
+            <div className={`px-6 py-4 border-t flex gap-3 justify-center ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`}>
               <button
                 onClick={closeNameModal}
                 className={`px-4 py-2 rounded font-medium transition-colors ${
@@ -3312,6 +3593,76 @@ function App() {
                 className="px-4 py-2 rounded font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
               >
                 Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Screenshot Modal */}
+      {screenshotModal.isOpen && screenshotModal.fullBlobUrl && (
+        <div 
+          className="fixed inset-0 z-[9999] flex items-center justify-center"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              handleCloseScreenshotModal();
+            }
+          }}
+        >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black bg-opacity-50" />
+          
+          {/* Modal Content */}
+          <div 
+            className={`relative z-10 rounded-lg shadow-2xl border-2 ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-400'}`}
+            style={{ transform: `scale(${containerScale})`, transformOrigin: 'center center' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className={`px-6 py-4 border-b ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`}>
+              <h2 className={`text-xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                Screenshot Preview {screenshotModal.currentView === 'full' ? '(Full)' : '(Deck Only)'}
+              </h2>
+            </div>
+            
+            {/* Body - Screenshot Preview */}
+            <div className={`px-6 py-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              <div className="flex justify-center items-center max-w-[90vw] max-h-[60vh] overflow-auto">
+                <img 
+                  src={screenshotModal.currentView === 'full' ? screenshotModal.fullBlobUrl : screenshotModal.deckBlobUrl} 
+                  alt="Screenshot preview" 
+                  className="max-w-full max-h-full object-contain"
+                  style={{ maxWidth: '600px', maxHeight: '338px' }}
+                  draggable="false"
+                />
+              </div>
+            </div>
+            
+            {/* Footer - Buttons */}
+            <div className={`px-6 py-4 border-t flex justify-center gap-3 ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`}>
+              <button
+                onClick={handleCloseScreenshotModal}
+                className="px-4 py-2 rounded font-medium bg-gray-600 text-white hover:bg-gray-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleToggleScreenshotView}
+                className="px-4 py-2 rounded font-medium bg-purple-600 text-white hover:bg-purple-700 transition-colors"
+              >
+                Toggle View
+              </button>
+              <button
+                onClick={handleCopyScreenshot}
+                className="px-4 py-2 rounded font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+              >
+                Copy
+              </button>
+              <button
+                onClick={handleDownloadScreenshot}
+                className="px-4 py-2 rounded font-medium bg-green-600 text-white hover:bg-green-700 transition-colors"
+              >
+                Download
               </button>
             </div>
           </div>

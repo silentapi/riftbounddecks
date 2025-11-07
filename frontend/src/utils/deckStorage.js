@@ -23,7 +23,8 @@
 const STORAGE_KEYS = {
   DECKS: 'decks',
   LAST_DECK_ID: 'lastDeckId',
-  THEME: 'theme'
+  THEME: 'theme',
+  SCREENSHOT_MODE: 'screenshotMode'
 };
 
 /**
@@ -179,6 +180,32 @@ export function setTheme(theme) {
     localStorage.setItem(STORAGE_KEYS.THEME, theme);
   } catch (error) {
     console.error('Error saving theme:', error);
+  }
+}
+
+/**
+ * Get screenshot mode from localStorage
+ * @returns {'full' | 'deck'}
+ */
+export function getScreenshotMode() {
+  try {
+    const mode = localStorage.getItem(STORAGE_KEYS.SCREENSHOT_MODE);
+    return mode === 'full' || mode === 'deck' ? mode : 'full';
+  } catch (error) {
+    console.error('Error loading screenshot mode:', error);
+    return 'full';
+  }
+}
+
+/**
+ * Set screenshot mode in localStorage
+ * @param {'full' | 'deck'} mode
+ */
+export function setScreenshotMode(mode) {
+  try {
+    localStorage.setItem(STORAGE_KEYS.SCREENSHOT_MODE, mode);
+  } catch (error) {
+    console.error('Error saving screenshot mode:', error);
   }
 }
 

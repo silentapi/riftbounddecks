@@ -7,10 +7,12 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "rm -rf dist/ && npm run build && cd dist && zip -r html.zip . && scp html.zip root@rift.basedboats.com:/var/www/html/ && ssh root@rift.basedboats.com \"cd /var/www/html && find . -mindepth 1 ! -name 'html.zip' -exec rm -rf {} + && unzip -o html.zip && rm html.zip\" && cd .."
   },
   "dependencies": {
     "html2canvas": "^1.4.1",
+    "modern-screenshot": "^4.6.6",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "zustand": "^5.0.2"

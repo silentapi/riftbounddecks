@@ -37,6 +37,7 @@ function LayoutContainer({ children, isDarkMode = false }) {
       {/* 16:9 aspect ratio container that scales to fit viewport */}
       <div 
         ref={containerRef}
+        data-visible-container
         className={`relative border-4 rounded-lg shadow-2xl overflow-hidden ${isDarkMode ? 'border-gray-700 bg-gray-950' : 'border-gray-800 bg-white'}`}
         style={{
           aspectRatio: '16/9',
