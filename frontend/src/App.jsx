@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import LayoutContainer from './components/LayoutContainer';
 import cardsData from './data/cards.json';
 import { domToPng } from 'modern-screenshot';
@@ -858,14 +858,7 @@ function App() {
         } else {
           newSideDeck.push(cardId);
         }
-        // Ensure array is exactly 8 elements
-        while (newSideDeck.length > 8) {
-          newSideDeck.pop();
-        }
-        while (newSideDeck.length < 8) {
-          newSideDeck.push(null);
-        }
-        setSideDeck(newSideDeck);
+        setSideDeck(compactSideDeck(newSideDeck));
       }
     } else {
       // Right-click handling
@@ -1143,6 +1136,152 @@ function App() {
     return mainDeckCopies + championCopies + sideDeckCopies;
   };
   
+  // Mobile detection - check if device is mobile/touch device
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      // Check for touch capability and screen width
+      const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      const isSmallScreen = window.innerWidth <= 768;
+      setIsMobile(hasTouch && isSmallScreen);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
+  // Double-tap handler state - track last tap time and card
+  const [lastTap, setLastTap] = useState({ time: 0, cardId: null });
+  const tapTimeoutRef = useRef(null);
+  
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (tapTimeoutRef.current) {
+        clearTimeout(tapTimeoutRef.current);
+      }
+    };
+  }, []);
+  
+  // Handle double-tap to move card between decks (mobile only)
+  const handleDoubleTap = (cardId, source) => {
+    // Only work on mobile
+    if (!isMobile) return;
+    
+    // Don't allow Legends or Battlefields to go to side deck
+    const cardDetails = getCardDetails(cardId);
+    if (cardDetails?.type === 'Legend' || cardDetails?.type === 'Battlefield') {
+      return;
+    }
+    
+    const currentTime = Date.now();
+    const tapDelay = 300; // 300ms window for double-tap
+    
+    // Clear any existing timeout
+    if (tapTimeoutRef.current) {
+      clearTimeout(tapTimeoutRef.current);
+      tapTimeoutRef.current = null;
+    }
+    
+    // Check if this is a double-tap on the same card
+    if (currentTime - lastTap.time < tapDelay && lastTap.cardId === cardId) {
+      // Double-tap detected
+      
+      if (source === 'sideDeck') {
+        // Double-tap in side deck: move to main deck if space allows
+        const totalCards = mainDeck.length + (chosenChampion ? 1 : 0);
+        
+        // Count current copies (excluding the one we're moving from side deck)
+        const mainDeckCopies = mainDeck.filter(id => id === cardId).length;
+        const sideDeckCopies = sideDeck.filter(id => id === cardId).length - 1; // Exclude the one we're moving
+        const championCopies = (chosenChampion === cardId) ? 1 : 0;
+        const totalCopyCountAfterMove = mainDeckCopies + championCopies + sideDeckCopies + 1; // +1 for the new position in main deck
+        
+        // Check if main deck has space and copy limit allows
+        if (totalCards < 40 && totalCopyCountAfterMove <= 3) {
+          // Remove from side deck
+          const cardIndex = sideDeck.findIndex(id => id === cardId);
+          if (cardIndex !== -1) {
+            const newSideDeck = sideDeck.filter((_, i) => i !== cardIndex);
+            setSideDeck(compactSideDeck(newSideDeck));
+            
+            // Try to set as champion if it's a champion and chosenChampion is null
+            const wasSetAsChampion = trySetChampionIfNeeded(cardId);
+            // Only add to main deck if it wasn't set as champion
+            if (!wasSetAsChampion) {
+              setMainDeck(prev => [...prev, cardId]);
+            }
+          }
+          
+          // Reset tap tracking
+          setLastTap({ time: 0, cardId: null });
+        } else {
+          // Conditions not met, reset tap tracking
+          setLastTap({ time: 0, cardId: null });
+        }
+      } else {
+        // Double-tap in main deck or search results: add to side deck if space allows
+        const currentSideDeckCount = sideDeck.filter(c => c).length;
+        
+        // Count current copies
+        let mainDeckCopies = mainDeck.filter(id => id === cardId).length;
+        let sideDeckCopies = sideDeck.filter(id => id === cardId).length;
+        const championCopies = (chosenChampion === cardId) ? 1 : 0;
+        
+        // If source is main deck, exclude one copy (we're moving it)
+        if (source === 'mainDeck') {
+          mainDeckCopies = Math.max(0, mainDeckCopies - 1);
+        }
+        // For searchResults, don't exclude any copies - it's a new card being added
+        
+        // Calculate total copies after move
+        const totalCopyCountAfterMove = mainDeckCopies + championCopies + sideDeckCopies + 1; // +1 for the new position in side deck
+        
+        // Check if side deck has space and copy limit allows (strictly <= 3)
+        if (currentSideDeckCount < 8 && totalCopyCountAfterMove <= 3) {
+          // Remove from source if needed (not for search results - those are new cards)
+          if (source === 'mainDeck') {
+            // Find and remove one instance from main deck
+            const cardIndex = mainDeck.findIndex(id => id === cardId);
+            if (cardIndex !== -1) {
+              const newMainDeck = mainDeck.filter((_, i) => i !== cardIndex);
+              setMainDeck(newMainDeck);
+            }
+          }
+          // For searchResults, we don't remove from anywhere - just add a new copy
+          
+          // Add to side deck
+          const newSideDeck = [...sideDeck];
+          const emptyIndex = newSideDeck.findIndex(c => !c);
+          if (emptyIndex !== -1) {
+            newSideDeck[emptyIndex] = cardId;
+          } else {
+            newSideDeck.push(cardId);
+          }
+          setSideDeck(compactSideDeck(newSideDeck));
+          
+          // Try to set as champion if it's a champion and chosenChampion is null
+          trySetChampionIfNeeded(cardId);
+          
+          // Reset tap tracking
+          setLastTap({ time: 0, cardId: null });
+        } else {
+          // Conditions not met, reset tap tracking
+          setLastTap({ time: 0, cardId: null });
+        }
+      }
+    } else {
+      // First tap or different card - record it and set timeout to reset
+      setLastTap({ time: currentTime, cardId });
+      tapTimeoutRef.current = setTimeout(() => {
+        setLastTap({ time: 0, cardId: null });
+        tapTimeoutRef.current = null;
+      }, tapDelay);
+    }
+  };
+  
   // Auto-fill champion slot with next available champion from deck
   const autoFillChampion = () => {
     const nextChampion = findFirstChampion(mainDeck);
@@ -1241,9 +1380,7 @@ function App() {
               setSideDeck(prev => {
                 const newSideDeck = [...prev];
                 newSideDeck.splice(dragIndex, 0, draggedCard);
-                while (newSideDeck.length > 8) newSideDeck.pop();
-                while (newSideDeck.length < 8) newSideDeck.push(null);
-                return newSideDeck;
+                return compactSideDeck(newSideDeck);
               });
             } else if (isDraggingFromChampion) {
               setChosenChampion(draggedCard);
@@ -1308,7 +1445,7 @@ function App() {
               trySetChampionIfNeeded(draggedCard);
               
               newSideDeck.splice(dropIndex, 0, draggedCard);
-              setSideDeck(newSideDeck);
+              setSideDeck(compactSideDeck(newSideDeck));
             }
           }
           // If side deck is full or too many copies, do nothing (don't add/swaps)
@@ -1644,10 +1781,7 @@ function App() {
                     newSideDeck.push(prevSideDeck[i]);
                   }
                 }
-                while (newSideDeck.length < 8) {
-                  newSideDeck.push(null);
-                }
-                return newSideDeck;
+                return compactSideDeck(newSideDeck);
               });
             } else {
               // Either deck full or too many copies, restore card to side deck
@@ -1687,14 +1821,7 @@ function App() {
                 const newSideDeck = [...prevSideDeck];
                 // Insert at the original position
                 newSideDeck.splice(dragIndex, 0, draggedCard);
-                // Ensure array is exactly 8 elements
-                while (newSideDeck.length > 8) {
-                  newSideDeck.pop();
-                }
-                while (newSideDeck.length < 8) {
-                  newSideDeck.push(null);
-                }
-                return newSideDeck;
+                return compactSideDeck(newSideDeck);
               });
             }
           } else if (isDraggingFromLegend) {
@@ -1966,12 +2093,9 @@ function App() {
     const sortedSideDeck = [...sideDeck]
       .filter(c => c !== null)
       .sort(sortCompare);
-    while (sortedSideDeck.length < 8) {
-      sortedSideDeck.push(null);
-    }
     
     setMainDeck(sortedMainDeck);
-    setSideDeck(sortedSideDeck);
+    setSideDeck(compactSideDeck(sortedSideDeck));
   };
   
   // Handle sort by cost: sort by energy cost, then A-Z if same cost
@@ -2000,12 +2124,9 @@ function App() {
     const sortedSideDeck = [...sideDeck]
       .filter(c => c !== null)
       .sort(sortCompare);
-    while (sortedSideDeck.length < 8) {
-      sortedSideDeck.push(null);
-    }
     
     setMainDeck(sortedMainDeck);
-    setSideDeck(sortedSideDeck);
+    setSideDeck(compactSideDeck(sortedSideDeck));
   };
   
   // Handle randomize: shuffle the array
@@ -2432,7 +2553,7 @@ function App() {
       // Clear current deck only if we have valid cards to import
       setChosenChampion(null);
       setMainDeck([]);
-      setSideDeck([]);
+      setSideDeck(compactSideDeck([]));
       setBattlefields([null, null, null]);
       setRuneACount(6);
       setRuneBCount(6);
@@ -2577,7 +2698,7 @@ function App() {
       }
       
       // Side deck - up to 8 cards
-      setSideDeck(sideDeckCards.slice(0, 8));
+      setSideDeck(compactSideDeck(sideDeckCards.slice(0, 8)));
       
       await showNotification(
         'Deck Imported',
@@ -2858,6 +2979,12 @@ function App() {
                     onMouseEnter={() => cardId && setSelectedCard(cardId)}
                     onContextMenu={(e) => cardId && handleCardContext(e, index)}
                     onAuxClick={(e) => cardId && handleMiddleClick(e, index)}
+                    onTouchEnd={(e) => {
+                      e.preventDefault();
+                      if (cardId) {
+                        handleDoubleTap(cardId, 'mainDeck');
+                      }
+                    }}
                   >
                     {cardId ? (
                       <img
@@ -3077,6 +3204,12 @@ function App() {
                         onMouseEnter={() => cardId && setSelectedCard(cardId)}
                         onContextMenu={(e) => cardId && handleSideDeckContext(e, index)}
                         onAuxClick={(e) => cardId && handleSideDeckMiddleClick(e, index)}
+                        onTouchEnd={(e) => {
+                          e.preventDefault();
+                          if (cardId) {
+                            handleDoubleTap(cardId, 'sideDeck');
+                          }
+                        }}
                         style={{ aspectRatio: '515/685' }}
                       >
                         {cardId ? (
@@ -3343,6 +3476,12 @@ function App() {
                     onMouseDown={(e) => cardId && handleSearchResultMouseDown(e, cardId)}
                     onMouseEnter={() => cardId && setSelectedCard(cardId)}
                     onContextMenu={(e) => cardId && handleSearchResultContext(e, cardId)}
+                    onTouchEnd={(e) => {
+                      e.preventDefault();
+                      if (cardId) {
+                        handleDoubleTap(cardId, 'searchResults');
+                      }
+                    }}
                     style={{ aspectRatio: '460/650', padding: '2px' }}
                   >
                     {cardId ? (
