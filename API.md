@@ -22,20 +22,20 @@ Authorization: Bearer <jwt_token>
   "_id": "ObjectId",
   "userId": "string (ObjectId reference to users collection)",
   "name": "string",
-  "chosenChampion": "string (cardId, e.g., 'OGN-039')",
+  "chosenChampion": "string (cardId, e.g., 'OGN-039' or 'OGS-001')",
   "mainDeck": ["string (array of cardIds, max 40)"],
   "sideDeck": ["string (array of cardIds, max 8)"],
   "battlefields": ["string (array of cardIds, max 3)"],
   "runeACount": "integer (0-12)",
   "runeBCount": "integer (0-12)",
-  "legendCard": "string (cardId, e.g., 'OGN-247')",
+  "legendCard": "string (cardId, e.g., 'OGN-247' or 'OGS-050')",
   "dateCreated": "ISO 8601 datetime string",
   "lastUpdated": "ISO 8601 datetime string"
 }
 ```
 
 **Validation Rules:**
-- `mainDeck`: Must contain exactly 40 card IDs (including empty slots represented as empty strings or null)
+- `mainDeck`: Maximum 40 card IDs
 - `sideDeck`: Maximum 8 card IDs
 - `battlefields`: Maximum 3 card IDs
 - `runeACount + runeBCount`: Must not exceed 12
@@ -64,6 +64,55 @@ Authorization: Bearer <jwt_token>
 - `lastUpdated`: Automatically updated on modification
 
 **Note:** The `password_hash` field should never be returned in API responses. Use a separate User Response model that excludes sensitive fields.
+
+### Registration Key Model
+
+```json
+{
+  "_id": "ObjectId",
+  "key": "string (unique registration key)",
+  "ownerId": "string (ObjectId reference to users collection)",
+  "maxUses": "integer (default: 3, -1 for unlimited)",
+  "currentUses": "integer (number of times this key has been used)",
+  "isMasterKey": "boolean (true for master key with unlimited uses)",
+  "dateCreated": "ISO 8601 datetime string",
+  "lastUpdated": "ISO 8601 datetime string"
+}
+```
+
+**Validation Rules:**
+- `key`: Required, unique string identifier for the registration key
+- `ownerId`: Required, ObjectId reference to the user who owns this key
+- `maxUses`: Required, integer (default: 3, -1 indicates unlimited uses)
+- `currentUses`: Required, integer starting at 0, incremented on each registration
+- `isMasterKey`: Required, boolean (true for master key that always works)
+- `dateCreated`: Automatically set on creation
+- `lastUpdated`: Automatically updated on modification
+
+**Notes:**
+- Each user automatically receives a registration key when they register (unless they used the master key)
+- Master key has `isMasterKey: true` and `maxUses: -1` (unlimited)
+- Regular keys default to `maxUses: 3` but can be configured by admins
+- When a registration key is used, `currentUses` is incremented
+- Registration is denied if `currentUses >= maxUses` (unless `isMasterKey: true` or `maxUses: -1`)
+
+### Registration Usage Model
+
+```json
+{
+  "_id": "ObjectId",
+  "registrationKeyId": "string (ObjectId reference to registration_keys collection)",
+  "registeredUserId": "string (ObjectId reference to users collection)",
+  "registeredUsername": "string",
+  "dateUsed": "ISO 8601 datetime string"
+}
+```
+
+**Validation Rules:**
+- `registrationKeyId`: Required, ObjectId reference to the registration key used
+- `registeredUserId`: Required, ObjectId reference to the user who registered
+- `registeredUsername`: Required, username of the user who registered (for easy lookup)
+- `dateUsed`: Automatically set when registration occurs
 
 ### User Response Model (Public)
 
@@ -101,7 +150,7 @@ Authorization: Bearer <jwt_token>
 {
   "_id": "string (deck ObjectId)",
   "name": "string",
-  "chosenChampion": "string (cardId)",
+  "legendCard": "string (cardId)",
   "dateCreated": "ISO 8601 datetime string",
   "lastUpdated": "ISO 8601 datetime string"
 }
@@ -132,14 +181,14 @@ Authorization: Bearer <jwt_token>
     {
       "_id": "507f1f77bcf86cd799439011",
       "name": "My First Deck",
-      "chosenChampion": "OGN-039",
+      "legendCard": "OGN-247",
       "dateCreated": "2025-01-15T10:30:00Z",
       "lastUpdated": "2025-01-20T14:22:00Z"
     },
     {
       "_id": "507f1f77bcf86cd799439012",
       "name": "Competitive Build",
-      "chosenChampion": "OGN-095",
+      "legendCard": "OGS-001",
       "dateCreated": "2025-01-18T09:15:00Z",
       "lastUpdated": "2025-01-21T16:45:00Z"
     }
@@ -239,8 +288,8 @@ Content-Type: application/json
   "mainDeck": [],
   "sideDeck": [],
   "battlefields": [],
-  "runeACount": 0,
-  "runeBCount": 0,
+  "runeACount": 6,
+  "runeBCount": 6,
   "legendCard": null,
   "dateCreated": "2025-01-22T12:00:00Z",
   "lastUpdated": "2025-01-22T12:00:00Z"
@@ -332,7 +381,7 @@ Content-Type: application/json
 **Notes:**
 - All fields are optional in the request body; only provided fields will be updated
 - `lastUpdated` is automatically set by the server
-- Validation rules apply (e.g., mainDeck must be 40 cards, rune totals ≤ 12)
+- Validation rules apply (e.g., mainDeck maximum 40 cards, rune totals ≤ 12)
 
 ---
 
@@ -352,7 +401,6 @@ Content-Type: application/json
 
 {
   "name": "Copy of My Deck",
-  "sourceDeckId": "507f1f77bcf86cd799439011",
   "chosenChampion": "OGN-039",
   "mainDeck": [
     "OGN-039", "OGN-095", "OGN-095", "OGN-095", "OGN-004", "OGN-004", "OGN-004",
@@ -407,13 +455,11 @@ Content-Type: application/json
 - `201 Created`: New deck created successfully
 - `400 Bad Request`: Invalid request body or validation failed
 - `401 Unauthorized`: Invalid or missing token
-- `403 Forbidden`: Source deck belongs to another user (if sourceDeckId provided)
-- `404 Not Found`: Source deck not found (if sourceDeckId provided)
 - `500 Internal Server Error`: Server error
 
 **Notes:**
-- `sourceDeckId` is optional; if provided, the server may use it for validation, but the deck contents come from the request body
 - The new deck is created with a fresh `_id` and timestamps
+- Deck contents are provided directly in the request body
 
 ---
 
@@ -602,7 +648,7 @@ Content-Type: application/json
 
 **Endpoint:** `POST /api/auth/register`
 
-**Description:** Creates a new user account. Used when a user signs up for the first time.
+**Description:** Creates a new user account. Used when a user signs up for the first time. Requires a valid registration key.
 
 **Authentication:** Not required
 
@@ -614,7 +660,8 @@ Content-Type: application/json
 {
   "username": "johndoe",
   "email": "john@example.com",
-  "password": "SecurePassword123!"
+  "password": "SecurePassword123!",
+  "registrationKey": "abc123xyz789"
 }
 ```
 
@@ -634,7 +681,9 @@ Content-Type: application/json
 
 **Status Codes:**
 - `201 Created`: User created successfully
-- `400 Bad Request`: Invalid request body (e.g., missing fields, invalid email format, weak password)
+- `400 Bad Request`: Invalid request body (e.g., missing fields, invalid email format, weak password, invalid registration key)
+- `403 Forbidden`: Registration key has been exhausted (all uses consumed)
+- `404 Not Found`: Registration key not found
 - `409 Conflict`: Username or email already exists
 - `500 Internal Server Error`: Server error
 
@@ -642,11 +691,16 @@ Content-Type: application/json
 - `username`: Required, 3-50 characters, alphanumeric and underscores only, unique
 - `email`: Required, valid email format, unique
 - `password`: Required, minimum 8 characters, should contain at least one letter and one number
+- `registrationKey`: Required, must be a valid registration key that has remaining uses (or master key)
 
 **Notes:**
 - Password should be hashed using bcrypt before storage
 - JWT token is returned immediately upon successful registration for automatic login
 - User preferences are automatically created with default values (`theme: "dark"`, `lastOpenedDeck: null`)
+- Registration key usage is incremented upon successful registration
+- A registration usage record is created linking the new user to the key used
+- Master key (with `isMasterKey: true`) always works regardless of usage count
+- New users automatically receive their own registration key with default 3 uses (configurable by admin)
 
 ---
 
@@ -784,6 +838,62 @@ Authorization: Bearer <jwt_token>
 
 ---
 
+### 14. Get My Registration Key
+
+**Endpoint:** `GET /api/auth/registration-key`
+
+**Description:** Retrieves the authenticated user's registration key information, including remaining uses and who has registered using it.
+
+**Authentication:** Required
+
+**Request:**
+```http
+GET /api/auth/registration-key
+Authorization: Bearer <jwt_token>
+```
+
+**Response:**
+```json
+{
+  "_id": "507f1f77bcf86cd799439030",
+  "key": "abc123xyz789",
+  "ownerId": "507f191e810c19729de860ea",
+  "maxUses": 3,
+  "currentUses": 2,
+  "isMasterKey": false,
+  "remainingUses": 1,
+  "dateCreated": "2025-01-15T10:30:00Z",
+  "lastUpdated": "2025-01-20T14:22:00Z",
+  "registrations": [
+    {
+      "_id": "507f1f77bcf86cd799439031",
+      "registeredUserId": "507f191e810c19729de860eb",
+      "registeredUsername": "newuser1",
+      "dateUsed": "2025-01-18T09:15:00Z"
+    },
+    {
+      "_id": "507f1f77bcf86cd799439032",
+      "registeredUserId": "507f191e810c19729de860ec",
+      "registeredUsername": "newuser2",
+      "dateUsed": "2025-01-20T14:22:00Z"
+    }
+  ]
+}
+```
+
+**Status Codes:**
+- `200 OK`: Success
+- `401 Unauthorized`: Invalid or missing token
+- `404 Not Found`: Registration key not found (should not happen for authenticated users)
+- `500 Internal Server Error`: Server error
+
+**Notes:**
+- `remainingUses` is calculated as `maxUses - currentUses` (or `-1` for unlimited/master key)
+- `registrations` array shows all users who have registered using this key
+- For master keys, `remainingUses` will be `-1` (unlimited)
+
+---
+
 ## 🔄 Error Response Format
 
 All error responses follow this format:
@@ -819,22 +929,118 @@ All error responses follow this format:
 3. **User Isolation:** All deck operations must verify that the `userId` matches the authenticated user's ID.
 
 4. **Validation:** Server-side validation is required for all deck operations:
-   - Main deck must be exactly 40 cards
+   - Main deck maximum 40 cards
    - Side deck maximum 8 cards
    - Battlefields maximum 3 cards
    - Rune counts must total ≤ 12
 
 5. **Timestamps:** `dateCreated` is set on creation and never changes. `lastUpdated` is updated on every modification.
 
-6. **Card IDs:** Card IDs follow the format `"OGN-XXX"` where XXX is a three-digit number. The server should validate that card IDs exist in the cards collection, but this validation can be optional for MVP.
+6. **Card IDs:** Card IDs follow the format `"SET-XXX"` where SET is a set code (e.g., `OGN`, `OGS`) and XXX is typically a three-digit number. Examples: `OGN-039`, `OGS-001`. The server should validate that card IDs exist in the cards collection, but this validation can be optional for MVP.
 
-7. **Empty Decks:** When creating a new deck, initialize arrays as empty arrays `[]` and counts as `0`, not `null`.
+7. **New Decks:** When creating a new deck, initialize arrays as empty arrays `[]`, rune counts as `6` and `6` (not `0`), and other fields as `null` where appropriate.
 
 8. **Deck List:** The deck list endpoint returns a summary to reduce payload size. Only include essential fields for the dropdown.
 
 9. **Password Security:** Passwords must be hashed using bcrypt before storage. Never return password hashes in API responses. Use a separate User Response model that excludes sensitive fields.
 
 10. **JWT Tokens:** JWT tokens should include the user ID in the payload and have a reasonable expiration time (e.g., 24 hours). Consider implementing token refresh for better security.
+
+11. **Registration Keys:** 
+    - All registrations require a valid registration key
+    - Each user receives their own registration key upon registration (default: 3 uses, configurable by admin)
+    - Master key exists with unlimited uses (`isMasterKey: true`, `maxUses: -1`)
+    - Registration key usage is tracked and incremented on each successful registration
+    - Users can view their own key information and see who registered using their key
+    - Registration is denied if key has no remaining uses (unless master key)
+
+---
+
+## 🛠️ Technology Stack & Implementation Details
+
+### Backend Framework & Tools
+
+**FastAPI:**
+- Modern, fast web framework for building APIs with Python
+- Automatic API documentation via OpenAPI/Swagger
+- Built-in request validation using Pydantic models
+- Async/await support for high performance
+- Type hints throughout for better code quality
+
+**uv:**
+- Fast Python package installer and resolver
+- Used for dependency management and virtual environment handling
+- Faster than pip for package installation
+- Project dependencies should be managed via `uv` and `pyproject.toml`
+
+**MongoDB:**
+- NoSQL document database for storing user data, decks, preferences, and registration keys
+- Collections:
+  - `users`: User accounts with authentication data
+  - `decks`: Deck data with card lists and metadata
+  - `user_preferences`: Theme and last opened deck preferences
+  - `registration_keys`: Registration key management
+  - `registration_usage`: Tracking of key usage history
+- Use MongoDB's ObjectId for `_id` fields
+- Indexes should be created on:
+  - `users.username` (unique)
+  - `users.email` (unique)
+  - `decks.userId` (for efficient user deck queries)
+  - `registration_keys.key` (unique)
+  - `registration_keys.ownerId` (for user key lookup)
+
+### Logging Requirements
+
+**Logging Configuration:**
+- All API calls must be logged with comprehensive details
+- Logging should output to both console (stdout) and rolling log files
+- Use Python's `logging` module with appropriate log levels
+
+**Log Format:**
+Each API request should log:
+- Timestamp (ISO 8601 format)
+- Log level (INFO, WARNING, ERROR, etc.)
+- HTTP method and endpoint path
+- Request ID (UUID for request tracing)
+- User ID (if authenticated)
+- Request details:
+  - Query parameters
+  - Request body (sanitized - exclude passwords)
+  - IP address
+  - User-Agent
+- Response details:
+  - Status code
+  - Response time (milliseconds)
+  - Error messages (if any)
+
+**Log File Management:**
+- Use rotating file handlers (e.g., `RotatingFileHandler` or `TimedRotatingFileHandler`)
+- Log files should be stored in a `logs/` directory
+- Recommended rotation:
+  - Max file size: 10MB per log file
+  - Keep 5 backup files (total ~50MB of logs)
+  - Or rotate daily at midnight
+- Log file naming: `api-YYYY-MM-DD.log` or `api.log`, `api.log.1`, etc.
+
+**Log Levels:**
+- `INFO`: Successful API calls, normal operations
+- `WARNING`: Validation failures, unauthorized attempts, exhausted registration keys
+- `ERROR`: Server errors, database connection issues, unexpected exceptions
+- `DEBUG`: Detailed request/response data (only in development)
+
+**Example Log Entry:**
+```
+2025-01-22T15:30:45.123Z [INFO] [req-id:550e8400-e29b-41d4-a716-446655440000] 
+POST /api/auth/register - user_id: null - ip: 192.168.1.100 - 
+status: 201 - duration: 145ms - username: johndoe - email: john@example.com
+```
+
+**Security Considerations:**
+- Never log passwords or password hashes
+- Sanitize sensitive data in request bodies before logging
+- Consider masking JWT tokens (log only first/last few characters)
+- Log authentication failures for security monitoring
+- Ensure log files have appropriate file permissions (not world-readable)
 
 ---
 
