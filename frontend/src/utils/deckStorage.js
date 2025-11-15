@@ -8,6 +8,8 @@
  * @property {string[]} battlefields - Array of card IDs (max 3)
  * @property {number} runeACount - Rune A count (0-12)
  * @property {number} runeBCount - Rune B count (0-12)
+ * @property {number} runeAVariantIndex - Rune A variant index (0 = base, 1 = 'a', 2 = 'b')
+ * @property {number} runeBVariantIndex - Rune B variant index (0 = base, 1 = 'a', 2 = 'b')
  * @property {string|null} legendCard - Legend card ID
  */
 
@@ -121,6 +123,8 @@ export function createDeck(name) {
       battlefields: [],
       runeACount: 6,
       runeBCount: 6,
+      runeAVariantIndex: 0,
+      runeBVariantIndex: 0,
       legendCard: null
     },
     createdAt: now,

@@ -3,6 +3,12 @@
     "name": "Acceptable Losses",
     "description": "[ACTION] (Play on your turn or in showdowns.)\nEach player kills one of their gear.",
     "variantNumber": "OGN-179",
+    "variants": [
+      "OGN-179"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-179.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 1,
@@ -11,12 +17,19 @@
     "colors": [
       "Chaos"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Adaptatron",
     "description": "When I conquer, you may kill a gear. If you do, buff me. (If I don't have a buff, I get a +1 [Might] buff.)",
     "variantNumber": "OGN-056",
+    "variants": [
+      "OGN-056"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-056.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 4,
@@ -28,12 +41,21 @@
     "tags": [
       "Piltover",
       "Mech"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Ahri, Alluring",
     "description": "When I hold, you score 1 point.",
     "variantNumber": "OGN-066",
+    "variants": [
+      "OGN-066",
+      "OGN-066a"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-066.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-066a.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 5,
@@ -45,12 +67,21 @@
     "tags": [
       "Ahri",
       "Ionia"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Ahri, Inquisitive",
     "description": "When I attack or defend, give an enemy unit here -2 [Might] this turn, to a minimum of 1 [Might].",
     "variantNumber": "OGN-119",
+    "variants": [
+      "OGN-119",
+      "OGN-119a"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-119.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-119a.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 3,
@@ -62,12 +93,23 @@
     "tags": [
       "Ahri",
       "Ionia"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Ahri, Nine-Tailed Fox",
     "description": "When an enemy unit attacks a battlefield you control, give it -1 [Might] this turn, to a minimum of 1 [Might].",
     "variantNumber": "OGN-255",
+    "variants": [
+      "OGN-255",
+      "OGN-303",
+      "OGN-303s"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-255.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-303.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-303s.webp"
+    ],
     "type": "Legend",
     "super": null,
     "energy": 0,
@@ -79,12 +121,19 @@
     ],
     "tags": [
       "Ahri"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Albus Ferros",
     "description": "When you play me, spend any number of buffs.\nFor each buff spent, channel 1 rune exhausted.",
     "variantNumber": "OGN-230",
+    "variants": [
+      "OGN-230"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-230.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 4,
@@ -95,24 +144,38 @@
     ],
     "tags": [
       "Piltover"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Altar to Unity",
     "description": "When you hold here, play a 1 [Might] Recruit unit token in your base.",
     "variantNumber": "OGN-275",
+    "variants": [
+      "OGN-275"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-275.webp"
+    ],
     "type": "Battlefield",
     "super": null,
     "energy": 0,
     "power": 0,
     "might": 0,
     "colors": [],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Anivia, Primal",
     "description": "When I attack, deal 3 to all enemy units here.",
     "variantNumber": "OGN-148",
+    "variants": [
+      "OGN-148"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-148.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 7,
@@ -125,12 +188,91 @@
       "Anivia",
       "Freljord",
       "Bird"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Annie, Dark Child",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nAt the end of your turn, ready up to 2 runes.",
+    "variantNumber": "OGS-017",
+    "variants": [
+      "OGS-017"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGS-017.webp"
+    ],
+    "type": "Legend",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Fury",
+      "Chaos"
+    ],
+    "tags": [
+      "Annie"
+    ],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Annie, Fiery",
+    "description": "Your spells and abilities deal 1 Bonus Damage. (Each instance of damage they deal is increased by 1.)",
+    "variantNumber": "OGS-001",
+    "variants": [
+      "OGS-001"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGS-001.webp"
+    ],
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 5,
+    "power": 1,
+    "might": 4,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [
+      "Annie",
+      "Noxus"
+    ],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Annie, Stubborn",
+    "description": "When you play me, return a spell from your trash to your hand.",
+    "variantNumber": "OGS-010",
+    "variants": [
+      "OGS-010"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGS-010.webp"
+    ],
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 4,
+    "power": 1,
+    "might": 3,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": [
+      "Annie",
+      "Noxus"
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Arena Bar",
     "description": "[Tap]: Buff an exhausted friendly unit. (if it doesn't have a buff, it gets a +1 [Might] buff.)",
     "variantNumber": "OGN-124",
+    "variants": [
+      "OGN-124"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-124.webp"
+    ],
     "type": "Gear",
     "super": null,
     "energy": 3,
@@ -139,24 +281,38 @@
     "colors": [
       "Body"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Aspirant's Climb",
     "description": "Increase the points needed to win the game by 1.",
     "variantNumber": "OGN-276",
+    "variants": [
+      "OGN-276"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-276.webp"
+    ],
     "type": "Battlefield",
     "super": null,
     "energy": 0,
     "power": 0,
     "might": 0,
     "colors": [],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Ava Achiever",
     "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nWhen I attack, you may pay [Mind] to play a card with [Hidden]\nfrom your hand, ignoring its cost. If it’s a unit, play it here.",
     "variantNumber": "OGN-107",
+    "variants": [
+      "OGN-107"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-107.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 5,
@@ -168,24 +324,60 @@
     "tags": [
       "Yordle",
       "Bandle City"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Azir, Emperor of the Sands",
+    "description": "Your Sand Soldiers have [Weaponmaster].\n[1], [Tap]: Play a 2 [Might] Sand Soldier unit token to your base. Use only if you've played an Equipment this turn.",
+    "variantNumber": "SFD-197",
+    "variants": [
+      "SFD-197"
+    ],
+    "variantImages": [
+      "https://piltoverarchive.b-cdn.net/temporary/1762915784915-cadhvmy6v9d.webp"
+    ],
+    "type": "Legend",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Calm",
+      "Order"
+    ],
+    "tags": [],
+    "releaseDate": "2026-02-28"
   },
   {
     "name": "Back-Alley Bar",
     "description": "When a unit moves from here, give it +1 [Might] this turn.",
     "variantNumber": "OGN-277",
+    "variants": [
+      "OGN-277"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-277.webp"
+    ],
     "type": "Battlefield",
     "super": null,
     "energy": 0,
     "power": 0,
     "might": 0,
     "colors": [],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Back to Back",
     "description": "[REACTION] (Play any time, even before spells and abilities resolve.)\nGive two friendly units each +2 [Might] this turn.",
     "variantNumber": "OGN-206",
+    "variants": [
+      "OGN-206"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-206.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 3,
@@ -194,12 +386,19 @@
     "colors": [
       "Order"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Baited Hook",
     "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[1] [order] [tap]: Kill a friendly unit. Look at the top 5 cards of\nyour Main Deck. You may banish a unit from among them\nthat has Might up to 1 more than the killed unit and play it,\nignoring its cost. Then recycle the rest.",
     "variantNumber": "OGN-242",
+    "variants": [
+      "OGN-242"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-242.webp"
+    ],
     "type": "Gear",
     "super": null,
     "energy": 3,
@@ -208,24 +407,38 @@
     "colors": [
       "Order"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Bandle Tree",
     "description": "You may hide an additional card here.",
     "variantNumber": "OGN-278",
+    "variants": [
+      "OGN-278"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-278.webp"
+    ],
     "type": "Battlefield",
     "super": null,
     "energy": 0,
     "power": 0,
     "might": 0,
     "colors": [],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Bilgewater Bully",
     "description": "While I'm buffed, I have [GANKING]. (I can move from battlefield to battlefield.)",
     "variantNumber": "OGN-125",
+    "variants": [
+      "OGN-125"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-125.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 6,
@@ -236,12 +449,42 @@
     ],
     "tags": [
       "Bilgewater"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Blade of the Ruined King",
+    "description": "[Equip] — [Order], Kill a friendly unit (Pay the cost: Attach this to a unit you control.)\n\n+4 [Might]",
+    "variantNumber": "SFD-178",
+    "variants": [
+      "SFD-178"
+    ],
+    "variantImages": [
+      "https://piltoverarchive.b-cdn.net/temporary/1762916338332-24xgeivxeb7.webp"
+    ],
+    "type": "Gear",
+    "super": null,
+    "energy": 3,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Equipment"
+    ],
+    "releaseDate": "2026-02-28"
   },
   {
     "name": "Blastcone Fae",
     "description": "[HIDDEN] (Hide now for [Rune] to react with later for [0].)\nWhen you play me, give a unit -2 [Might] this turn, to a minimum of 1 [Might].",
     "variantNumber": "OGN-097",
+    "variants": [
+      "OGN-097"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-097.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 2,
@@ -253,12 +496,40 @@
     "tags": [
       "Bandle City",
       "Fae"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Blast of Power",
+    "description": "[ACTION] (Play on your turn or in showdowns.)\nKill a unit at a battlefield.",
+    "variantNumber": "OGS-012",
+    "variants": [
+      "OGS-012"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGS-012.webp"
+    ],
+    "type": "Spell",
+    "super": null,
+    "energy": 6,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Order"
+    ],
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Blazing Scorcher",
     "description": "[ACCELERATE] (You may pay [1] [Fury] as an additional cost to have me enter ready.)",
     "variantNumber": "OGN-001",
+    "variants": [
+      "OGN-001"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-001.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 5,
@@ -270,12 +541,19 @@
     "tags": [
       "Noxus",
       "Dragon"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Blind Fury",
     "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[Action] (Play on your turn or in showdowns.)\nEach opponent reveals the top card of their Main Deck.\nChoose one and banish it, then play it, ignoring its cost.\nThen recycle the rest.",
     "variantNumber": "OGN-025",
+    "variants": [
+      "OGN-025"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-025.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 4,
@@ -284,12 +562,19 @@
     "colors": [
       "Fury"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Blitzcrank, Impassive",
     "description": "[Tank] (I must be assigned combat damage first.)\nWhen you play me to a battlefield, you may move an enemy unit to here.\nWhen I hold, return me to my owner's hand.",
     "variantNumber": "OGN-067",
+    "variants": [
+      "OGN-067"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-067.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 5,
@@ -302,12 +587,19 @@
       "Blitzcrank",
       "Zaun",
       "Mech"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Block",
     "description": "[HIDDEN]  (Hide now for [Rune] to react with later for [0].)\n[ACTION] (Play on your turn or in showdowns.)\n\nGive a unit [SHIELD 3] and [TANK] this turn. (+3 [Might] while it's a defender. It must be assigned combat damage first.)",
     "variantNumber": "OGN-057",
+    "variants": [
+      "OGN-057"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-057.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 2,
@@ -316,12 +608,23 @@
     "colors": [
       "Calm"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Body Rune",
-    "description": "",
+    "description": "-",
     "variantNumber": "OGN-126",
+    "variants": [
+      "OGN-126",
+      "OGN-126a",
+      "OGN-126b"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-126.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-126a.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-126b.webp"
+    ],
     "type": "Rune",
     "super": "Basic",
     "energy": 0,
@@ -330,12 +633,19 @@
     "colors": [
       "Body"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Brazen Buccaneer",
     "description": "As you play me, you may discard a card as an additional cost. If you do, reduce my cost by [2].",
     "variantNumber": "OGN-002",
+    "variants": [
+      "OGN-002"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-002.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 6,
@@ -347,12 +657,19 @@
     "tags": [
       "Bilgewater",
       "Pirate"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Brynhir Thundersong",
     "description": "When you play me, opponents can't play cards this turn.",
     "variantNumber": "OGN-026",
+    "variants": [
+      "OGN-026"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-026.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 6,
@@ -363,24 +680,38 @@
     ],
     "tags": [
       "Freljord"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Buff",
     "description": "A unit may have no more than one buff at a time.",
     "variantNumber": "OGN-999",
+    "variants": [
+      "OGN-999"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-XXX.webp"
+    ],
     "type": "Card",
     "super": "Token",
     "energy": 0,
     "power": 0,
     "might": 1,
     "colors": [],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Bullet Time",
     "description": "[ACTION] (Play on your turn or in showdowns.)\n\nPay any amount of [Rune] to deal that much damage to all enemy units at a battlefield.",
     "variantNumber": "OGN-268",
+    "variants": [
+      "OGN-268"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-268.webp"
+    ],
     "type": "Spell",
     "super": "Signature",
     "energy": 1,
@@ -392,12 +723,21 @@
     ],
     "tags": [
       "Miss Fortune"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Caitlyn, Patrolling",
     "description": "I must be assigned combat damage last.\n[Tap]: Deal damage equal to my Might to a unit at a battlefield. Use this ability only while I'm at a battlefield.",
     "variantNumber": "OGN-068",
+    "variants": [
+      "OGN-068",
+      "ARC-002"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-068.webp",
+      "https://piltoverarchive.b-cdn.net/temporary/1760416743034-mjx1r8rnhhi.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 3,
@@ -409,12 +749,19 @@
     "tags": [
       "Piltover",
       "Caitlyn"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Call to Glory",
     "description": "[REACTION] (Play any time, even before spells and abilities resolve.)\nAs you play this, you may spend a buff as an additional cost. If you do, ignore this spell's cost.\nGive a unit +3 [Might] this turn.",
     "variantNumber": "OGN-207",
+    "variants": [
+      "OGN-207"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-207.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 3,
@@ -423,12 +770,23 @@
     "colors": [
       "Order"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Calm Rune",
-    "description": "",
+    "description": "-",
     "variantNumber": "OGN-042",
+    "variants": [
+      "OGN-042",
+      "OGN-042a",
+      "OGN-042b"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-042.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-042a.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-042b.webp"
+    ],
     "type": "Rune",
     "super": "Basic",
     "energy": 0,
@@ -437,12 +795,19 @@
     "colors": [
       "Calm"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Cannon Barrage",
     "description": "[Reaction] (Play any time, even before spells and abilities resolve.)\n\nDeal 2 to all enemy units in combat.",
     "variantNumber": "OGN-127",
+    "variants": [
+      "OGN-127"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-127.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 2,
@@ -451,12 +816,19 @@
     "colors": [
       "Body"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Captain Farron",
     "description": "Other friendly units here have [ASSAULT] (+1 [Might] while they're attackers.)",
     "variantNumber": "OGN-015",
+    "variants": [
+      "OGN-015"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-015.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 4,
@@ -468,12 +840,19 @@
     "tags": [
       "Noxus",
       "Trifarian"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Carnivorous Snapvine",
     "description": "When you play me, choose an enemy unit at a battlefield. We deal damage equal to our Mights to each other.",
     "variantNumber": "OGN-149",
+    "variants": [
+      "OGN-149"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-149.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 5,
@@ -484,12 +863,19 @@
     ],
     "tags": [
       "Shadow Isles"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Catalyst of Aeons",
     "description": "Channel 2 runes exhausted. If you couldn't channel 2 runes this way, draw 1.",
     "variantNumber": "OGN-138",
+    "variants": [
+      "OGN-138"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-138.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 4,
@@ -498,12 +884,19 @@
     "colors": [
       "Body"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Cemetery Attendant",
     "description": "When you play me, return a unit from your trash to your hand.",
     "variantNumber": "OGN-165",
+    "variants": [
+      "OGN-165"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-165.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 3,
@@ -515,12 +908,19 @@
     "tags": [
       "Shadow Isles",
       "Dog"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Challenge",
     "description": "[ACTION] (Play on your turn or in showdowns.)\nChoose a friendly unit and an enemy unit. They deal damage equal to their Mights to each other.",
     "variantNumber": "OGN-128",
+    "variants": [
+      "OGN-128"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-128.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 2,
@@ -529,12 +929,23 @@
     "colors": [
       "Body"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Chaos Rune",
-    "description": "",
+    "description": "-",
     "variantNumber": "OGN-166",
+    "variants": [
+      "OGN-166",
+      "OGN-166a",
+      "OGN-166b"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-166.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-166a.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-166b.webp"
+    ],
     "type": "Rune",
     "super": "Basic",
     "energy": 0,
@@ -543,12 +954,19 @@
     "colors": [
       "Chaos"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Charm",
     "description": "Move an enemy unit.",
     "variantNumber": "OGN-043",
+    "variants": [
+      "OGN-043"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-043.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 1,
@@ -557,12 +975,19 @@
     "colors": [
       "Calm"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Chemtech Enforcer",
     "description": "[ASSAULT] (+2 [Might] while I'm an attacker.)\nWhen you play me, discard 1.",
     "variantNumber": "OGN-003",
+    "variants": [
+      "OGN-003"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-003.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 2,
@@ -573,12 +998,19 @@
     ],
     "tags": [
       "Zaun"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Cithria of Cloudfield",
     "description": "When you play another unit, buff me. (If I don't have a buff, I get a +1 [Might] buff.)",
     "variantNumber": "OGN-139",
+    "variants": [
+      "OGN-139"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-139.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 2,
@@ -590,12 +1022,19 @@
     "tags": [
       "Demacia",
       "Elite"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Cleave",
     "description": "[ACTION] (Play on your turn or in showdowns.)\n\nGive a unit [ASSAULT 3] this turn. (+3 [Might] while it's an attacker.)",
     "variantNumber": "OGN-004",
+    "variants": [
+      "OGN-004"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-004.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 1,
@@ -604,12 +1043,19 @@
     "colors": [
       "Fury"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Clockwork Keeper",
-    "description": "As you play me, you may pay [Calm] as an additional cost. If you do, draw 1.",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nYou may pay [C] as an additional cost to play me.\n\nWhen you play me, if you paid the additional cost, draw 1.",
     "variantNumber": "OGN-044",
+    "variants": [
+      "OGN-044"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-044.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 2,
@@ -620,12 +1066,19 @@
     ],
     "tags": [
       "Shurima"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Commander Ledros",
     "description": "As you play me, you may kill any number of friendly units as an additional cost. Reduce my cost by [Order] for each killed this way.\n[Deflect] (Opponents must pay [Rune] to choose me with a spell or ability.)\n[Ganking] (I can move from battlefield to battlefield.)",
     "variantNumber": "OGN-231",
+    "variants": [
+      "OGN-231"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-231.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 6,
@@ -637,12 +1090,19 @@
     "tags": [
       "Shadow Isles",
       "Spirit"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Confront",
     "description": "[Action] (Play on your turn or in showdowns.)\n\nUnits you play this turn enter ready.\nDraw 1.",
     "variantNumber": "OGN-129",
+    "variants": [
+      "OGN-129"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-129.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 2,
@@ -651,12 +1111,19 @@
     "colors": [
       "Body"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Consult the Past",
     "description": "[Hidden] (Hide now for [power] to react with later for [0].)\n[Reaction] (Play any time, even before spells and abilities resolve.)\nDraw 2.",
     "variantNumber": "OGN-083",
+    "variants": [
+      "OGN-083"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-083.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 4,
@@ -665,12 +1132,19 @@
     "colors": [
       "Mind"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Convergent Mutation",
     "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[Reaction] (Play any time, even before spells and abilities\nresolve.)\nChoose a friendly unit. This turn, increase its Might to the\nMight of another friendly unit.",
     "variantNumber": "OGN-108",
+    "variants": [
+      "OGN-108"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-108.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 2,
@@ -679,12 +1153,19 @@
     "colors": [
       "Mind"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Crackshot Corsair",
     "description": "When I attack, deal 1 to an enemy unit here.",
     "variantNumber": "OGN-130",
+    "variants": [
+      "OGN-130"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-130.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 3,
@@ -696,12 +1177,19 @@
     "tags": [
       "Bilgewater",
       "Pirate"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Cruel Patron",
     "description": "As an additional cost to play me, kill a friendly unit.",
     "variantNumber": "OGN-208",
+    "variants": [
+      "OGN-208"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-208.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 4,
@@ -712,12 +1200,19 @@
     ],
     "tags": [
       "Noxus"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Cull the Weak",
     "description": "Each player kills one of their units.",
     "variantNumber": "OGN-209",
+    "variants": [
+      "OGN-209"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-209.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 2,
@@ -726,12 +1221,19 @@
     "colors": [
       "Order"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Dangerous Duo",
     "description": "[LEGION] - When you play me, give a unit +2 [Might] this turn. (Get the effect if you've played another card this turn.)",
     "variantNumber": "OGN-016",
+    "variants": [
+      "OGN-016"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-016.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 3,
@@ -743,12 +1245,19 @@
     "tags": [
       "Bandle City",
       "Mech"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Daring Poro",
     "description": "[ASSAULT] (+1 [Might] while I'm an attacker.)",
     "variantNumber": "OGN-210",
+    "variants": [
+      "OGN-210"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-210.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 2,
@@ -759,12 +1268,21 @@
     ],
     "tags": [
       "Poro"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Darius, Executioner",
     "description": "[LEGION] - When you play me, ready me. (Get the effect if you've played another card this turn)\n\nOther friendly units have +1 [Might] here.",
     "variantNumber": "OGN-243",
+    "variants": [
+      "OGN-243",
+      "OGN-243a"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-243.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-243a.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 6,
@@ -777,12 +1295,23 @@
       "Darius",
       "Noxus",
       "Trifarian"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Darius, Hand of Noxus",
     "description": "[Tap] [REACTION], [LEGION] - [ADD] [1] (Abilities that add resources can't be reacted to. Get the effect if you've played a card this turn.)",
     "variantNumber": "OGN-253",
+    "variants": [
+      "OGN-253",
+      "OGN-302",
+      "OGN-302s"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-253.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-302.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-302s.webp"
+    ],
     "type": "Legend",
     "super": null,
     "energy": 0,
@@ -794,12 +1323,21 @@
     ],
     "tags": [
       "Darius"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Darius, Trifarian",
     "description": "When you play your second card in a turn, give me +2 [Might] this turn and ready me.",
     "variantNumber": "OGN-027",
+    "variants": [
+      "OGN-027",
+      "OGN-027a"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-027.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-027a.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 5,
@@ -812,12 +1350,19 @@
       "Darius",
       "Noxus",
       "Trifarian"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Dazzling Aurora",
     "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nAt the end of your turn, reveal cards from the top of your\nMain Deck until you reveal a unit and banish it. Play it,\nignoring its cost, and recycle the rest.",
     "variantNumber": "OGN-160",
+    "variants": [
+      "OGN-160"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-160.webp"
+    ],
     "type": "Gear",
     "super": null,
     "energy": 9,
@@ -826,12 +1371,19 @@
     "colors": [
       "Body"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Deadbloom Predator",
     "description": "[DEFLECT] (Opponents must play [Rune] to choose me with a spell or effect.)\n\nYou may play me to an occupied enemy battlefield.",
     "variantNumber": "OGN-161",
+    "variants": [
+      "OGN-161"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-161.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 8,
@@ -842,12 +1394,43 @@
     ],
     "tags": [
       "Shadow Isles"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Decisive Strike",
+    "description": "[ACTION] (Play on your turn or in showdowns.)\nGive friendly units +2 [Might] this turn.",
+    "variantNumber": "OGS-024",
+    "variants": [
+      "OGS-024"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGS-024.webp"
+    ],
+    "type": "Spell",
+    "super": "Signature",
+    "energy": 5,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Body",
+      "Order"
+    ],
+    "tags": [
+      "Garen"
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Defy",
     "description": "[REACTION] (Play any time, even before spells and abilities resolve.)\n\nCounter a spell that costs no more than [4] and no more than [Rune].",
     "variantNumber": "OGN-045",
+    "variants": [
+      "OGN-045"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-045.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 1,
@@ -856,12 +1439,19 @@
     "colors": [
       "Calm"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Discipline",
     "description": "[REACTION] (Play any time, even before spells and abilities resolve.)\n\nGive a unit +2 [Might] this turn. Draw 1.",
     "variantNumber": "OGN-058",
+    "variants": [
+      "OGN-058"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-058.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 2,
@@ -870,12 +1460,19 @@
     "colors": [
       "Calm"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Disintegrate",
     "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[ACTION] (Play on your turn or in showdowns.)\n\nDeal 3 to a unit at a battlefield. If this kills it, do this: draw 1.",
     "variantNumber": "OGN-005",
+    "variants": [
+      "OGN-005"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-005.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 4,
@@ -884,12 +1481,19 @@
     "colors": [
       "Fury"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Divine Judgment",
     "description": "Each player chooses 2 units, 2 gear, 2 runes, and 2 cards in their hands. Recycle the rest.",
     "variantNumber": "OGN-244",
+    "variants": [
+      "OGN-244"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-244.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 7,
@@ -898,12 +1502,42 @@
     "colors": [
       "Order"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Doran's Shield",
+    "description": "[Equip][Calm]  ([Calm]: Attach this to a unit you control.)\n\n[Tank], +1 [Might]",
+    "variantNumber": "SFD-033",
+    "variants": [
+      "SFD-033"
+    ],
+    "variantImages": [
+      "https://piltoverarchive.b-cdn.net/temporary/1762916879952-0sgsm8cogo5g.webp"
+    ],
+    "type": "Gear",
+    "super": null,
+    "energy": 1,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Calm"
+    ],
+    "tags": [
+      "Equipment"
+    ],
+    "releaseDate": "2026-02-28"
   },
   {
     "name": "Dragon's Rage",
     "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nMove an enemy unit. Then do this: Choose another enemy\nunit at its destination. They deal damage equal to their\nMights to each other.",
     "variantNumber": "OGN-258",
+    "variants": [
+      "OGN-258"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-258.webp"
+    ],
     "type": "Spell",
     "super": "Signature",
     "energy": 4,
@@ -915,12 +1549,43 @@
     ],
     "tags": [
       "Lee Sin"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Draven, Glorious Executioner",
+    "description": "When you win a combat, draw 1. (You win if only your units remain after combat.)",
+    "variantNumber": "SFD-185",
+    "variants": [
+      "SFD-185"
+    ],
+    "variantImages": [
+      "https://piltoverarchive.b-cdn.net/temporary/1762916216574-07ewj56mozo9.webp"
+    ],
+    "type": "Legend",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Fury",
+      "Chaos"
+    ],
+    "tags": [
+      "Draven"
+    ],
+    "releaseDate": "2026-02-28"
   },
   {
     "name": "Draven, Showboat",
     "description": "My might is increased by your points.",
     "variantNumber": "OGN-028",
+    "variants": [
+      "OGN-028"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-028.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 5,
@@ -932,12 +1597,45 @@
     "tags": [
       "Draven",
       "Noxus"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Draven, Vanquisher",
+    "description": "When I win a combat, play a Gold gear token exhausted.\nWhen I attack or defend, you may pay [Fury]. If you do, give me +2 [Might] this turn.",
+    "variantNumber": "SFD-020",
+    "variants": [
+      "SFD-020",
+      "SFD-020a"
+    ],
+    "variantImages": [
+      "https://piltoverarchive.b-cdn.net/temporary/1762917074687-rs71w6yy46l.webp",
+      "https://piltoverarchive.b-cdn.net/temporary/1762919651496-ngv6cfd1kua.webp"
+    ],
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 4,
+    "power": 0,
+    "might": 4,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [
+      "Draven",
+      "Noxus"
+    ],
+    "releaseDate": "2026-02-28"
   },
   {
     "name": "Dr. Mundo, Expert",
     "description": "My Might is increased by the number of cards on your trash.\nAt the start of your Beginning Phase, recycle 3 from your trash.",
     "variantNumber": "OGN-109",
+    "variants": [
+      "OGN-109"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-109.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 8,
@@ -949,12 +1647,19 @@
     "tags": [
       "Dr. Mundo",
       "Zaun"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Dune Drake",
     "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nWhen I attack, give me +2 [Might] this turn if there is a ready\nenemy unit here.",
     "variantNumber": "OGN-131",
+    "variants": [
+      "OGN-131"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-131.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 5,
@@ -966,12 +1671,19 @@
     "tags": [
       "Shurima",
       "Dragon"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Eager Apprentice",
     "description": "While I'm at a battlefield, the Energy costs for spells you play is reduced by [1], to a minimum of [1].",
     "variantNumber": "OGN-084",
+    "variants": [
+      "OGN-084"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-084.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 3,
@@ -982,12 +1694,19 @@
     ],
     "tags": [
       "Piltover"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Eclipse Herald",
     "description": "When you stun an enemy unit, ready me and give me +1 [Might] this turn.",
     "variantNumber": "OGN-059",
+    "variants": [
+      "OGN-059"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-059.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 7,
@@ -999,12 +1718,19 @@
     "tags": [
       "Mount Targon",
       "Bird"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Ekko, Recurrent",
     "description": "[ACCELERATE] (You may pay [1] [Mind] as an additional cost to have me enter ready.)\n[DEATHKNELL] - Recycle me to ready your runes. (When I die, get the effect.)",
     "variantNumber": "OGN-110",
+    "variants": [
+      "OGN-110"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-110.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 5,
@@ -1016,12 +1742,19 @@
     "tags": [
       "Ekko",
       "Zaun"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Ember Monk",
     "description": "When you play a card from [hidden], give me +2 [might] this turn.",
     "variantNumber": "OGN-167",
+    "variants": [
+      "OGN-167"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-167.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 4,
@@ -1032,12 +1765,19 @@
     ],
     "tags": [
       "Bandle City"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Energy Conduit",
     "description": "[Tap]: [Reaction] - [Add] [1]. (Abilities that add resources can't be reacted to.)",
     "variantNumber": "OGN-098",
+    "variants": [
+      "OGN-098"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-098.webp"
+    ],
     "type": "Gear",
     "super": null,
     "energy": 3,
@@ -1046,12 +1786,19 @@
     "colors": [
       "Mind"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "En Garde",
     "description": "[REACTION] (Play any time, even before spells and abilities resolve.)\nGive a friendly unit +1 [Might] this turn, then an additional +1 [Might] this turn if it is the only unit you control there.",
     "variantNumber": "OGN-046",
+    "variants": [
+      "OGN-046"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-046.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 1,
@@ -1060,12 +1807,19 @@
     "colors": [
       "Calm"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Facebreaker",
     "description": "[hidden] (Hide now for [power] to react with later for [0].)\n\n[action] (play on your turn or in showdowns.)\n\nStun a friendly unit and an enemy unit at the same battlefield. (They don't deal combat damage this turn.)",
     "variantNumber": "OGN-220",
+    "variants": [
+      "OGN-220"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-220.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 2,
@@ -1074,12 +1828,19 @@
     "colors": [
       "Order"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Fading Memories",
     "description": "Give a unit at a battlefield or a gear [temporary]. (Kill it at the start of its controller's Beginning Phase, before.)",
     "variantNumber": "OGN-180",
+    "variants": [
+      "OGN-180"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-180.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 4,
@@ -1088,12 +1849,19 @@
     "colors": [
       "Chaos"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Faithful Manufactor",
     "description": "When you play me, play a 1 [Might] Recruit unit token here.",
     "variantNumber": "OGN-211",
+    "variants": [
+      "OGN-211"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-211.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 3,
@@ -1104,12 +1872,19 @@
     ],
     "tags": [
       "Piltover"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Falling Comet",
     "description": "[Action] (play on your turn or in showdowns.)\n\nDeal 6 to a unit at a battlefield.",
     "variantNumber": "OGN-085",
+    "variants": [
+      "OGN-085"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-085.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 5,
@@ -1118,12 +1893,19 @@
     "colors": [
       "Mind"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Falling Star",
     "description": "Do this twice:\nDeal 3 to a unit. (You can choose different units.)",
     "variantNumber": "OGN-029",
+    "variants": [
+      "OGN-029"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-029.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 2,
@@ -1132,12 +1914,40 @@
     "colors": [
       "Fury"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Feral Strength",
+    "description": "[Reaction] (Play any time, even before spells and abilities resolve.)\n[Repeat 2] (You may pay the additional cost to repeat this spell's effect.)\nGive a unit +2 [Might] this turn.",
+    "variantNumber": "SFD-034",
+    "variants": [
+      "SFD-034"
+    ],
+    "variantImages": [
+      "https://piltoverarchive.b-cdn.net/temporary/1762933172092-wu1b4qebgz.png"
+    ],
+    "type": "Spell",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Calm"
+    ],
+    "tags": [],
+    "releaseDate": "2026-02-28"
   },
   {
     "name": "Fight or Flight",
     "description": "[Hidden] (Hide now for [Rune] to react with later for [0].)\n[Action] (Play on your turn or in showdowns.)\nMove a unit from a battlefield to its base.",
     "variantNumber": "OGN-168",
+    "variants": [
+      "OGN-168"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-168.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 2,
@@ -1146,12 +1956,43 @@
     "colors": [
       "Chaos"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Final Spark",
+    "description": "[ACTION] (Play on your turn or in showdowns.)\nDeal 8 to a unit.",
+    "variantNumber": "OGS-022",
+    "variants": [
+      "OGS-022"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGS-022.webp"
+    ],
+    "type": "Spell",
+    "super": "Signature",
+    "energy": 8,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Order",
+      "Mind"
+    ],
+    "tags": [
+      "Lux"
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Find Your Center",
     "description": "[ACTION] (Play on your turn or in showdowns.)\nIf an opponent's score is within 3 points of the Victory Score, this costs [2] less.\nDraw 1 and channel 1 rune exhausted.",
     "variantNumber": "OGN-047",
+    "variants": [
+      "OGN-047"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-047.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 3,
@@ -1160,12 +2001,19 @@
     "colors": [
       "Calm"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Fiora, Victorious",
     "description": "While I'm [Mighty], I have [Deflect], [Ganking] and [Shield]. (I'm Mighty while I have 5+ [Might].)",
     "variantNumber": "OGN-232",
+    "variants": [
+      "OGN-232"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-232.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 4,
@@ -1177,12 +2025,40 @@
     "tags": [
       "Fiora",
       "Demacia"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Firestorm",
+    "description": "Deal 3 to all enemy units at a battlefield.",
+    "variantNumber": "OGS-002",
+    "variants": [
+      "OGS-002"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGS-002.webp"
+    ],
+    "type": "Spell",
+    "super": null,
+    "energy": 6,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "First Mate",
     "description": "When you play me, ready another unit.",
     "variantNumber": "OGN-132",
+    "variants": [
+      "OGN-132"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-132.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 3,
@@ -1194,12 +2070,19 @@
     "tags": [
       "Bilgewater",
       "Pirate"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Flame Chompers",
     "description": "When you discard me, you may pay [Fury] to play me.",
     "variantNumber": "OGN-006",
+    "variants": [
+      "OGN-006"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-006.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 3,
@@ -1210,12 +2093,40 @@
     ],
     "tags": [
       "Zaun"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Flash",
+    "description": "[REACTION] (Play at any time, even before spells and abilities resolve.)\nMove up to 2 friendly units to base.",
+    "variantNumber": "OGS-011",
+    "variants": [
+      "OGS-011"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGS-011.webp"
+    ],
+    "type": "Spell",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Flurry of Blades",
     "description": "[Reaction] (Play any time, even before spells and abilities resolve.)\n\nDeal 1 to all units at battlefields.",
     "variantNumber": "OGN-133",
+    "variants": [
+      "OGN-133"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-133.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 1,
@@ -1224,12 +2135,19 @@
     "colors": [
       "Body"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Forge of the Future",
     "description": "When you play this, play a 1 [might] Recruit unit token at your base.\n\nKill this: Recycle up to 4 cards from trashes.",
     "variantNumber": "OGN-212",
+    "variants": [
+      "OGN-212"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-212.webp"
+    ],
     "type": "Gear",
     "super": null,
     "energy": 2,
@@ -1238,24 +2156,38 @@
     "colors": [
       "Order"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Fortified Position",
     "description": "When you defend here, choose a unit. It gains [SHIELD 2] this combat. (+2 [Might] while It's a defender.)",
     "variantNumber": "OGN-279",
+    "variants": [
+      "OGN-279"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-279.webp"
+    ],
     "type": "Battlefield",
     "super": null,
     "energy": 0,
     "power": 0,
     "might": 0,
     "colors": [],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Fox-Fire",
     "description": "[HIDDEN] (Hide now for [Rune] to react with later for [0].)\n[ACTION] (Play on your turn or in showdowns.)\nKill any number of units at a battlefield with total Might 4 or less.",
     "variantNumber": "OGN-256",
+    "variants": [
+      "OGN-256"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-256.webp"
+    ],
     "type": "Spell",
     "super": "Signature",
     "energy": 3,
@@ -1267,12 +2199,23 @@
     ],
     "tags": [
       "Ahri"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Fury Rune",
-    "description": "",
+    "description": "-",
     "variantNumber": "OGN-007",
+    "variants": [
+      "OGN-007",
+      "OGN-007a",
+      "OGN-007b"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-007.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-007a.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-007b.webp"
+    ],
     "type": "Rune",
     "super": "Basic",
     "energy": 0,
@@ -1281,12 +2224,19 @@
     "colors": [
       "Fury"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Garbage Grabber",
     "description": "Recycle 3 from your trash, [1], [Tap]: Draw 1.",
     "variantNumber": "OGN-099",
+    "variants": [
+      "OGN-099"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-099.webp"
+    ],
     "type": "Gear",
     "super": null,
     "energy": 2,
@@ -1295,12 +2245,93 @@
     "colors": [
       "Mind"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Garen, Commander",
+    "description": "Other friendly units have +1 [Might] here.",
+    "variantNumber": "OGS-013",
+    "variants": [
+      "OGS-013"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGS-013.webp"
+    ],
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 6,
+    "power": 1,
+    "might": 5,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Garen",
+      "Elite",
+      "Demacia"
+    ],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Garen, Might of Demacia",
+    "description": "When you conquer, if you have 4+ units at that battlefield, draw 2.",
+    "variantNumber": "OGS-023",
+    "variants": [
+      "OGS-023"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGS-023.webp"
+    ],
+    "type": "Legend",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Body",
+      "Order"
+    ],
+    "tags": [
+      "Garen"
+    ],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Garen, Rugged",
+    "description": "[Assault 2], [Shield 2] (+2 [Might] while I'm an attacker or defender.)",
+    "variantNumber": "OGS-007",
+    "variants": [
+      "OGS-007"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGS-007.webp"
+    ],
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 6,
+    "power": 1,
+    "might": 5,
+    "colors": [
+      "Body"
+    ],
+    "tags": [
+      "Garen",
+      "Elite",
+      "Demacia"
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Gemcraft Seer",
     "description": "[VISION] (When you play me, look at the top card of your Main Deck. You may recycle it.) \nOther friendly units have [VISION].",
     "variantNumber": "OGN-100",
+    "variants": [
+      "OGN-100"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-100.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 3,
@@ -1311,12 +2342,40 @@
     ],
     "tags": [
       "Mount Targon"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Gentlemen's Duel",
+    "description": "[Action] (Play on your turn or in showdowns.)\nGive a friendly unit +3 [Might] this turn. Then, choose an enemy unit. They deal damage equal to their Mights to each other.",
+    "variantNumber": "OGS-008",
+    "variants": [
+      "OGS-008"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGS-008.webp"
+    ],
+    "type": "Spell",
+    "super": null,
+    "energy": 6,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Body"
+    ],
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Get Excited!",
     "description": "[ACTION] (Play on your turn or in showdowns.)\nDiscard 1. Deal its Energy cost as damage to a unit at a battlefield. (Ignore its Power cost.)",
     "variantNumber": "OGN-008",
+    "variants": [
+      "OGN-008"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-008.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 2,
@@ -1325,12 +2384,38 @@
     "colors": [
       "Fury"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Gold",
+    "description": "Kill this, [Tap]: [Reaction] – [Add] [Rune]. (Abilities that add resources can't be reacted to.)",
+    "variantNumber": null,
+    "variants": [
+      "SFD-T03"
+    ],
+    "variantImages": [
+      "https://piltoverarchive.b-cdn.net/temporary/1762933023595-0k0o7x7vydgu.png"
+    ],
+    "type": "Gear",
+    "super": "Token",
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [],
+    "tags": [],
+    "releaseDate": null
   },
   {
     "name": "Grand Strategem",
     "description": "[ACTION] (Play on your turn or in showdowns.)\nGive friendly units +5 [Might] this turn.",
     "variantNumber": "OGN-233",
+    "variants": [
+      "OGN-233"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-233.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 6,
@@ -1339,24 +2424,61 @@
     "colors": [
       "Order"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Grove of the God-Willow",
     "description": "When you hold here, draw 1.",
     "variantNumber": "OGN-280",
+    "variants": [
+      "OGN-280"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-280.webp"
+    ],
     "type": "Battlefield",
     "super": null,
     "energy": 0,
     "power": 0,
     "might": 0,
     "colors": [],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Guardian Angel",
+    "description": "[Equip][Calm]  ([Calm]: Attach this to a unit you control.)\n\nIf I would die, kill Guardian Angel instead. Heal me, Exhaust me, and recall me.\n+1 [Might]",
+    "variantNumber": "SFD-051",
+    "variants": [
+      "SFD-051"
+    ],
+    "variantImages": [
+      "https://piltoverarchive.b-cdn.net/temporary/1762916766870-g6sfmw5drlr.webp"
+    ],
+    "type": "Gear",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Calm"
+    ],
+    "tags": [
+      "Equipment"
+    ],
+    "releaseDate": "2026-02-28"
   },
   {
     "name": "Guerilla Warfare",
     "description": "Return up to two cards with [HIDDEN]  from your trash to your hand. You can hide ignoring costs this turn.",
     "variantNumber": "OGN-264",
+    "variants": [
+      "OGN-264"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-264.webp"
+    ],
     "type": "Spell",
     "super": "Signature",
     "energy": 2,
@@ -1368,12 +2490,19 @@
     ],
     "tags": [
       "Teemo"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Gust",
     "description": "[REACTION] (Play any time, even before spells and abilities resolve.)\nReturn a unit at a battlefield with 3 [Might] or less to its owner's hand.",
     "variantNumber": "OGN-169",
+    "variants": [
+      "OGN-169"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-169.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 1,
@@ -1382,24 +2511,38 @@
     "colors": [
       "Chaos"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Hallowed Tomb",
     "description": "When you hold here, you may return your Chosen Champion from your trash to your Champion Zone if it is empty.",
     "variantNumber": "OGN-281",
+    "variants": [
+      "OGN-281"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-281.webp"
+    ],
     "type": "Battlefield",
     "super": null,
     "energy": 0,
     "power": 0,
     "might": 0,
     "colors": [],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Harnessed Dragon",
     "description": "When you play me, kill an enemy unit.",
     "variantNumber": "OGN-234",
+    "variants": [
+      "OGN-234"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-234.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 8,
@@ -1411,12 +2554,21 @@
     "tags": [
       "Demacia",
       "Dragon"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Heimerdinger, Inventor",
     "description": "I have all [Tap] abilities of all friendly legends, units and gear.",
     "variantNumber": "OGN-111",
+    "variants": [
+      "OGN-111",
+      "ARC-003"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-111.webp",
+      "https://piltoverarchive.b-cdn.net/temporary/1760416827138-ytd8qmfc3v.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 3,
@@ -1429,12 +2581,19 @@
       "Heimerdinger",
       "Piltover",
       "Yordle"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Herald of Scales",
     "description": "Your Dragons' Energy costs are reduced by [2], to a minimum of [1].",
     "variantNumber": "OGN-140",
+    "variants": [
+      "OGN-140"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-140.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 4,
@@ -1445,12 +2604,19 @@
     ],
     "tags": [
       "Mount Targon"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Hextech Ray",
     "description": "[ACTION] (Play on your turn or in showdowns.)\nDeal 3 damage to a unit at a battlefield.",
     "variantNumber": "OGN-009",
+    "variants": [
+      "OGN-009"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-009.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 1,
@@ -1459,12 +2625,19 @@
     "colors": [
       "Fury"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Hidden Blade",
     "description": "[HIDDEN] (Hide now for [Rune] to react with later for [0].)\n[ACTION] (Play on your turn or in showdowns.)\nKill a unit at a battlefield. Its controller draws 2.",
     "variantNumber": "OGN-213",
+    "variants": [
+      "OGN-213"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-213.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 2,
@@ -1473,12 +2646,43 @@
     "colors": [
       "Order"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Highlander",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[Reaction] (Play any time, even before spells and abilities\nresolve.)\nChoose a friendly unit. The next time it dies this turn, heal\nit, exhaust it, and recall it instead. (Send it to base. This\nisn't a move.)",
+    "variantNumber": "OGS-020",
+    "variants": [
+      "OGS-020"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGS-020.webp"
+    ],
+    "type": "Spell",
+    "super": "Signature",
+    "energy": 4,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Body",
+      "Calm"
+    ],
+    "tags": [
+      "Master Yi"
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Icathian Rain",
     "description": "Do this 6 times: \nDeal 2 to a unit. (You can choose different units.)",
     "variantNumber": "OGN-248",
+    "variants": [
+      "OGN-248"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-248.webp"
+    ],
     "type": "Spell",
     "super": "Signature",
     "energy": 7,
@@ -1490,12 +2694,19 @@
     ],
     "tags": [
       "Kai'Sa"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Immortal Phoenix",
     "description": "[ASSAULT 2] (+2 [Might] while I'm an attacker.)\n\nWhen you kill a unit with a spell, you may pay [1] [Fury] to play me from your trash.",
     "variantNumber": "OGN-037",
+    "variants": [
+      "OGN-037"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-037.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 3,
@@ -1506,12 +2717,19 @@
     ],
     "tags": [
       "Spirit"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Imperial Decree",
     "description": "[action] (Play on your turn or in showdowns.) When any unit takes damage this turn, kill it.",
     "variantNumber": "OGN-221",
+    "variants": [
+      "OGN-221"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-221.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 5,
@@ -1520,12 +2738,40 @@
     "colors": [
       "Order"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Incinerate",
+    "description": "[ACTION] (play on your turn or in showdowns.) \nDeal 2 to a unit at a battlefield.",
+    "variantNumber": "OGS-003",
+    "variants": [
+      "OGS-003"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGS-003.webp"
+    ],
+    "type": "Spell",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Invert Timelines",
     "description": "Each player discards their hand, then draws 4.",
     "variantNumber": "OGN-201",
+    "variants": [
+      "OGN-201"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-201.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 3,
@@ -1534,12 +2780,41 @@
     "colors": [
       "Chaos"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Irelia, Blade Dancer",
+    "description": "When you choose a friendly unit, you may exhaust me and pay [Rune] to ready it.\nWhen you conquer, you may pay [1] to ready me.",
+    "variantNumber": "SFD-195",
+    "variants": [
+      "SFD-195"
+    ],
+    "variantImages": [
+      "https://piltoverarchive.b-cdn.net/temporary/1762915858592-p3t8s1kft7k.webp"
+    ],
+    "type": "Legend",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Calm",
+      "Chaos"
+    ],
+    "tags": [],
+    "releaseDate": "2026-02-28"
   },
   {
     "name": "Iron Ballista",
     "description": "This enters exhausted.\n[TAP]: Deal 2 to a unit at a battlefield.",
     "variantNumber": "OGN-017",
+    "variants": [
+      "OGN-017"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-017.webp"
+    ],
     "type": "Gear",
     "super": null,
     "energy": 3,
@@ -1548,12 +2823,19 @@
     "colors": [
       "Fury"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Jeweled Colossus",
     "description": "[Vision] (When you play me, look at the top card of your Main Deck. You may recycle it.)\n[Shield] (+1 [Might] while I'm a defender.)",
     "variantNumber": "OGN-086",
+    "variants": [
+      "OGN-086"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-086.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 5,
@@ -1564,12 +2846,21 @@
     ],
     "tags": [
       "Mount Targon"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Jinx, Demolitionist",
     "description": "[ACCELERATE] (You may pay [1] [Fury] as an additional cost to have me enter ready.)\n[ASSAULT 2] (+2 [Might] while I'm an attacker.)\nWhen you play me, discard 2.",
     "variantNumber": "OGN-030",
+    "variants": [
+      "OGN-030",
+      "OGN-030a"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-030.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-030a.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 3,
@@ -1581,12 +2872,23 @@
     "tags": [
       "Jinx",
       "Zaun"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Jinx, Loose Cannon",
     "description": "At start of your Beginning Phase, draw 1 if you have 1 or fewer cards in your hand.",
     "variantNumber": "OGN-251",
+    "variants": [
+      "OGN-251",
+      "OGN-301",
+      "OGN-301s"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-251.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-301.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-301s.webp"
+    ],
     "type": "Legend",
     "super": null,
     "energy": 0,
@@ -1598,12 +2900,23 @@
     ],
     "tags": [
       "Jinx"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Jinx, Rebel",
     "description": "When you discard one or more cards, ready me and give me +1 [Might] this turn.",
     "variantNumber": "OGN-202",
+    "variants": [
+      "OGN-202",
+      "OGN-202a",
+      "ARC-005"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-202.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-202a.webp",
+      "https://piltoverarchive.b-cdn.net/temporary/1760416716990-we9v5u8rbb.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 5,
@@ -1615,12 +2928,19 @@
     "tags": [
       "Jinx",
       "Zaun"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Kadregrin the Infernal",
     "description": "When you play me, draw 1 for each of your [MIGHTY] units. (A unit is Mighty while it has 5+ [Might].)",
     "variantNumber": "OGN-038",
+    "variants": [
+      "OGN-038"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-038.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 9,
@@ -1632,12 +2952,23 @@
     "tags": [
       "Demacia",
       "Dragon"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Kai'Sa, Daughter of the Void",
     "description": "[Tap]: [REACTION] - [ADD] [Rune]. Use only to play spells. (Abilities that add resources can't be reacted to.)",
     "variantNumber": "OGN-247",
+    "variants": [
+      "OGN-247",
+      "OGN-299",
+      "OGN-299s"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-247.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-299.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-299s.webp"
+    ],
     "type": "Legend",
     "super": null,
     "energy": 0,
@@ -1649,12 +2980,21 @@
     ],
     "tags": [
       "Kai'Sa"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Kai'Sa, Evolutionary",
     "description": "[GANKING] (I can move from battlefield to battlefield.)\n\nWhen I conquer, you may play a spell from your trash with Energy cost less than your points without paying its Energy cost. Then recycle it. (You must still pay its Power cost.)",
     "variantNumber": "OGN-112",
+    "variants": [
+      "OGN-112",
+      "OGN-112a"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-112.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-112a.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 6,
@@ -1666,12 +3006,21 @@
     "tags": [
       "Kai'Sa",
       "The Void"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Kai'Sa, Survivor",
     "description": "[ACCELERATE] (You may pay [1] [FURY] as an additional cost to have me enter ready.)\nWhen I conquer, draw 1.",
     "variantNumber": "OGN-039",
+    "variants": [
+      "OGN-039",
+      "OGN-039a"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-039.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-039a.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 4,
@@ -1683,12 +3032,19 @@
     "tags": [
       "Kai'Sa",
       "The Void"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Karma, Channeler",
     "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[Vision] (When you play me, look at the top card of your\nMain Deck. You may recycle it.)\nWhen you recycle one or more cards to your Main Deck,\nbuff a friendly unit. (If it doesn't have a buff, it gets a +1 [M]\nbuff.)",
     "variantNumber": "OGN-235",
+    "variants": [
+      "OGN-235"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-235.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 6,
@@ -1700,12 +3056,19 @@
     "tags": [
       "Karma",
       "Ionia"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Karthus, Eternal",
     "description": "Your [deathknell] trigger an additional time",
     "variantNumber": "OGN-236",
+    "variants": [
+      "OGN-236"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-236.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 3,
@@ -1718,12 +3081,19 @@
       "Shadow Isles",
       "Spirit",
       "Karthus"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Kayn, Unleashed",
     "description": "[GANKING] (I can move from battlefield to battlefield.)\nIf I have moved twice this turn, I don't take damage.",
     "variantNumber": "OGN-189",
+    "variants": [
+      "OGN-189"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-189.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 6,
@@ -1735,12 +3105,19 @@
     "tags": [
       "Kayn",
       "Ionia"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "King's Edict",
     "description": "Starting with the next player, each other player chooses a unit you don't control that hasn't been chosen for this spell. Kill those units.",
     "variantNumber": "OGN-237",
+    "variants": [
+      "OGN-237"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-237.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 6,
@@ -1749,12 +3126,19 @@
     "colors": [
       "Order"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Kinkou Monk",
     "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nWhen you play me, buff up to two other friendly units.\n(Each one that doesn't have a buff gets a +1 [Might] buff.)",
     "variantNumber": "OGN-141",
+    "variants": [
+      "OGN-141"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-141.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 4,
@@ -1765,12 +3149,19 @@
     ],
     "tags": [
       "Ionia"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Kog'Maw, Caustic",
     "description": "[Deathknell] - Deal 4 to all units at my battlefield. (When I die, get the effect)",
     "variantNumber": "OGN-190",
+    "variants": [
+      "OGN-190"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-190.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 3,
@@ -1782,12 +3173,19 @@
     "tags": [
       "Kog'Maw",
       "The Void"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Kraken Hunter",
     "description": "[Accelerate] (You may pay [1] [body] as an additional cost to have me enter ready.)\n[Assault] (+1 [might] while i'm an attacker.)\n\nAs you play me, you may spend any number of buffs as an additional cost. Reduce my cost by [body] for each buff you spend.",
     "variantNumber": "OGN-150",
+    "variants": [
+      "OGN-150"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-150.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 3,
@@ -1799,12 +3197,19 @@
     "tags": [
       "Bilgewater",
       "Pirate"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Last Breath",
     "description": "[ACTION] (Play on your turn or in showdowns.)\nReady a friendly unit. It deals damage equal to its Might to an enemy at a battlefield.",
     "variantNumber": "OGN-260",
+    "variants": [
+      "OGN-260"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-260.webp"
+    ],
     "type": "Spell",
     "super": "Signature",
     "energy": 3,
@@ -1816,12 +3221,19 @@
     ],
     "tags": [
       "Yasuo"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Last Stand",
     "description": "[Action] (Play on your turn or in showdowns.)\nDouble a friendly unit's Might this turn. Give it [Temporary]. Kill it at the start of its controller's Beginning Phase, before scoring.)",
     "variantNumber": "OGN-069",
+    "variants": [
+      "OGN-069"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-069.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 3,
@@ -1830,12 +3242,19 @@
     "colors": [
       "Calm"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Lecturing Yordle",
     "description": "[Tank] (I must be assigned combat damage first.)\n\nWhen you play me, draw 1.",
     "variantNumber": "OGN-087",
+    "variants": [
+      "OGN-087"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-087.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 3,
@@ -1847,12 +3266,21 @@
     "tags": [
       "Bandle City",
       "Yordle"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Lee Sin, Ascetic",
     "description": "[SHIELD] (+1 [Might] while I'm a defender.)\n[Tap]: Buff me. (I get a +1 [Might] buff.) \nI can have any number of buffs.",
     "variantNumber": "OGN-078",
+    "variants": [
+      "OGN-078",
+      "OGN-078a"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-078.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-078a.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 5,
@@ -1864,12 +3292,23 @@
     "tags": [
       "Lee Sin",
       "Ionia"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Lee Sin, Blind Monk",
     "description": "[1], [Tap]: Buff a friendly unit. (If it doesn't have a buff, it gets a +1 [Might] buff.)",
     "variantNumber": "OGN-257",
+    "variants": [
+      "OGN-257",
+      "OGN-304",
+      "OGN-304s"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-257.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-304.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-304s.webp"
+    ],
     "type": "Legend",
     "super": null,
     "energy": 0,
@@ -1881,12 +3320,21 @@
     ],
     "tags": [
       "Lee Sin"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Lee Sin, Centered",
     "description": "[Accelerate] (You may pay [1][Body] as an additional cost to have me enter ready.)\nOther buffed friendly units at my battlefield have +2 [Might].",
     "variantNumber": "OGN-151",
+    "variants": [
+      "OGN-151",
+      "OGN-151a"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-151.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-151a.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 6,
@@ -1898,12 +3346,19 @@
     "tags": [
       "Lee Sin",
       "Ionia"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Legion Rearguard",
     "description": "[ACCELERATE] (You may pay [1] [Fury] as an additional cost to have me enter ready.)",
     "variantNumber": "OGN-010",
+    "variants": [
+      "OGN-010"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-010.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 2,
@@ -1915,12 +3370,21 @@
     "tags": [
       "Noxus",
       "Trifarian"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Leona, Determined",
     "description": "[SHIELD] (+1 [Might] while I'm a defender.)\nWhen I attack, stun an enemy unit here. \n(It doesn't deal combat damage this turn.)",
     "variantNumber": "OGN-238",
+    "variants": [
+      "OGN-238",
+      "OGN-238a"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-238.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-238a.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 4,
@@ -1932,12 +3396,23 @@
     "tags": [
       "Leona",
       "Mount Targon"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Leona, Radiant Dawn",
     "description": "When you stun one or more enemy units, buff a friendly unit. (If it doesn't have a buff, it gets a +1 [Might] buff.)",
     "variantNumber": "OGN-261",
+    "variants": [
+      "OGN-261",
+      "OGN-306",
+      "OGN-306s"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-261.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-306.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-306s.webp"
+    ],
     "type": "Legend",
     "super": null,
     "energy": 0,
@@ -1949,12 +3424,21 @@
     ],
     "tags": [
       "Leona"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Leona, Zealot",
     "description": "If an opponent's score is within 3 points of the Victory Score, I enter ready.\nStunned enemy units here have -8 [Might], to a minimum of 1 [Might].",
     "variantNumber": "OGN-079",
+    "variants": [
+      "OGN-079",
+      "OGN-079a"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-079.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-079a.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 6,
@@ -1966,12 +3450,141 @@
     "tags": [
       "Leona",
       "Mount Targon"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Long Sword",
+    "description": "[Quick-Draw] (This has [Reaction]. When you play it, attach it to a unit you control.)\n[Equip][Fury]  ([Fury]: Attach this to a unit you control.)\n\n+2 [Might]",
+    "variantNumber": "SFD-022",
+    "variants": [
+      "SFD-022"
+    ],
+    "variantImages": [
+      "https://piltoverarchive.b-cdn.net/temporary/1762916945488-hrh8juefa1b.webp"
+    ],
+    "type": "Gear",
+    "super": null,
+    "energy": 2,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Fury"
+    ],
+    "tags": [
+      "Equipment"
+    ],
+    "releaseDate": "2026-02-28"
+  },
+  {
+    "name": "Lucian, Merciless",
+    "description": "[Weaponmaster] (When you play me, you may [Equip] one of your Equipment to me for [Rune] less, even if it's already attached.)\nThe first time I conquer each turn, ready me.",
+    "variantNumber": "SFD-113",
+    "variants": [
+      "SFD-113",
+      "SFD-113a"
+    ],
+    "variantImages": [
+      "https://piltoverarchive.b-cdn.net/temporary/1762916504279-pzgfy721g.webp",
+      "https://piltoverarchive.b-cdn.net/temporary/1762919732180-qnx9662kepd.webp"
+    ],
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 3,
+    "power": 0,
+    "might": 3,
+    "colors": [
+      "Body"
+    ],
+    "tags": [
+      "Lucian",
+      "Demacia",
+      "Sentinel"
+    ],
+    "releaseDate": "2026-02-28"
+  },
+  {
+    "name": "Lux, Crownguard",
+    "description": "[Tap]: [REACTION] - [ADD] [2] Use only to play spells. (Abilities that add resources can't be reacted to.)",
+    "variantNumber": "OGS-014",
+    "variants": [
+      "OGS-014"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGS-014.webp"
+    ],
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 4,
+    "power": 0,
+    "might": 2,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Lux",
+      "Demacia"
+    ],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Lux, Illuminated",
+    "description": "When you play a spell that costs [5] or more, give me +3 [Might] this turn.",
+    "variantNumber": "OGS-006",
+    "variants": [
+      "OGS-006"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGS-006.webp"
+    ],
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 6,
+    "power": 1,
+    "might": 5,
+    "colors": [
+      "Mind"
+    ],
+    "tags": [
+      "Lux",
+      "Demacia"
+    ],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Lux, Lady of Luminosity",
+    "description": "When you play a spell that costs [5] or more, draw a 1.",
+    "variantNumber": "OGS-021",
+    "variants": [
+      "OGS-021"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGS-021.webp"
+    ],
+    "type": "Legend",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Order",
+      "Mind"
+    ],
+    "tags": [
+      "Lux"
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Machine Evangel",
     "description": "[DEATHKNELL] - Play three 1 [Might] Recruit unit tokens into your base. (When I die, get the effect.)",
     "variantNumber": "OGN-239",
+    "variants": [
+      "OGN-239"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-239.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 5,
@@ -1982,12 +3595,19 @@
     ],
     "tags": [
       "Piltover"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Maddened Marauder",
     "description": "[TANK] (I must be assigned combat damage first.)\nWhen you play me, move a unit from a battlefield to its base.",
     "variantNumber": "OGN-191",
+    "variants": [
+      "OGN-191"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-191.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 5,
@@ -1999,12 +3619,19 @@
     "tags": [
       "Bilgewater",
       "Pirate"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Mageseeker Warden",
     "description": "While I'm at a battlefield, opponents can only play units to their base.\nWhile I'm at a battlefield, spells and abilities can't ready enemy units and gears.",
     "variantNumber": "OGN-070",
+    "variants": [
+      "OGN-070"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-070.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 6,
@@ -2015,12 +3642,19 @@
     ],
     "tags": [
       "Demacia"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Magma Wurm",
     "description": "Other friendly units enter ready.",
     "variantNumber": "OGN-011",
+    "variants": [
+      "OGN-011"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-011.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 8,
@@ -2031,12 +3665,19 @@
     ],
     "tags": [
       "Freljord"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Malzahar, Fanatic",
     "description": "Kill a friend unit or gear, [tap] : [action] - [add] [rune] [rune]. (Use on your turn or in showdowns. Abilities that add resources can't be reacted to.)",
     "variantNumber": "OGN-113",
+    "variants": [
+      "OGN-113"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-113.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 4,
@@ -2048,12 +3689,19 @@
     "tags": [
       "Malzahar",
       "The Void"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Mask of Foresight",
     "description": "When a friendly unit attacks or defends alone, give it +1 [Might] this turn.",
     "variantNumber": "OGN-060",
+    "variants": [
+      "OGN-060"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-060.webp"
+    ],
     "type": "Gear",
     "super": null,
     "energy": 2,
@@ -2062,12 +3710,91 @@
     "colors": [
       "Calm"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Master Yi, Honed",
+    "description": "[GANKING] (I can move from battlefield to battlefield.)\nI enter ready.",
+    "variantNumber": "OGS-009",
+    "variants": [
+      "OGS-009"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGS-009.webp"
+    ],
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 7,
+    "power": 1,
+    "might": 6,
+    "colors": [
+      "Body"
+    ],
+    "tags": [
+      "Master Yi",
+      "Ionia"
+    ],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Master Yi, Meditative",
+    "description": "While you have 8+ runes, I have +4 [Might].",
+    "variantNumber": "OGS-004",
+    "variants": [
+      "OGS-004"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGS-004.webp"
+    ],
+    "type": "Unit",
+    "super": "Champion",
+    "energy": 5,
+    "power": 1,
+    "might": 4,
+    "colors": [
+      "Calm"
+    ],
+    "tags": [
+      "Master Yi",
+      "Ionia"
+    ],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Master Yi, Wuju Bladesman",
+    "description": "While a friendly unit defends alone, it gets +2 [Might].",
+    "variantNumber": "OGS-019",
+    "variants": [
+      "OGS-019"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGS-019.webp"
+    ],
+    "type": "Legend",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Body",
+      "Calm"
+    ],
+    "tags": [
+      "Master Yi"
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Meditation",
     "description": "[REACTION] (Play any time, even before spells and abilities resolve.)\nAs an additional cost to play this, you may exhaust a friendly unit. If you do, draw 2. Otherwise, draw 1.",
     "variantNumber": "OGN-048",
+    "variants": [
+      "OGN-048"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-048.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 2,
@@ -2076,12 +3803,19 @@
     "colors": [
       "Calm"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Mega-Mech",
     "description": ".",
     "variantNumber": "OGN-088",
+    "variants": [
+      "OGN-088"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-088.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 7,
@@ -2093,12 +3827,23 @@
     "tags": [
       "Bandle City",
       "Mech"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Mind Rune",
-    "description": "",
+    "description": "-",
     "variantNumber": "OGN-089",
+    "variants": [
+      "OGN-089",
+      "OGN-089a",
+      "OGN-089b"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-089.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-089a.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-089b.webp"
+    ],
     "type": "Rune",
     "super": "Basic",
     "energy": 0,
@@ -2107,12 +3852,19 @@
     "colors": [
       "Mind"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Mindsplitter",
     "description": "When you play me, choose an opponent. They reveal their hand. Choose a card from it, and they discard that card.",
     "variantNumber": "OGN-192",
+    "variants": [
+      "OGN-192"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-192.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 7,
@@ -2124,12 +3876,23 @@
     "tags": [
       "Mount Targon",
       "Dragon"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Miss Fortune, Bounty Hunter",
     "description": "[Tap]: Give a unit [GANKING] this turn. (It can move from battlefield to battlefield.)",
     "variantNumber": "OGN-267",
+    "variants": [
+      "OGN-267",
+      "OGN-309",
+      "OGN-309s"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-267.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-309.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-309s.webp"
+    ],
     "type": "Legend",
     "super": null,
     "energy": 0,
@@ -2141,12 +3904,21 @@
     ],
     "tags": [
       "Miss Fortune"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Miss Fortune, Buccaneer",
     "description": "You may play me to an open battlefield.\nFriendly units may be played to open battlefields.",
     "variantNumber": "OGN-193",
+    "variants": [
+      "OGN-193",
+      "OGN-193a"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-193.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-193a.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 4,
@@ -2159,12 +3931,21 @@
       "Miss Fortune",
       "Bilgewater",
       "Pirate"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Miss Fortune, Captain",
     "description": "[ACCELERATE] (You may pay [1] [Body] as an additional cost to have me enter ready.)\n[GANKING] (I can move from battlefield to battlefield.)\nThe first time I move each turn, you may ready something else that's exhausted.",
     "variantNumber": "OGN-162",
+    "variants": [
+      "OGN-162",
+      "OGN-162a"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-162.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-162a.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 5,
@@ -2177,12 +3958,19 @@
       "Miss Fortune",
       "Bilgewater",
       "Pirate"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Mistfall",
     "description": "When you buff a friendly unit, you may pay [Body] and exhaust this to ready it.",
     "variantNumber": "OGN-152",
+    "variants": [
+      "OGN-152"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-152.webp"
+    ],
     "type": "Gear",
     "super": null,
     "energy": 3,
@@ -2191,12 +3979,19 @@
     "colors": [
       "Body"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Mobilize",
     "description": "Channel 1 rune exhausted. If you can't, draw 1.",
     "variantNumber": "OGN-134",
+    "variants": [
+      "OGN-134"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-134.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 2,
@@ -2205,24 +4000,38 @@
     "colors": [
       "Body"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Monastery of Hirana",
     "description": "When you conquer here, you may spend a buff to draw 1.",
     "variantNumber": "OGN-282",
+    "variants": [
+      "OGN-282"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-282.webp"
+    ],
     "type": "Battlefield",
     "super": null,
     "energy": 0,
     "power": 0,
     "might": 0,
     "colors": [],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Morbid Return",
     "description": "[ACTION] (Play on your turn or in showdowns.)\nReturn a unit from your trash to your hand.",
     "variantNumber": "OGN-170",
+    "variants": [
+      "OGN-170"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-170.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 2,
@@ -2231,12 +4040,19 @@
     "colors": [
       "Chaos"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Mountain Drake",
     "description": ".",
     "variantNumber": "OGN-142",
+    "variants": [
+      "OGN-142"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-142.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 9,
@@ -2247,12 +4063,19 @@
     ],
     "tags": [
       "Dragon"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Mushroom Pouch",
     "description": "At the start of your Beginning Phase, if you control a facedown card at a battlefield, draw 1.",
     "variantNumber": "OGN-101",
+    "variants": [
+      "OGN-101"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-101.webp"
+    ],
     "type": "Gear",
     "super": null,
     "energy": 2,
@@ -2261,12 +4084,19 @@
     "colors": [
       "Mind"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Mystic Poro",
     "description": "[Vision] (When you play me, look at the top card of your Main Deck. You may recycle it.)",
     "variantNumber": "OGN-171",
+    "variants": [
+      "OGN-171"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-171.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 2,
@@ -2277,12 +4107,19 @@
     ],
     "tags": [
       "Poro"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Mystic Reversal",
     "description": "[Reaction] (Play any time, even before spells and abilities resolve.)\nGain control of a spell. You may make new choices for it.",
     "variantNumber": "OGN-080",
+    "variants": [
+      "OGN-080"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-080.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 4,
@@ -2291,24 +4128,38 @@
     "colors": [
       "Calm"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Navori Fighting Pit",
     "description": "When you hold here, buff a unit here. (If it doesn't have a buff, it gets a +1 [Might] buff.)",
     "variantNumber": "OGN-283",
+    "variants": [
+      "OGN-283"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-283.webp"
+    ],
     "type": "Battlefield",
     "super": null,
     "energy": 0,
     "power": 0,
     "might": 0,
     "colors": [],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Nocturne, Horrifying",
     "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[Ganking] (I can move from battlefield to battlefield.)\nAs you look at or reveal me from the top of your deck, you\nmay banish me. If you do, you may play me for [A].",
     "variantNumber": "OGN-194",
+    "variants": [
+      "OGN-194"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-194.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 4,
@@ -2319,12 +4170,19 @@
     ],
     "tags": [
       "Nocturne"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Noxian Drummer",
     "description": "When I move to a battlefield, play a 1 [Might] Recruit unit token here. (It is also at the battlefield.)",
     "variantNumber": "OGN-222",
+    "variants": [
+      "OGN-222"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-222.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 3,
@@ -2336,12 +4194,19 @@
     "tags": [
       "Noxus",
       "Trifarian"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Noxian Guillotine",
     "description": "[ACTION] (Play on your turn or in showdowns.)\nChoose a unit. Kill it the next time it takes damage this turn.\n[LEGION] - Kill it now instead. (Get the effect if you've played another card this turn.)",
     "variantNumber": "OGN-254",
+    "variants": [
+      "OGN-254"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-254.webp"
+    ],
     "type": "Spell",
     "super": "Signature",
     "energy": 4,
@@ -2353,12 +4218,19 @@
     ],
     "tags": [
       "Darius"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Noxus Hopeful",
     "description": "[LEGION] I cost [2] less. (Get the effect if you've played another card this turn.)",
     "variantNumber": "OGN-012",
+    "variants": [
+      "OGN-012"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-012.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 4,
@@ -2370,12 +4242,19 @@
     "tags": [
       "Noxus",
       "Trifarian"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Noxus Saboteur",
     "description": "Your opponents' [HIDDEN] cards can't be revealed here.",
     "variantNumber": "OGN-018",
+    "variants": [
+      "OGN-018"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-018.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 3,
@@ -2387,24 +4266,38 @@
     "tags": [
       "Noxus",
       "Trifarian"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Obelisk of Power",
     "description": "At the start of each Player's first Beginning Phase, that player channels 1 rune.",
     "variantNumber": "OGN-284",
+    "variants": [
+      "OGN-284"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-284.webp"
+    ],
     "type": "Battlefield",
     "super": null,
     "energy": 0,
     "power": 0,
     "might": 0,
     "colors": [],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Orb of Regret",
     "description": "[Tap]: Give a unit -1 [Might] this turn, to a minimum of 1 [Might].",
     "variantNumber": "OGN-090",
+    "variants": [
+      "OGN-090"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-090.webp"
+    ],
     "type": "Gear",
     "super": null,
     "energy": 1,
@@ -2413,12 +4306,23 @@
     "colors": [
       "Mind"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Order Rune",
-    "description": "",
+    "description": ".",
     "variantNumber": "OGN-214",
+    "variants": [
+      "OGN-214",
+      "OGN-214a",
+      "OGN-214b"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-214.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-214a.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-214b.webp"
+    ],
     "type": "Rune",
     "super": "Basic",
     "energy": 0,
@@ -2427,12 +4331,19 @@
     "colors": [
       "Order"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Overt Operation",
     "description": "[Action] (play on your turn or in showdowns.)\n\nFor each friendly unit, you may spend its buff to ready it. Then buff all friendly units. (Each one that doesn't have a buff gets a +1 [might] buff.)",
     "variantNumber": "OGN-153",
+    "variants": [
+      "OGN-153"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-153.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 5,
@@ -2441,12 +4352,42 @@
     "colors": [
       "Body"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Overzealous Fan",
+    "description": "When I defend, you may kill me to move an attacking unit to its base.",
+    "variantNumber": "SFD-128",
+    "variants": [
+      "SFD-128"
+    ],
+    "variantImages": [
+      "https://piltoverarchive.b-cdn.net/temporary/1762916403713-dyghqq9qtbq.webp"
+    ],
+    "type": "Unit",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 2,
+    "colors": [
+      "Chaos"
+    ],
+    "tags": [
+      "Noxus"
+    ],
+    "releaseDate": "2026-02-28"
   },
   {
     "name": "Pack of Wonders",
     "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[Tap]: Return another friendly gear, unit, or facedown card to\nits owner's hand.",
     "variantNumber": "OGN-181",
+    "variants": [
+      "OGN-181"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-181.webp"
+    ],
     "type": "Gear",
     "super": null,
     "energy": 2,
@@ -2455,12 +4396,19 @@
     "colors": [
       "Chaos"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Pakaa Cub",
     "description": "[Hidden] (Hide now for [Rune] to react with later for [0].)",
     "variantNumber": "OGN-135",
+    "variants": [
+      "OGN-135"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-135.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 3,
@@ -2472,12 +4420,19 @@
     "tags": [
       "Ixtal",
       "Cat"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Party Favors",
     "description": "Each other player chooses Cards or Runes.\nFor each player that chooses Cards, you and that player each draw 1.\nFor each player that chooses Runes, you and that player each channel 1 rune exhausted.",
     "variantNumber": "OGN-071",
+    "variants": [
+      "OGN-071"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-071.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 3,
@@ -2486,12 +4441,19 @@
     "colors": [
       "Calm"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Peak Guardian",
     "description": "When you play me, buff me. Then, if I am at a battlefield, buff all other friendly units there. (To buff a unit give it a +1 [might] if it doesn't already have one.)",
     "variantNumber": "OGN-223",
+    "variants": [
+      "OGN-223"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-223.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 6,
@@ -2502,12 +4464,19 @@
     ],
     "tags": [
       "Mount Targon"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Petty Officer",
     "description": "[ASSAULT] (+1 [Might] while I'm an attacker.)",
     "variantNumber": "OGN-215",
+    "variants": [
+      "OGN-215"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-215.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 5,
@@ -2519,12 +4488,19 @@
     "tags": [
       "Bilgewater",
       "Pirate"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Pirate's Haven",
     "description": "When you ready a friendly unit, give it +1 [Might] this turn.",
     "variantNumber": "OGN-143",
+    "variants": [
+      "OGN-143"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-143.webp"
+    ],
     "type": "Gear",
     "super": null,
     "energy": 3,
@@ -2533,12 +4509,19 @@
     "colors": [
       "Body"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Pit Crew",
     "description": "When you play a gear, ready me.",
     "variantNumber": "OGN-091",
+    "variants": [
+      "OGN-091"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-091.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 3,
@@ -2549,12 +4532,19 @@
     ],
     "tags": [
       "Bandle City"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Pit Rookie",
     "description": "When you play me, buff another friendly unit. (If it doesn't have a buff, it gets +1 [might] buff.)",
     "variantNumber": "OGN-136",
+    "variants": [
+      "OGN-136"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-136.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 2,
@@ -2565,12 +4555,19 @@
     ],
     "tags": [
       "Bilgewater"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Playful Phantom",
     "description": ".",
     "variantNumber": "OGN-049",
+    "variants": [
+      "OGN-049"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-049.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 5,
@@ -2582,12 +4579,40 @@
     "tags": [
       "Shadow Isles",
       "Spirit"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Plundering Poro",
+    "description": "When I conquer, play a Gold gear token exhausted.",
+    "variantNumber": "SFD-069",
+    "variants": [
+      "SFD-069"
+    ],
+    "variantImages": [
+      "https://piltoverarchive.b-cdn.net/temporary/1763154537458-9d63ipgt3gd.png"
+    ],
+    "type": "Unit",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 2,
+    "colors": [
+      "Mind"
+    ],
+    "tags": [],
+    "releaseDate": "2026-02-28"
   },
   {
     "name": "Poro Herder",
     "description": "When you play me, if you control a Poro, buff me and draw 1. (if I don't have a buff, I get a +1 [Might] buff.)",
     "variantNumber": "OGN-061",
+    "variants": [
+      "OGN-061"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-061.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 3,
@@ -2598,12 +4623,19 @@
     ],
     "tags": [
       "Freljord"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Portal Rescue",
     "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[ACTION] (Play on your turn or in showdowns.) \n\nBanish a friendly unit, then its owner plays it to their base,\nignoring its cost.",
     "variantNumber": "OGN-102",
+    "variants": [
+      "OGN-102"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-102.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 3,
@@ -2612,12 +4644,19 @@
     "colors": [
       "Mind"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Possession",
     "description": "[ACTION] (Play on your turn or in showdowns.)\nChoose an enemy unit at a battlefield. Take control of it and recall it. (Send it to your base. This isn't a move.)",
     "variantNumber": "OGN-203",
+    "variants": [
+      "OGN-203"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-203.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 8,
@@ -2626,12 +4665,19 @@
     "colors": [
       "Chaos"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Pouty Poro",
     "description": "[Deflect] (Opponents must pay [power] to choose me with an ability or spell)",
     "variantNumber": "OGN-013",
+    "variants": [
+      "OGN-013"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-013.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 2,
@@ -2642,12 +4688,19 @@
     ],
     "tags": [
       "Poro"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Primal Strength",
     "description": "[Action] (Play on your turn or in showdowns.)\nGive a unit +7 [Might] this turn.",
     "variantNumber": "OGN-154",
+    "variants": [
+      "OGN-154"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-154.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 4,
@@ -2656,12 +4709,19 @@
     "colors": [
       "Body"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Progress Day",
     "description": "Draw 4.",
     "variantNumber": "OGN-114",
+    "variants": [
+      "OGN-114"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-114.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 6,
@@ -2670,12 +4730,19 @@
     "colors": [
       "Mind"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Promising Future",
     "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nEach player looks at the top 5 cards of their Main Deck,\nbanishes one, then recycles the rest. Starting with the next\nplayer, each player plays those cards, ignoring Energy\ncosts. (They must still pay Power costs.)",
     "variantNumber": "OGN-115",
+    "variants": [
+      "OGN-115"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-115.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 5,
@@ -2684,12 +4751,19 @@
     "colors": [
       "Mind"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Qiyana, Victorious",
     "description": "[Deflect] (Opponents must pay [power] to choose me with a spell or ability.)\nWhen I conquer, draw 1 or channel 1 rune exhausted.",
     "variantNumber": "OGN-155",
+    "variants": [
+      "OGN-155"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-155.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 4,
@@ -2701,12 +4775,19 @@
     "tags": [
       "Qiyana",
       "Ixtal"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Raging Firebrand",
     "description": "When you play me, the next spell you play this turn costs [5] less.",
     "variantNumber": "OGN-031",
+    "variants": [
+      "OGN-031"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-031.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 6,
@@ -2718,12 +4799,19 @@
     "tags": [
       "Mount Targon",
       "Dragon"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Raging Soul",
     "description": "If you've discarded a card this turn, I have [ASSAULT] and [GANKING]. (+1 [MIGHT] while I'm an attacker. I can move from battlefield to battlefield)",
     "variantNumber": "OGN-019",
+    "variants": [
+      "OGN-019"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-019.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 4,
@@ -2735,12 +4823,19 @@
     "tags": [
       "Shadow Isles",
       "Spirit"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Ravenbloom Student",
     "description": "When you play a spell, give me +1 [Might] this turn.",
     "variantNumber": "OGN-103",
+    "variants": [
+      "OGN-103"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-103.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 2,
@@ -2751,12 +4846,19 @@
     ],
     "tags": [
       "Noxus"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Ravenborn Tome",
     "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[TAP]: The next spell you play this turn deals 1 Bonus Damage.\n(Each instance of damage the spell deals is increased by\n1.)",
     "variantNumber": "OGN-032",
+    "variants": [
+      "OGN-032"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-032.webp"
+    ],
     "type": "Gear",
     "super": null,
     "energy": 3,
@@ -2765,24 +4867,38 @@
     "colors": [
       "Fury"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Reaver's Row",
     "description": "When you defend here, you may move a friendly unit here to base.",
     "variantNumber": "OGN-285",
+    "variants": [
+      "OGN-285"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-285.webp"
+    ],
     "type": "Battlefield",
     "super": null,
     "energy": 0,
     "power": 0,
     "might": 0,
     "colors": [],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Rebuke",
     "description": "[ACTION] (Play on your turn or in showdowns.)\nReturn a unit at a battlefield to its owner's hand.",
     "variantNumber": "OGN-172",
+    "variants": [
+      "OGN-172"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-172.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 2,
@@ -2791,24 +4907,38 @@
     "colors": [
       "Chaos"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Reckoner's Arena",
     "description": "When you hold this, activate the conquer abilities of units here.",
     "variantNumber": "OGN-286",
+    "variants": [
+      "OGN-286"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-286.webp"
+    ],
     "type": "Battlefield",
     "super": null,
     "energy": 0,
     "power": 0,
     "might": 0,
     "colors": [],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Recruit",
     "description": "",
     "variantNumber": "OGN-273",
+    "variants": [
+      "OGN-273"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-273.webp"
+    ],
     "type": "Unit",
     "super": "Token",
     "energy": 0,
@@ -2817,12 +4947,40 @@
     "colors": [],
     "tags": [
       "Recruit"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Recruit the Vanguard",
+    "description": "[ACTION] (Play on your turn or in showdowns.)\nPlay four 1 [Might] Recruit unit tokens. (They can be played to your base or to battlefields you control.)",
+    "variantNumber": "OGS-015",
+    "variants": [
+      "OGS-015"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGS-015.webp"
+    ],
+    "type": "Spell",
+    "super": null,
+    "energy": 6,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Order"
+    ],
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Recruit v2",
     "description": "",
     "variantNumber": "OGN-271",
+    "variants": [
+      "OGN-271"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-271.webp"
+    ],
     "type": "Unit",
     "super": "Token",
     "energy": 0,
@@ -2831,12 +4989,19 @@
     "colors": [],
     "tags": [
       "Recruit"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Recruit v3",
     "description": "",
     "variantNumber": "OGN-272",
+    "variants": [
+      "OGN-272"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-272.webp"
+    ],
     "type": "Unit",
     "super": "Token",
     "energy": 0,
@@ -2845,12 +5010,19 @@
     "colors": [],
     "tags": [
       "Recruit"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Reinforce",
     "description": "Look at the top 5 cards of you Main Deck. You may play a unit from among them. Its Energy cost is reduced by [5]. Then recycle the remaining cards.",
     "variantNumber": "OGN-062",
+    "variants": [
+      "OGN-062"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-062.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 5,
@@ -2859,12 +5031,41 @@
     "colors": [
       "Calm"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Renata Glasc, Chem-Baroness",
+    "description": "When you or an ally hold, you may exhaust me to play a Gold gear token exhausted.\nWhile your score is within 3 points of the Victory Score, your Gold [ADD] an additional [1].",
+    "variantNumber": "SFD-201",
+    "variants": [
+      "SFD-201"
+    ],
+    "variantImages": [
+      "https://piltoverarchive.b-cdn.net/temporary/1762915683895-n73vwgvm57.webp"
+    ],
+    "type": "Legend",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Order",
+      "Mind"
+    ],
+    "tags": [],
+    "releaseDate": "2026-02-28"
   },
   {
     "name": "Retreat",
     "description": "[Reaction] (Play any time, even before spells and abilities resolve.)\nReturn a friendly unit to its owner's hand. Its owner channels 1 rune exhausted.",
     "variantNumber": "OGN-104",
+    "variants": [
+      "OGN-104"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-104.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 1,
@@ -2873,12 +5074,19 @@
     "colors": [
       "Mind"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Rhasa the Sunderer",
     "description": "I cost [1] less for each card in your trash.",
     "variantNumber": "OGN-195",
+    "variants": [
+      "OGN-195"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-195.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 10,
@@ -2890,12 +5098,19 @@
     "tags": [
       "Shadow Isles",
       "Spirit"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Ride the Wind",
     "description": "[Action] (play on your turn or in showdowns.) \n\nMove a friendly unit and ready it.",
     "variantNumber": "OGN-173",
+    "variants": [
+      "OGN-173"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-173.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 2,
@@ -2904,12 +5119,19 @@
     "colors": [
       "Chaos"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Riptide Rex",
     "description": "When you play me, deal 6 to an enemy unit at a battlefield.",
     "variantNumber": "OGN-092",
+    "variants": [
+      "OGN-092"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-092.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 6,
@@ -2921,12 +5143,19 @@
     "tags": [
       "Bilgewater",
       "Pirate"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Rune Prison",
     "description": "[Action] (Play on your turn or in showdowns.)\nStun a unit. (It doesn't deal combat damage this turn.)",
     "variantNumber": "OGN-050",
+    "variants": [
+      "OGN-050"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-050.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 2,
@@ -2935,12 +5164,19 @@
     "colors": [
       "Calm"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Sabotage",
     "description": "Choose an opponent. They reveal their hand. Choose a non-unit card from it, and recycle that card.",
     "variantNumber": "OGN-156",
+    "variants": [
+      "OGN-156"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-156.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 1,
@@ -2949,12 +5185,19 @@
     "colors": [
       "Body"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Sai Scout",
     "description": "[VISION] (When you play me, look at the top card of your Main Deck. You may recycle it.)\nYou may play me to an open battlefield.",
     "variantNumber": "OGN-174",
+    "variants": [
+      "OGN-174"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-174.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 6,
@@ -2965,12 +5208,19 @@
     ],
     "tags": [
       "Shurima"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Salvage",
-    "description": "[Action] (play on your turn or in showdowns.) \nYou may kill a gear. Draw 1.",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[Action] (Play on your turn or in showdowns.)\n\nYou may kill up to one gear. Draw 1.",
     "variantNumber": "OGN-224",
+    "variants": [
+      "OGN-224"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-224.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 2,
@@ -2979,12 +5229,19 @@
     "colors": [
       "Order"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Scrapheap",
     "description": "When this is played, discarded, or killed, draw 1.",
     "variantNumber": "OGN-182",
+    "variants": [
+      "OGN-182"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-182.webp"
+    ],
     "type": "Gear",
     "super": null,
     "energy": 2,
@@ -2993,12 +5250,19 @@
     "colors": [
       "Chaos"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Scrapyard Champion",
     "description": "[LEGION] When you play me, discard 2, then draw 2. (Get the effect if you've played another card this turn.)",
     "variantNumber": "OGN-020",
+    "variants": [
+      "OGN-020"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-020.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 5,
@@ -3010,12 +5274,19 @@
     "tags": [
       "Bandle City",
       "Mech"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Seal of Discord",
     "description": "[Tap]: [REACTION] - [ADD] [Chaos]. (Abilities that add resources can't be reacted to.)",
     "variantNumber": "OGN-204",
+    "variants": [
+      "OGN-204"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-204.webp"
+    ],
     "type": "Gear",
     "super": null,
     "energy": 0,
@@ -3024,12 +5295,19 @@
     "colors": [
       "Chaos"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Seal of Focus",
     "description": "[Tap]: [REACTION] - [ADD] [Calm]. (Abilities that add resources can't be reacted to.)",
     "variantNumber": "OGN-081",
+    "variants": [
+      "OGN-081"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-081.webp"
+    ],
     "type": "Gear",
     "super": null,
     "energy": 0,
@@ -3038,12 +5316,19 @@
     "colors": [
       "Calm"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Seal of Insight",
     "description": "[Tap]: [REACTION] - [ADD] [Mind]. (Abilities that add resources can't be reacted to.)",
     "variantNumber": "OGN-120",
+    "variants": [
+      "OGN-120"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-120.webp"
+    ],
     "type": "Gear",
     "super": null,
     "energy": 0,
@@ -3052,12 +5337,19 @@
     "colors": [
       "Mind"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Seal of Rage",
     "description": "[Tap]: [REACTION] - [ADD] [Fury]. (Abilities that add resources can't be reacted to.)",
     "variantNumber": "OGN-040",
+    "variants": [
+      "OGN-040"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-040.webp"
+    ],
     "type": "Gear",
     "super": null,
     "energy": 0,
@@ -3066,12 +5358,19 @@
     "colors": [
       "Fury"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Seal of Strength",
     "description": "[Tap]: [REACTION] - [ADD] [Body]. (Abilities that add resources can't be reacted to.)",
     "variantNumber": "OGN-163",
+    "variants": [
+      "OGN-163"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-163.webp"
+    ],
     "type": "Gear",
     "super": null,
     "energy": 0,
@@ -3080,12 +5379,19 @@
     "colors": [
       "Body"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Seal of Unity",
     "description": "[Tap]: [REACTION] - [ADD] [Order]. (Abilities that add resources can't be reacted to.)",
     "variantNumber": "OGN-245",
+    "variants": [
+      "OGN-245"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-245.webp"
+    ],
     "type": "Gear",
     "super": null,
     "energy": 0,
@@ -3094,12 +5400,21 @@
     "colors": [
       "Order"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Sett, Brawler",
     "description": "When I'm played and when I conquer, buff me. (If I don't have a buff, I get a +1 [Might] buff.)\nSpend my buff: Give me +4 [Might] this turn.",
     "variantNumber": "OGN-164",
+    "variants": [
+      "OGN-164",
+      "OGN-164a"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-164.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-164a.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 5,
@@ -3111,12 +5426,21 @@
     "tags": [
       "Sett",
       "Ionia"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Sett, Kingpin",
     "description": "[TANK] (I must be assigned combat damage first.)\nI get +1 [Might] for each buffed friendly unit at my battlefield.",
     "variantNumber": "OGN-240",
+    "variants": [
+      "OGN-240",
+      "OGN-240a"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-240.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-240a.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 4,
@@ -3128,12 +5452,23 @@
     "tags": [
       "Sett",
       "Ionia"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Sett, The Boss",
     "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nIf a buffed unit you control would die, you may pay [C],\nexhaust me, and spend its buff to heal it, exhaust it, and\nrecall it instead. (Send it to base. This isn't a move.)\nWhen you conquer, ready me.",
     "variantNumber": "OGN-269",
+    "variants": [
+      "OGN-269",
+      "OGN-310",
+      "OGN-310s"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-269.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-310.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-310s.webp"
+    ],
     "type": "Legend",
     "super": null,
     "energy": 0,
@@ -3145,12 +5480,19 @@
     ],
     "tags": [
       "Sett"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Shakedown",
     "description": "[REACTION] (Play any time, even before spells and abilities resolve.)\nChoose an enemy unit. Deal 6 to it unless its controller has you draw 2.",
     "variantNumber": "OGN-033",
+    "variants": [
+      "OGN-033"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-033.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 2,
@@ -3159,12 +5501,19 @@
     "colors": [
       "Fury"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Shen, Kinkou",
     "description": "[REACTION] (Play any time, even before spells and abilities resolve, including to a battlefield you control.)\n[SHIELD 2] (+2 [Might] while I'm a defender.)\n[TANK] (I must be assigned combat damage first.)",
     "variantNumber": "OGN-241",
+    "variants": [
+      "OGN-241"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-241.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 3,
@@ -3176,12 +5525,19 @@
     "tags": [
       "Shen",
       "Ionia"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Shipyard Skulker",
     "description": ".",
     "variantNumber": "OGN-175",
+    "variants": [
+      "OGN-175"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-175.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 3,
@@ -3193,12 +5549,19 @@
     "tags": [
       "Bilgewater",
       "Pirate"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Showstopper",
     "description": "Buff a friendly unit in your base, then move it to a battlefield. (If it doesn't have a buff, it gets a +1 [Might] buff.)",
     "variantNumber": "OGN-270",
+    "variants": [
+      "OGN-270"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-270.webp"
+    ],
     "type": "Spell",
     "super": "Signature",
     "energy": 1,
@@ -3210,24 +5573,38 @@
     ],
     "tags": [
       "Sett"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Sigil of the Storm",
     "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nWhen you conquer here, you must recycle one of your\nrunes.",
     "variantNumber": "OGN-287",
+    "variants": [
+      "OGN-287"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-287.webp"
+    ],
     "type": "Battlefield",
     "super": null,
     "energy": 0,
     "power": 0,
     "might": 0,
     "colors": [],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Singularity",
     "description": "Deal 6 to each of up to two units.",
     "variantNumber": "OGN-105",
+    "variants": [
+      "OGN-105"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-105.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 6,
@@ -3236,12 +5613,19 @@
     "colors": [
       "Mind"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Siphon Power",
     "description": "[REACTION] (Play any time, even before spells and abilities resolve.)\nChoose a battlefield. Give friendly units there +1 [Might] this turn and enemy units there -1 [Might] this turn, to a minimum of 1 [Might].",
     "variantNumber": "OGN-266",
+    "variants": [
+      "OGN-266"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-266.webp"
+    ],
     "type": "Spell",
     "super": "Signature",
     "energy": 2,
@@ -3253,12 +5637,41 @@
     ],
     "tags": [
       "Viktor"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Sivir, Battle Mistress",
+    "description": "When you recycle a rune, you may exhaust me to play a Gold gear token exhausted.\nWhen one or more enemy units die, ready me.",
+    "variantNumber": "SFD-203",
+    "variants": [
+      "SFD-203"
+    ],
+    "variantImages": [
+      "https://piltoverarchive.b-cdn.net/temporary/1762915585783-s6ohpt37iw.webp"
+    ],
+    "type": "Legend",
+    "super": null,
+    "energy": 0,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Body",
+      "Chaos"
+    ],
+    "tags": [],
+    "releaseDate": "2026-02-28"
   },
   {
     "name": "Sky Splitter",
     "description": "[ACTION] (Play on your turn or in showdowns.)\n\nThis spell's Energy cost is reduced by the highest Might among units you control. \nDeal 5 to a unit at a battlefield.",
     "variantNumber": "OGN-014",
+    "variants": [
+      "OGN-014"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-014.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 8,
@@ -3267,12 +5680,19 @@
     "colors": [
       "Fury"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Smoke Screen",
     "description": "[Reaction] (Play any time, even before spells and abilities resolve.)\nGive a unit -4 [Might] this turn, to a minimum of 1 [Might].",
     "variantNumber": "OGN-093",
+    "variants": [
+      "OGN-093"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-093.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 2,
@@ -3281,12 +5701,19 @@
     "colors": [
       "Mind"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Sneaky Deckhand",
     "description": "You may play me to an open battlefield.",
     "variantNumber": "OGN-176",
+    "variants": [
+      "OGN-176"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-176.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 3,
@@ -3298,12 +5725,19 @@
     "tags": [
       "Bilgewater",
       "Pirate"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Soaring Scout",
     "description": "[DEATHKNELL] - Channel 1 rune exhausted. (When I die, get the effect.)",
     "variantNumber": "OGN-216",
+    "variants": [
+      "OGN-216"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-216.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 2,
@@ -3315,12 +5749,19 @@
     "tags": [
       "Freljord",
       "Bird"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Solari Chief",
     "description": "When you play me, choose an enemy unit. If it is stunned, kill it. Otherwise, stun it. (it doesn't deal combat damage this turn.)",
     "variantNumber": "OGN-225",
+    "variants": [
+      "OGN-225"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-225.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 5,
@@ -3331,12 +5772,19 @@
     ],
     "tags": [
       "Mount Targon"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Solari Shieldbearer",
     "description": "When you play me, stun a unit. (It doesn't deal combat damage this turn.)",
     "variantNumber": "OGN-051",
+    "variants": [
+      "OGN-051"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-051.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 3,
@@ -3347,12 +5795,19 @@
     ],
     "tags": [
       "Mount Targon"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Solari Shrine",
     "description": "When you kill a stunned enemy unit, you may exhaust this to draw 1.",
     "variantNumber": "OGN-072",
+    "variants": [
+      "OGN-072"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-072.webp"
+    ],
     "type": "Gear",
     "super": null,
     "energy": 3,
@@ -3361,12 +5816,19 @@
     "colors": [
       "Calm"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Sona, Harmonious",
     "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nAt the end of your turn, if I'm at a battlefield, ready up to 4\nfriendly runes.",
     "variantNumber": "OGN-073",
+    "variants": [
+      "OGN-073"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-073.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 4,
@@ -3378,12 +5840,19 @@
     "tags": [
       "Sona",
       "Demacia"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Soulgorger",
     "description": "When you play me, you may play a unit from your trash, ignoring its Energy cost.",
     "variantNumber": "OGN-196",
+    "variants": [
+      "OGN-196"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-196.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 8,
@@ -3392,12 +5861,19 @@
     "colors": [
       "Chaos"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Spectral Matron",
     "description": "When you play me, you may play a unit costing no more than [3] and no more than [RUNE] from your trash, ignoring its cost.",
     "variantNumber": "OGN-226",
+    "variants": [
+      "OGN-226"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-226.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 4,
@@ -3409,12 +5885,44 @@
     "tags": [
       "Shadow Isles",
       "Spirit"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Spinning Axe",
+    "description": "[Quick-Draw] (This has [Reaction]. When you play it, attach it to a unit you control.)\n[Equip] [Rune] ([Rune]: Attach this to a unit you control.)\n[Temporary] (If this is unattached, kill it at the start of its controller's Beginning Phase, before scoring.)\n\n+3 [Might]",
+    "variantNumber": "SFD-186",
+    "variants": [
+      "SFD-186"
+    ],
+    "variantImages": [
+      "https://piltoverarchive.b-cdn.net/temporary/1762915973106-sjfmv78aclg.webp"
+    ],
+    "type": "Gear",
+    "super": "Signature",
+    "energy": 2,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Fury",
+      "Chaos"
+    ],
+    "tags": [
+      "Draven",
+      "Equipment"
+    ],
+    "releaseDate": "2026-02-28"
   },
   {
     "name": "Spirit's Refuge",
     "description": "When you play this, buff a friendly unit. (If it doesn't have a buff, it gets a +1 [Might] buff.)\nFriendly buffed units have [DEFLECT] if they didn't already. (Opponents must pay [Rune] to choose those units with a spell or ability.)",
     "variantNumber": "OGN-063",
+    "variants": [
+      "OGN-063"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-063.webp"
+    ],
     "type": "Gear",
     "super": null,
     "energy": 2,
@@ -3423,12 +5931,19 @@
     "colors": [
       "Calm"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Spoils of War",
     "description": "[Reaction] (Play any time, even before spells and abilities resolve.)\nIf an enemy unit has died this turn, this costs [2] less.\nDraw 2.",
     "variantNumber": "OGN-144",
+    "variants": [
+      "OGN-144"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-144.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 4,
@@ -3437,12 +5952,19 @@
     "colors": [
       "Body"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Sprite",
     "description": "[Temporary] (Kill me at the start of your Beginning Phase, before scoring.)",
     "variantNumber": "OGN-274",
+    "variants": [
+      "OGN-274"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-274.webp"
+    ],
     "type": "Unit",
     "super": "Token",
     "energy": 0,
@@ -3451,12 +5973,19 @@
     "colors": [],
     "tags": [
       "Fae"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Sprite Call",
     "description": "[HIDDEN] (Hide now for [Rune] to react with later for [0].)\n[ACTION] (Play on your turn or in showdowns.)\n\nPlay a ready 3 [Might] Sprite unit token with [TEMPORARY]. (Kill it at the start of its controller's Beginning Phase, before scoring.)",
     "variantNumber": "OGN-094",
+    "variants": [
+      "OGN-094"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-094.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 3,
@@ -3465,12 +5994,19 @@
     "colors": [
       "Mind"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Sprite Mother",
     "description": "When you play me, play a ready 3 [Might] Sprite unit token with [Temporary] here. (Kill it at the start of its controller's Beginning Phase, before scoring.)",
     "variantNumber": "OGN-106",
+    "variants": [
+      "OGN-106"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-106.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 4,
@@ -3481,12 +6017,19 @@
     ],
     "tags": [
       "Fae"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Stacked Deck",
     "description": "[Action] (play on your turn or in showdowns.) \nLook at the top 3 cards of your Main Deck. Put 1 into your hand and recycle the rest.",
     "variantNumber": "OGN-183",
+    "variants": [
+      "OGN-183"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-183.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 1,
@@ -3495,12 +6038,19 @@
     "colors": [
       "Chaos"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Stalwart Poro",
     "description": "[Shield1] (I have +1 might while defending)",
     "variantNumber": "OGN-052",
+    "variants": [
+      "OGN-052"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-052.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 2,
@@ -3511,12 +6061,19 @@
     ],
     "tags": [
       "Poro"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Stand United",
     "description": "[HIDDEN] (Hide now for [Rune] to react with later for [0].)\n[ACTION] (Play on your turn or in showdowns.)\nBuff a friendly unit. Buffs give an additional +1 [Might] to friendly units this turn. (To buff a unit, give it a +1 [Might] buff if it doesn't already have one.)",
     "variantNumber": "OGN-053",
+    "variants": [
+      "OGN-053"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-053.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 3,
@@ -3525,24 +6082,38 @@
     "colors": [
       "Calm"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Startipped Peak",
     "description": "When you hold here, you may channel 1 rune exhausted.",
     "variantNumber": "OGN-288",
+    "variants": [
+      "OGN-288"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-288.webp"
+    ],
     "type": "Battlefield",
     "super": null,
     "energy": 0,
     "power": 0,
     "might": 0,
     "colors": [],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Stealthy Pursuer",
     "description": "When a friendly unit moves from my location, I may be moved with it.",
     "variantNumber": "OGN-177",
+    "variants": [
+      "OGN-177"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-177.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 4,
@@ -3553,12 +6124,42 @@
     ],
     "tags": [
       "Shurima"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Sterak's Gage",
+    "description": "[Quick-Draw] (This has [Reaction]. When you play it, attach it to a unit you control.)\n[Equip Calm]  ([Calm]: Attach this to a unit you control.)\n\n+3 [Might]",
+    "variantNumber": "SFD-056",
+    "variants": [
+      "SFD-056"
+    ],
+    "variantImages": [
+      "https://piltoverarchive.b-cdn.net/temporary/1762916686440-hypp4otg2f.webp"
+    ],
+    "type": "Gear",
+    "super": null,
+    "energy": 3,
+    "power": 2,
+    "might": 0,
+    "colors": [
+      "Calm"
+    ],
+    "tags": [
+      "Equipment"
+    ],
+    "releaseDate": "2026-02-28"
   },
   {
     "name": "Stormbringer",
     "description": "Choose a friendly unit in your base. Deal damage equal to its Might to all enemy units at a battlefield, then move your unit there.",
     "variantNumber": "OGN-250",
+    "variants": [
+      "OGN-250"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-250.webp"
+    ],
     "type": "Spell",
     "super": "Signature",
     "energy": 6,
@@ -3570,12 +6171,19 @@
     ],
     "tags": [
       "Volibear"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Stormclaw Ursine",
     "description": "[TANK] (I must be assigned combat damage first.)\nWhen you play me, channel 1 rune exhausted.",
     "variantNumber": "OGN-137",
+    "variants": [
+      "OGN-137"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-137.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 7,
@@ -3586,12 +6194,19 @@
     ],
     "tags": [
       "Freljord"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Stupefy",
     "description": "[REACTION] (Play any time, even before spells and abilities resolve.)\nGive a unit -1 [Might] this turn, to a minimum of 1 [Might]. Draw 1.",
     "variantNumber": "OGN-095",
+    "variants": [
+      "OGN-095"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-095.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 1,
@@ -3600,12 +6215,19 @@
     "colors": [
       "Mind"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Sun Disc",
     "description": "[TAP]: [LEGION] - The next unit you play this turn enters ready. (Get the effect if you've played another card this turn.)",
     "variantNumber": "OGN-021",
+    "variants": [
+      "OGN-021"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-021.webp"
+    ],
     "type": "Gear",
     "super": null,
     "energy": 2,
@@ -3614,12 +6236,19 @@
     "colors": [
       "Fury"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Sunlit Guardian",
     "description": "[Shield] (+1 [Might] while I'm a defender.)\n[Tank] (I must be assigned combat damage first.)",
     "variantNumber": "OGN-054",
+    "variants": [
+      "OGN-054"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-054.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 3,
@@ -3628,12 +6257,19 @@
     "colors": [
       "Calm"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Super Mega Death Rocket!",
     "description": "Deal 5 to a unit.\nWhen you conquer, you may discard 1 to return this from your trash to your hand.",
     "variantNumber": "OGN-252",
+    "variants": [
+      "OGN-252"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-252.webp"
+    ],
     "type": "Spell",
     "super": "Signature",
     "energy": 4,
@@ -3645,12 +6281,42 @@
     ],
     "tags": [
       "Jinx"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Svellsongur",
+    "description": "[Equip][1][Calm]  ([1][Calm]: Attach this to a unit you control.)\nAs this is attached to a unit, copy that unit's text to this Equipment's effect text for as long as this is attached to it.",
+    "variantNumber": "SFD-059",
+    "variants": [
+      "SFD-059"
+    ],
+    "variantImages": [
+      "https://piltoverarchive.b-cdn.net/temporary/1762916605210-sggkp329yi8.webp"
+    ],
+    "type": "Gear",
+    "super": null,
+    "energy": 3,
+    "power": 1,
+    "might": 0,
+    "colors": [
+      "Calm"
+    ],
+    "tags": [
+      "Equipment"
+    ],
+    "releaseDate": "2026-02-28"
   },
   {
     "name": "Symbol of the Solari",
     "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nIf a combat where you are the attacker ends in a tie that\nwould recall any of your units, recall all units at that\nbattlefield instead. (Send them to base. This isn't a move.\nTies are calculated after combat damage is dealt.)",
     "variantNumber": "OGN-227",
+    "variants": [
+      "OGN-227"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-227.webp"
+    ],
     "type": "Gear",
     "super": null,
     "energy": 1,
@@ -3659,24 +6325,38 @@
     "colors": [
       "Order"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Targon's Peak",
     "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nWhen you conquer here, ready up to 2 runes at the end of\nthis turn.",
     "variantNumber": "OGN-289",
+    "variants": [
+      "OGN-289"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-289.webp"
+    ],
     "type": "Battlefield",
     "super": null,
     "energy": 0,
     "power": 0,
     "might": 0,
     "colors": [],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Taric, Protector",
     "description": "[Shield] (+1 [Might] while I'm a defender.)\n[Tank] (I must be assigned combat damage first.)\nOther friendly units here have [Shield].",
     "variantNumber": "OGN-074",
+    "variants": [
+      "OGN-074"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-074.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 4,
@@ -3688,12 +6368,19 @@
     "tags": [
       "Taric",
       "Mount Targon"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Tasty Faefolk",
     "description": "[Accelerate] (You may play [1] [Calm] as an additional cost to have me enter ready.)\n[Deathknell] - Channel 2 runes exhausted and draw 1. (When I die, get the effect.)",
     "variantNumber": "OGN-075",
+    "variants": [
+      "OGN-075"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-075.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 7,
@@ -3705,12 +6392,21 @@
     "tags": [
       "Bandle City",
       "Fae"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Teemo, Scout",
     "description": "[HIDDEN] (Hide now for [Rune] to react with later for [0].)\nWhen you play me, give me +3 [Might] this turn.",
     "variantNumber": "OGN-197",
+    "variants": [
+      "OGN-197",
+      "OGN-197a"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-197.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-197a.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 2,
@@ -3723,12 +6419,21 @@
       "Teemo",
       "Bandle City",
       "Yordle"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Teemo, Strategist",
     "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[Hidden] (Hide now for [A] to react with later for [0].)\nWhen I defend, choose an enemy unit here and reveal the\ntop 5 cards of your Main Deck. Deal 1 to that unit for each\ncard with [Hidden] revealed this way, then recycle the\nrevealed cards.",
     "variantNumber": "OGN-121",
+    "variants": [
+      "OGN-121",
+      "OGN-121a"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-121.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-121a.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 2,
@@ -3741,12 +6446,23 @@
       "Teemo",
       "Bandle City",
       "Yordle"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Teemo, Swift Scout",
     "description": "You may pay [1] to hide a card with [HIDDEN] instead of [Rune].\n[1], [Tap]: Put a Teemo unit you own into your hand from your Champion Zone or the board.",
     "variantNumber": "OGN-263",
+    "variants": [
+      "OGN-263",
+      "OGN-307",
+      "OGN-307s"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-263.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-307.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-307s.webp"
+    ],
     "type": "Legend",
     "super": null,
     "energy": 0,
@@ -3758,60 +6474,95 @@
     ],
     "tags": [
       "Teemo"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "The Arena's Greatest",
     "description": "At the start of each player's first Beginning Phase, that player gains 1 point.",
     "variantNumber": "OGN-290",
+    "variants": [
+      "OGN-290"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-290.webp"
+    ],
     "type": "Battlefield",
     "super": null,
     "energy": 0,
     "power": 0,
     "might": 0,
     "colors": [],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "The Candlelit Sanctum",
     "description": "When you conquer here, look at the top two cards of your Main Deck. You may recycle one or both of them. Put those you don't back in any order.",
     "variantNumber": "OGN-291",
+    "variants": [
+      "OGN-291"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-291.webp"
+    ],
     "type": "Battlefield",
     "super": null,
     "energy": 0,
     "power": 0,
     "might": 0,
     "colors": [],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "The Dreaming Tree",
-    "description": "The first time you choose a friendly unit with a spell here each turn, draw 1.",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n\nWhen a player chooses a friendly unit here with a spell for the first time each turn, they draw 1.",
     "variantNumber": "OGN-292",
+    "variants": [
+      "OGN-292"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-292.webp"
+    ],
     "type": "Battlefield",
     "super": null,
     "energy": 0,
     "power": 0,
     "might": 0,
     "colors": [],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "The Grand Plaza",
     "description": "When you hold here, if you have 7+ units here, you win the game.",
     "variantNumber": "OGN-293",
+    "variants": [
+      "OGN-293"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-293.webp"
+    ],
     "type": "Battlefield",
     "super": null,
     "energy": 0,
     "power": 0,
     "might": 0,
     "colors": [],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "The Harrowing",
     "description": "Play a unit from your trash, ignoring its Energy cost. (You must still pay its Power cost.)",
     "variantNumber": "OGN-198",
+    "variants": [
+      "OGN-198"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-198.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 6,
@@ -3820,12 +6571,19 @@
     "colors": [
       "Chaos"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Thermo Beam",
     "description": "[ACTION] (Play on your turn or in showdowns)\nKill all gear.",
     "variantNumber": "OGN-022",
+    "variants": [
+      "OGN-022"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-022.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 5,
@@ -3834,12 +6592,19 @@
     "colors": [
       "Fury"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "The Syren",
     "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[1], [TAP]: Move a friendly unit at a battlefield to its base.",
     "variantNumber": "OGN-184",
+    "variants": [
+      "OGN-184"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-184.webp"
+    ],
     "type": "Gear",
     "super": null,
     "energy": 2,
@@ -3848,12 +6613,19 @@
     "colors": [
       "Chaos"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Thousand-Tailed Watcher",
     "description": "[Accelerate] (You may pay [1] [Mind] as an additional cost to have me enter ready.)\nWhen you play me, give enemy units -3 [Might] this turn, to a minimum of 1 [Might].",
     "variantNumber": "OGN-116",
+    "variants": [
+      "OGN-116"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-116.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 7,
@@ -3864,12 +6636,43 @@
     ],
     "tags": [
       "Ionia"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Tibbers",
+    "description": "When you play me, deal 3 damage to all units at battlefields.",
+    "variantNumber": "OGS-018",
+    "variants": [
+      "OGS-018"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGS-018.webp"
+    ],
+    "type": "Unit",
+    "super": "Signature",
+    "energy": 8,
+    "power": 2,
+    "might": 7,
+    "colors": [
+      "Fury",
+      "Chaos"
+    ],
+    "tags": [
+      "Annie"
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Tideturner",
     "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[Hidden] (Hide now for [Power] to react with later for [0].)\nWhen you play me, you may choose a unit you control at\nanother location. Move me to its location and it to my\noriginal location.",
     "variantNumber": "OGN-199",
+    "variants": [
+      "OGN-199"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-199.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 2,
@@ -3878,12 +6681,19 @@
     "colors": [
       "Chaos"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Time Warp",
     "description": "Take a turn after this one. Banish this.",
     "variantNumber": "OGN-122",
+    "variants": [
+      "OGN-122"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-122.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 10,
@@ -3892,12 +6702,19 @@
     "colors": [
       "Mind"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Traveling Merchant",
     "description": "When I move, discard 1, then draw 1.",
     "variantNumber": "OGN-185",
+    "variants": [
+      "OGN-185"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-185.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 2,
@@ -3908,12 +6725,19 @@
     ],
     "tags": [
       "Bilgewater"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Treasure Trove",
     "description": "When this leaves the board, draw 1 and channel 1 rune exhausted.",
     "variantNumber": "OGN-186",
+    "variants": [
+      "OGN-186"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-186.webp"
+    ],
     "type": "Gear",
     "super": null,
     "energy": 2,
@@ -3922,12 +6746,19 @@
     "colors": [
       "Chaos"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Trifarian Gloryseeker",
     "description": "[LEGION] When you play me, buff me. (If I don't have a buff, I get a +1 [Might] buff. Get the effect if you've played another card this turn.)",
     "variantNumber": "OGN-217",
+    "variants": [
+      "OGN-217"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-217.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 2,
@@ -3939,24 +6770,61 @@
     "tags": [
       "Noxus",
       "Trifarian"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Trifarian War Camp",
     "description": "Units here have +1 [Might]. (This includes attackers.)",
     "variantNumber": "OGN-294",
+    "variants": [
+      "OGN-294"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-294.webp"
+    ],
     "type": "Battlefield",
     "super": null,
     "energy": 0,
     "power": 0,
     "might": 0,
     "colors": [],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Trinity Force",
+    "description": "[Equip] ([Body]: Attach this to a unit you control.)\n\nWhen I hold, score 1 point. +2 [Might]",
+    "variantNumber": "SFD-115",
+    "variants": [
+      "SFD-115"
+    ],
+    "variantImages": [
+      "https://piltoverarchive.b-cdn.net/temporary/1762915515413-ify5xm078pe.png"
+    ],
+    "type": "Gear",
+    "super": null,
+    "energy": 4,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Body"
+    ],
+    "tags": [
+      "Equipment"
+    ],
+    "releaseDate": "2026-02-28"
   },
   {
     "name": "Tryndamere, Barbarian",
     "description": "When I conquer after an attack, if you assigned 5 or more excess damage to enemy units, you score 1 Point.",
     "variantNumber": "OGN-034",
+    "variants": [
+      "OGN-034"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-034.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 7,
@@ -3968,12 +6836,19 @@
     "tags": [
       "Tryndamere",
       "Freljord"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Twisted Fate, Gambler",
     "description": "When I attack, reveal the top rune of your rune deck, then recycle it. Do one of the following based on its domain:\n[Fury] - Deal 2 to an enemy unit here and 1 to all other enemy units here.\n[Mind] - Draw 1.\n[Order] - Stun an enemy unit.",
     "variantNumber": "OGN-200",
+    "variants": [
+      "OGN-200"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-200.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 4,
@@ -3985,12 +6860,19 @@
     "tags": [
       "Twisted Fate",
       "Bilgewater"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Udyr, Wildman",
     "description": "Spend my buff: Choose one you've not chosen turn --\n\nDeal 2 to a unit at a battlefield.\nStun a unit at a battlefield\nReady me.\nGive me [GANKING] this turn.",
     "variantNumber": "OGN-157",
+    "variants": [
+      "OGN-157"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-157.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 6,
@@ -4002,12 +6884,19 @@
     "tags": [
       "Udyr",
       "Freljord"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Unchecked Power",
     "description": "Exhaust all friendly units, then deal 12 to all units at battlefields.",
     "variantNumber": "OGN-123",
+    "variants": [
+      "OGN-123"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-123.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 7,
@@ -4016,12 +6905,19 @@
     "colors": [
       "Mind"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Undercover Agent",
     "description": "[DEATHKNELL] - Discard 2, then draw 2. (When I die, get the effect.)",
     "variantNumber": "OGN-178",
+    "variants": [
+      "OGN-178"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-178.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 5,
@@ -4030,12 +6926,19 @@
     "colors": [
       "Chaos"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Unlicensed Armory",
     "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nDiscard 1, [Tap]: Choose a friendly unit. The next time it would\ndie this turn, you may pay [Fury] to heal it, exhaust it, and\nrecall it instead. (Send it to base. This isn't a move.)",
     "variantNumber": "OGN-023",
+    "variants": [
+      "OGN-023"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-023.webp"
+    ],
     "type": "Gear",
     "super": null,
     "energy": 2,
@@ -4044,12 +6947,19 @@
     "colors": [
       "Fury"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Unyielding Spirit",
     "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[Reaction] Prevent all damage that would be dealt this turn by spells\nand abilities.",
     "variantNumber": "OGN-145",
+    "variants": [
+      "OGN-145"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-145.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 1,
@@ -4058,12 +6968,43 @@
     "colors": [
       "Body"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Vanguard Attendant",
+    "description": "I enter ready.",
+    "variantNumber": "OGS-016",
+    "variants": [
+      "OGS-016"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGS-016.webp"
+    ],
+    "type": "Unit",
+    "super": null,
+    "energy": 6,
+    "power": 1,
+    "might": 5,
+    "colors": [
+      "Order"
+    ],
+    "tags": [
+      "Demacia",
+      "Elite"
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Vanguard Captain",
     "description": "[LEGION] - When you play me, play two 1 [Might] Recruit unit token here. (Get the effect if you've played another card this turn.)",
     "variantNumber": "OGN-218",
+    "variants": [
+      "OGN-218"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-218.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 3,
@@ -4075,12 +7016,19 @@
     "tags": [
       "Demacia",
       "Elite"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Vanguard Helm",
     "description": "When a buffed friendly unit dies, buff another friendly unit. (If it doesn't have a buff, it gets a +1 [might] buff.)",
     "variantNumber": "OGN-228",
+    "variants": [
+      "OGN-228"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-228.webp"
+    ],
     "type": "Gear",
     "super": null,
     "energy": 2,
@@ -4089,12 +7037,19 @@
     "colors": [
       "Order"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Vanguard Sergeant",
     "description": ".",
     "variantNumber": "OGN-219",
+    "variants": [
+      "OGN-219"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-219.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 4,
@@ -4106,12 +7061,19 @@
     "tags": [
       "Demacia",
       "Elite"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Vayne, Hunter",
     "description": "[ASSAULT 3] (+3 [Might] while I'm an attacker.)\nIf an opponent controls a battlefield, I enter ready.\nWhen I conquer, you may pay [1] to return me to my owner's hand.",
     "variantNumber": "OGN-035",
+    "variants": [
+      "OGN-035"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-035.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 4,
@@ -4123,12 +7085,19 @@
     "tags": [
       "Vayne",
       "Demacia"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Vengeance",
     "description": "Kill a unit.",
     "variantNumber": "OGN-229",
+    "variants": [
+      "OGN-229"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-229.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 4,
@@ -4137,12 +7106,21 @@
     "colors": [
       "Order"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Vi, Destructive",
     "description": "[GANKING] (I can move from battlefield to battlefield.)\nRecycle 1 from your trash: Give me +1 [Might] this turn.",
     "variantNumber": "OGN-036",
+    "variants": [
+      "OGN-036",
+      "ARC-001"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-036.webp",
+      "https://piltoverarchive.b-cdn.net/temporary/1760416626325-f3zxpz5s8g7.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 2,
@@ -4154,12 +7132,23 @@
     "tags": [
       "Vi",
       "Piltover"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Viktor, Herald of the Arcane",
     "description": "[1], [Tap]: Play a 1 [Might] Recruit unit token.",
     "variantNumber": "OGN-265",
+    "variants": [
+      "OGN-265",
+      "OGN-308",
+      "OGN-308s"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-265.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-308.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-308s.webp"
+    ],
     "type": "Legend",
     "super": null,
     "energy": 0,
@@ -4171,12 +7160,21 @@
     ],
     "tags": [
       "Viktor"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Viktor, Innovator",
     "description": "When you play a card on an opponent's turn, play a 1 [Might] Recruit unit token in your base.",
     "variantNumber": "OGN-117",
+    "variants": [
+      "OGN-117",
+      "OGN-117a"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-117.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-117a.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 4,
@@ -4188,12 +7186,23 @@
     "tags": [
       "Viktor",
       "Zaun"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Viktor, Leader",
     "description": "When another non-Recruit unit you control dies, play a 1 [Might] Recruit unit token into your base.",
     "variantNumber": "OGN-246",
+    "variants": [
+      "OGN-246",
+      "OGN-246a",
+      "ARC-006"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-246.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-246a.webp",
+      "https://piltoverarchive.b-cdn.net/temporary/1760416556879-01whuib9pmfi.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 4,
@@ -4205,36 +7214,57 @@
     "tags": [
       "Viktor",
       "Zaun"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Vilemaw's Lair",
     "description": "Units can't move from here to base.",
     "variantNumber": "OGN-295",
+    "variants": [
+      "OGN-295"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-295.webp"
+    ],
     "type": "Battlefield",
     "super": null,
     "energy": 0,
     "power": 0,
     "might": 0,
     "colors": [],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Void Gate",
     "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nSpells and abilities deal 1 Bonus Damage to units here.\n(Each instance of damage the spell deals to a unit here is\nincreased by 1.)",
     "variantNumber": "OGN-296",
+    "variants": [
+      "OGN-296"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-296.webp"
+    ],
     "type": "Battlefield",
     "super": null,
     "energy": 0,
     "power": 0,
     "might": 0,
     "colors": [],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Void Seeker",
     "description": "[ACTION] (Play on your turn or in showdowns.)\n\nDeal 4 to a unit at a battlefield. Draw 1.",
     "variantNumber": "OGN-024",
+    "variants": [
+      "OGN-024"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-024.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 3,
@@ -4243,12 +7273,21 @@
     "colors": [
       "Fury"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Volibear, Furious",
     "description": "[DEFLECT 2] (Opponents must play [Rune][Rune] to choose me with a spell or effect.)\nWhen I attack, deal 5 damage split among any number of enemy units here.",
     "variantNumber": "OGN-041",
+    "variants": [
+      "OGN-041",
+      "OGN-041a"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-041.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-041a.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 10,
@@ -4260,12 +7299,21 @@
     "tags": [
       "Volibear",
       "Freljord"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Volibear, Imposing",
     "description": "[SHIELD 3] (+3 [Might] while I'm a defender.)\n[TANK] (I must be assigned combat damage first.)\nWhen an opponent moves to a battlefield other than mine, draw 1. (Bases are not battlefields.)",
     "variantNumber": "OGN-158",
+    "variants": [
+      "OGN-158",
+      "OGN-158a"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-158.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-158a.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 12,
@@ -4277,12 +7325,23 @@
     "tags": [
       "Volibear",
       "Freljord"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Volibear, Relentless Storm",
     "description": "When you play a [MIGHTY] unit, you may exhaust me to channel 1 rune exhausted. (A unit is Mighty while it has 5+ [Might]",
-    "variantNumber": "OGN-300",
+    "variantNumber": "OGN-249",
+    "variants": [
+      "OGN-249",
+      "OGN-300",
+      "OGN-300s"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-249.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-300.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-300s.webp"
+    ],
     "type": "Legend",
     "super": null,
     "energy": 0,
@@ -4294,12 +7353,19 @@
     ],
     "tags": [
       "Volibear"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Wallop",
     "description": "[Action] (Play on your turn or in showdowns.)\nAs you play this, you may spend a buff as an additional cost. If you do, ignore this spell's cost. Ready a unit.",
     "variantNumber": "OGN-146",
+    "variants": [
+      "OGN-146"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-146.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 2,
@@ -4308,12 +7374,21 @@
     "colors": [
       "Body"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Warwick, Hunter",
     "description": "I enter ready.\nWhen I attack, kill all damaged enemy units here.",
     "variantNumber": "OGN-159",
+    "variants": [
+      "OGN-159",
+      "ARC-004"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-159.webp",
+      "https://piltoverarchive.b-cdn.net/temporary/1760416787235-exutfmhlgxf.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 6,
@@ -4326,12 +7401,19 @@
       "Warwick",
       "Zaun",
       "Dog"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Watchful Sentry",
     "description": "[DEATHKNELL] - Draw 1. (When I die, get the effect.)",
     "variantNumber": "OGN-096",
+    "variants": [
+      "OGN-096"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-096.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 2,
@@ -4342,12 +7424,19 @@
     ],
     "tags": [
       "Freljord"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Whirlwind",
     "description": "Starting with the next player, each player may return a unit to its owner's hand.",
     "variantNumber": "OGN-187",
+    "variants": [
+      "OGN-187"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-187.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 4,
@@ -4356,12 +7445,19 @@
     "colors": [
       "Chaos"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Whiteflame Protector",
     "description": "When you play me, give a unit +8 [Might] this turn.",
     "variantNumber": "OGN-082",
+    "variants": [
+      "OGN-082"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-082.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 8,
@@ -4373,12 +7469,19 @@
     "tags": [
       "Mount Targon",
       "Dragon"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Wielder of Water",
     "description": "While I'm attacking or defending alone, I have +2 [Might].",
     "variantNumber": "OGN-055",
+    "variants": [
+      "OGN-055"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-055.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 3,
@@ -4389,12 +7492,19 @@
     ],
     "tags": [
       "Ionia"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Wildclaw Shaman",
     "description": "When you play me, you may spend a buff to buff me and ready me. (If I don't have a buff, I get a +1 [Might] buff.)",
     "variantNumber": "OGN-147",
+    "variants": [
+      "OGN-147"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-147.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 4,
@@ -4405,24 +7515,38 @@
     ],
     "tags": [
       "Freljord"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Windswept Hillock",
     "description": "Units here have [GANKING]. (They can move from battlefield to battlefield.)",
     "variantNumber": "OGN-297",
+    "variants": [
+      "OGN-297"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-297.webp"
+    ],
     "type": "Battlefield",
     "super": null,
     "energy": 0,
     "power": 0,
     "might": 0,
     "colors": [],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Wind Wall",
     "description": "[REACTION] (Play any time, even before spells and abilities resolve.)\nCounter a spell.",
     "variantNumber": "OGN-064",
+    "variants": [
+      "OGN-064"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-064.webp"
+    ],
     "type": "Spell",
     "super": null,
     "energy": 3,
@@ -4431,12 +7555,19 @@
     "colors": [
       "Calm"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Wizened Elder",
     "description": "While I'm buffed, I have an additional +1 [Might].",
     "variantNumber": "OGN-065",
+    "variants": [
+      "OGN-065"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-065.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 4,
@@ -4447,12 +7578,19 @@
     ],
     "tags": [
       "Ionia"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Wraith of Echoes",
     "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nThe first time another friendly unit dies each turn, draw 1",
     "variantNumber": "OGN-118",
+    "variants": [
+      "OGN-118"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-118.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 6,
@@ -4464,12 +7602,21 @@
     "tags": [
       "Shadow Isles",
       "Spirit"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Yasuo, Remorseful",
     "description": "When I attack, deal damage equal to my Might to an enemy unit here.",
     "variantNumber": "OGN-076",
+    "variants": [
+      "OGN-076",
+      "OGN-076a"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-076.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-076a.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 6,
@@ -4481,12 +7628,23 @@
     "tags": [
       "Yasuo",
       "Ionia"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Yasuo, Unforgiven",
     "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[2], [Tap]: Move a friendly unit to or from its base.",
     "variantNumber": "OGN-259",
+    "variants": [
+      "OGN-259",
+      "OGN-305",
+      "OGN-305s"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-259.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-305.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-305s.webp"
+    ],
     "type": "Legend",
     "super": null,
     "energy": 0,
@@ -4498,12 +7656,21 @@
     ],
     "tags": [
       "Yasuo"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Yasuo, Windrider",
     "description": "[GANKING] (I can move from battlefield to battlefield.)\nThe third time I move in a turn, you score 1 point.",
     "variantNumber": "OGN-205",
+    "variants": [
+      "OGN-205",
+      "OGN-205a"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-205.webp",
+      "https://cdn.piltoverarchive.com/cards/OGN-205a.webp"
+    ],
     "type": "Unit",
     "super": "Champion",
     "energy": 5,
@@ -4515,12 +7682,19 @@
     "tags": [
       "Yasuo",
       "Ionia"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Zaunite Bouncer",
     "description": "When you play me, return another unit at a battlefield to its owner's hand.",
     "variantNumber": "OGN-188",
+    "variants": [
+      "OGN-188"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-188.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 4,
@@ -4529,24 +7703,38 @@
     "colors": [
       "Chaos"
     ],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Zaun Warrens",
     "description": "When you conquer here, discard 1, then draw 1.",
     "variantNumber": "OGN-298",
+    "variants": [
+      "OGN-298"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-298.webp"
+    ],
     "type": "Battlefield",
     "super": null,
     "energy": 0,
     "power": 0,
     "might": 0,
     "colors": [],
-    "tags": []
+    "tags": [],
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Zenith Blade",
     "description": "[ACTION] (Play on your turn or in showdowns.)\nStun an enemy at a battlefield. You may move a friendly unit to that enemy unit's battlefield. (A stunned unit doesn't deal combat damage this turn.)",
     "variantNumber": "OGN-262",
+    "variants": [
+      "OGN-262"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-262.webp"
+    ],
     "type": "Spell",
     "super": "Signature",
     "energy": 3,
@@ -4558,401 +7746,19 @@
     ],
     "tags": [
       "Leona"
-    ]
-  },
-  {
-    "name": "Zhonya's Hourglass",
-    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[Hidden] (Hide now for [A] to react with later for [0].)\nIf a friendly unit would die, kill this instead. Heal that unit,\nexhaust it, and recall it. (Send it to base. This isn't a move.)",
-    "variantNumber": "OGN-077",
-    "type": "Gear",
-    "super": null,
-    "energy": 2,
-    "power": 0,
-    "might": 0,
-    "colors": [
-      "Calm"
     ],
-    "tags": []
-  },
-  {
-    "name": "Annie, Dark Child",
-    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\nAt the end of your turn, ready up to 2 runes.",
-    "variantNumber": "OGS-017",
-    "type": "Legend",
-    "super": null,
-    "energy": 0,
-    "power": 0,
-    "might": 0,
-    "colors": [
-      "Fury",
-      "Chaos"
-    ],
-    "tags": [
-      "Annie"
-    ]
-  },
-  {
-    "name": "Annie, Fiery",
-    "description": "Your spells and abilities deal 1 Bonus Damage. (Each instance of damage they deal is increased by 1.)",
-    "variantNumber": "OGS-001",
-    "type": "Unit",
-    "super": "Champion",
-    "energy": 5,
-    "power": 1,
-    "might": 4,
-    "colors": [
-      "Fury"
-    ],
-    "tags": [
-      "Annie",
-      "Noxus"
-    ]
-  },
-  {
-    "name": "Annie, Stubborn",
-    "description": "When you play me, return a spell from your trash to your hand.",
-    "variantNumber": "OGS-010",
-    "type": "Unit",
-    "super": "Champion",
-    "energy": 4,
-    "power": 1,
-    "might": 3,
-    "colors": [
-      "Chaos"
-    ],
-    "tags": [
-      "Annie",
-      "Noxus"
-    ]
-  },
-  {
-    "name": "Blast of Power",
-    "description": "[ACTION] (Play on your turn or in showdowns.)\nKill a unit at a battlefield.",
-    "variantNumber": "OGS-012",
-    "type": "Spell",
-    "super": null,
-    "energy": 6,
-    "power": 1,
-    "might": 0,
-    "colors": [
-      "Order"
-    ],
-    "tags": []
-  },
-  {
-    "name": "Decisive Strike",
-    "description": "[ACTION] (Play on your turn or in showdowns.)\nGive friendly units +2 [Might] this turn.",
-    "variantNumber": "OGS-024",
-    "type": "Spell",
-    "super": "Signature",
-    "energy": 5,
-    "power": 1,
-    "might": 0,
-    "colors": [
-      "Body",
-      "Order"
-    ],
-    "tags": [
-      "Garen"
-    ]
-  },
-  {
-    "name": "Final Spark",
-    "description": "[ACTION] (Play on your turn or in showdowns.)\nDeal 8 to a unit.",
-    "variantNumber": "OGS-022",
-    "type": "Spell",
-    "super": "Signature",
-    "energy": 8,
-    "power": 0,
-    "might": 0,
-    "colors": [
-      "Order",
-      "Mind"
-    ],
-    "tags": [
-      "Lux"
-    ]
-  },
-  {
-    "name": "Firestorm",
-    "description": "Deal 3 to all enemy units at a battlefield.",
-    "variantNumber": "OGS-002",
-    "type": "Spell",
-    "super": null,
-    "energy": 6,
-    "power": 1,
-    "might": 0,
-    "colors": [
-      "Fury"
-    ],
-    "tags": []
-  },
-  {
-    "name": "Flash",
-    "description": "[REACTION] (Play at any time, even before spells and abilities resolve.)\nMove up to 2 friendly units to base.",
-    "variantNumber": "OGS-011",
-    "type": "Spell",
-    "super": null,
-    "energy": 2,
-    "power": 0,
-    "might": 0,
-    "colors": [
-      "Chaos"
-    ],
-    "tags": []
-  },
-  {
-    "name": "Garen, Commander",
-    "description": "Other friendly units have +1 [Might] here.",
-    "variantNumber": "OGS-013",
-    "type": "Unit",
-    "super": "Champion",
-    "energy": 6,
-    "power": 1,
-    "might": 5,
-    "colors": [
-      "Order"
-    ],
-    "tags": [
-      "Garen",
-      "Elite",
-      "Demacia"
-    ]
-  },
-  {
-    "name": "Garen, Might of Demacia",
-    "description": "When you conquer, if you have 4+ units at that battlefield, draw 2.",
-    "variantNumber": "OGS-023",
-    "type": "Legend",
-    "super": null,
-    "energy": 0,
-    "power": 0,
-    "might": 0,
-    "colors": [
-      "Body",
-      "Order"
-    ],
-    "tags": [
-      "Garen"
-    ]
-  },
-  {
-    "name": "Garen, Rugged",
-    "description": "[Assault 2], [Shield 2] (+2 [Might] while I'm an attacker or defender.)",
-    "variantNumber": "OGS-007",
-    "type": "Unit",
-    "super": "Champion",
-    "energy": 6,
-    "power": 1,
-    "might": 5,
-    "colors": [
-      "Body"
-    ],
-    "tags": [
-      "Garen",
-      "Elite",
-      "Demacia"
-    ]
-  },
-  {
-    "name": "Gentlemen's Duel",
-    "description": "[Action] (Play on your turn or in showdowns.)\nGive a friendly unit +3 [Might] this turn. Then, choose an enemy unit. They deal damage equal to their Mights to each other.",
-    "variantNumber": "OGS-008",
-    "type": "Spell",
-    "super": null,
-    "energy": 6,
-    "power": 1,
-    "might": 0,
-    "colors": [
-      "Body"
-    ],
-    "tags": []
-  },
-  {
-    "name": "Highlander",
-    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[Reaction] (Play any time, even before spells and abilities\nresolve.)\nChoose a friendly unit. The next time it dies this turn, heal\nit, exhaust it, and recall it instead. (Send it to base. This\nisn't a move.)",
-    "variantNumber": "OGS-020",
-    "type": "Spell",
-    "super": "Signature",
-    "energy": 4,
-    "power": 0,
-    "might": 0,
-    "colors": [
-      "Body",
-      "Calm"
-    ],
-    "tags": [
-      "Master Yi"
-    ]
-  },
-  {
-    "name": "Incinerate",
-    "description": "[ACTION] (play on your turn or in showdowns.) \nDeal 2 to a unit at a battlefield.",
-    "variantNumber": "OGS-003",
-    "type": "Spell",
-    "super": null,
-    "energy": 2,
-    "power": 0,
-    "might": 0,
-    "colors": [
-      "Fury"
-    ],
-    "tags": []
-  },
-  {
-    "name": "Lux, Crownguard",
-    "description": "[Tap]: [REACTION] - [ADD] [2] Use only to play spells. (Abilities that add resources can't be reacted to.)",
-    "variantNumber": "OGS-014",
-    "type": "Unit",
-    "super": "Champion",
-    "energy": 4,
-    "power": 0,
-    "might": 2,
-    "colors": [
-      "Order"
-    ],
-    "tags": [
-      "Lux",
-      "Demacia"
-    ]
-  },
-  {
-    "name": "Lux, Illuminated",
-    "description": "When you play a spell that costs [5] or more, give me +3 [Might] this turn.",
-    "variantNumber": "OGS-006",
-    "type": "Unit",
-    "super": "Champion",
-    "energy": 6,
-    "power": 1,
-    "might": 5,
-    "colors": [
-      "Mind"
-    ],
-    "tags": [
-      "Lux",
-      "Demacia"
-    ]
-  },
-  {
-    "name": "Lux, Lady of Luminosity",
-    "description": "When you play a spell that costs [5] or more, draw a 1.",
-    "variantNumber": "OGS-021",
-    "type": "Legend",
-    "super": null,
-    "energy": 0,
-    "power": 0,
-    "might": 0,
-    "colors": [
-      "Order",
-      "Mind"
-    ],
-    "tags": [
-      "Lux"
-    ]
-  },
-  {
-    "name": "Master Yi, Honed",
-    "description": "[GANKING] (I can move from battlefield to battlefield.)\nI enter ready.",
-    "variantNumber": "OGS-009",
-    "type": "Unit",
-    "super": "Champion",
-    "energy": 7,
-    "power": 1,
-    "might": 6,
-    "colors": [
-      "Body"
-    ],
-    "tags": [
-      "Master Yi",
-      "Ionia"
-    ]
-  },
-  {
-    "name": "Master Yi, Meditative",
-    "description": "While you have 8+ runes, I have +4 [Might].",
-    "variantNumber": "OGS-004",
-    "type": "Unit",
-    "super": "Champion",
-    "energy": 5,
-    "power": 1,
-    "might": 4,
-    "colors": [
-      "Calm"
-    ],
-    "tags": [
-      "Master Yi",
-      "Ionia"
-    ]
-  },
-  {
-    "name": "Master Yi, Wuju Bladesman",
-    "description": "While a friendly unit defends alone, it gets +2 [Might].",
-    "variantNumber": "OGS-019",
-    "type": "Legend",
-    "super": null,
-    "energy": 0,
-    "power": 0,
-    "might": 0,
-    "colors": [
-      "Body",
-      "Calm"
-    ],
-    "tags": [
-      "Master Yi"
-    ]
-  },
-  {
-    "name": "Recruit the Vanguard",
-    "description": "[ACTION] (Play on your turn or in showdowns.)\nPlay four 1 [Might] Recruit unit tokens. (They can be played to your base or to battlefields you control.)",
-    "variantNumber": "OGS-015",
-    "type": "Spell",
-    "super": null,
-    "energy": 6,
-    "power": 0,
-    "might": 0,
-    "colors": [
-      "Order"
-    ],
-    "tags": []
-  },
-  {
-    "name": "Tibbers",
-    "description": "When you play me, deal 3 damage to all units at battlefields.",
-    "variantNumber": "OGS-018",
-    "type": "Unit",
-    "super": "Signature",
-    "energy": 8,
-    "power": 2,
-    "might": 7,
-    "colors": [
-      "Fury",
-      "Chaos"
-    ],
-    "tags": [
-      "Annie"
-    ]
-  },
-  {
-    "name": "Vanguard Attendant",
-    "description": "I enter ready.",
-    "variantNumber": "OGS-016",
-    "type": "Unit",
-    "super": null,
-    "energy": 6,
-    "power": 1,
-    "might": 5,
-    "colors": [
-      "Order"
-    ],
-    "tags": [
-      "Demacia",
-      "Elite"
-    ]
+    "releaseDate": "2025-10-31"
   },
   {
     "name": "Zephyr Sage",
     "description": "[SHIELD] (+1 [Might] while I'm a defender.)",
     "variantNumber": "OGS-005",
+    "variants": [
+      "OGS-005"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGS-005.webp"
+    ],
     "type": "Unit",
     "super": null,
     "energy": 6,
@@ -4964,6 +7770,28 @@
     "tags": [
       "Bird",
       "Ionia"
-    ]
+    ],
+    "releaseDate": "2025-10-31"
+  },
+  {
+    "name": "Zhonya's Hourglass",
+    "description": "𝗖𝗮𝗿𝗱 𝗘𝗿𝗿𝗮𝘁𝗮 𝗧𝗲𝘅𝘁 - 𝗙𝗿𝗼𝗺 𝗥𝗶𝗼𝘁 𝗙𝗔𝗤 𝗮𝗻𝗱 𝗥𝘂𝗹𝗲𝘀 𝗨𝗽𝗱𝗮𝘁𝗲\n[Hidden] (Hide now for [A] to react with later for [0].)\nIf a friendly unit would die, kill this instead. Heal that unit,\nexhaust it, and recall it. (Send it to base. This isn't a move.)",
+    "variantNumber": "OGN-077",
+    "variants": [
+      "OGN-077"
+    ],
+    "variantImages": [
+      "https://cdn.piltoverarchive.com/cards/OGN-077.webp"
+    ],
+    "type": "Gear",
+    "super": null,
+    "energy": 2,
+    "power": 0,
+    "might": 0,
+    "colors": [
+      "Calm"
+    ],
+    "tags": [],
+    "releaseDate": "2025-10-31"
   }
 ]

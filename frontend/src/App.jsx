@@ -18,18 +18,90 @@ import {
 } from './utils/deckStorage';
 
 function App() {
-  // Function to get card details by variant number
-  const getCardDetails = (variantNumber) => {
-    return cardsData.find(card => card.variantNumber === variantNumber);
+  // Helper function to parse card ID with variant index
+  // Format: "OGN-249" -> { baseId: "OGN-249", variantIndex: 0 } (base card, variants[0])
+  // Format: "OGN-249-1" -> { baseId: "OGN-249", variantIndex: 0 } (parsed number 1 - 1 = 0, variants[0])
+  // Format: "OGN-249-2" -> { baseId: "OGN-249", variantIndex: 1 } (parsed number 2 - 1 = 1, variants[1])
+  // Format: "OGN-249-3" -> { baseId: "OGN-249", variantIndex: 2 } (parsed number 3 - 1 = 2, variants[2])
+  // Formula: variantIndex = parsedNumber - 1 (general formula, not hardcoded)
+  const parseCardId = (cardId) => {
+    if (!cardId) return { baseId: null, variantIndex: 0 };
+    const match = cardId.match(/^([A-Z]+-\d+)(?:-(\d+))?$/);
+    if (match) {
+      // If no suffix, it's the base card (variants[0], index 0)
+      // Otherwise, subtract 1 from the parsed number to get the 0-based array index
+      return {
+        baseId: match[1],
+        variantIndex: match[2] ? parseInt(match[2], 10) - 1 : 0  // General formula: parsedNumber - 1
+      };
+    }
+    return { baseId: cardId, variantIndex: 0 };
   };
   
-  // Function to get card image URL - easily changeable for different image sources
+  // Helper function to format card ID with variant index
+  // Format: { baseId: "OGN-249", variantIndex: 0 } -> "OGN-249-1" (index 0 + 1 = 1)
+  // Format: { baseId: "OGN-249", variantIndex: 1 } -> "OGN-249-2" (index 1 + 1 = 2)
+  // Format: { baseId: "OGN-249", variantIndex: 2 } -> "OGN-249-3" (index 2 + 1 = 3)
+  // Formula: exportNumber = variantIndex + 1 (general formula, not hardcoded)
+  const formatCardId = (baseId, variantIndex = 0) => {
+    if (!baseId) return null;
+    // Add 1 to the 0-based index to get the 1-based export number
+    return `${baseId}-${variantIndex + 1}`;
+  };
+  
+  // Function to get card details by variant number (handles both "OGN-249" and "OGN-249-1" formats)
+  const getCardDetails = (cardId) => {
+    if (!cardId) return null;
+    const { baseId } = parseCardId(cardId);
+    return cardsData.find(card => card.variantNumber === baseId);
+  };
+  
+  // Function to get card image URL - uses variantImages array based on variant index
   const getCardImageUrl = (cardId) => {
     if (!cardId) return 'https://cdn.piltoverarchive.com/Cardback.webp';
-    // Current source: Riftmana
-    // Change this function to use different image sources as needed
-    return `https://cdn.piltoverarchive.com/cards/${cardId}.webp`
-    return `https://riftmana.com/wp-content/uploads/Cards/${cardId}.webp`;
+    
+    const { baseId, variantIndex } = parseCardId(cardId);
+    const card = cardsData.find(c => c.variantNumber === baseId);
+    
+    if (!card) {
+      // Fallback to original cardId if card not found
+      return `https://cdn.piltoverarchive.com/cards/${cardId}.webp`;
+    }
+    
+    // Use variantImages array if available - variantIndex directly indexes into the array
+    if (card.variantImages && card.variantImages.length > variantIndex) {
+      const imageUrl = card.variantImages[variantIndex];
+      if (imageUrl) {
+        return imageUrl;
+      }
+    }
+    
+    // Fallback: construct URL from variantNumber if variantImages not available or empty
+    return `https://cdn.piltoverarchive.com/cards/${card.variantNumber}.webp`;
+  };
+  
+  // Function to check if a release date is in the future (comparing only dates, not time)
+  const isFutureRelease = (releaseDate) => {
+    if (!releaseDate) return false;
+    
+    try {
+      // Parse the release date (assuming format like "2025-10-31" or ISO format)
+      const release = new Date(releaseDate);
+      const today = new Date();
+      
+      // Set both to midnight to compare only dates
+      release.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0);
+      
+      return release > today;
+    } catch (e) {
+      return false;
+    }
+  };
+  
+  // Helper function to add a card with default variant index 0
+  const addCardWithVariant = (baseId, variantIndex = 0) => {
+    return formatCardId(baseId, variantIndex);
   };
   
   // Find first champion in the deck to use as chosen champion
@@ -70,12 +142,44 @@ function App() {
   // Rune counts (A and B, must total 12)
   const [runeACount, setRuneACount] = useState(0);
   const [runeBCount, setRuneBCount] = useState(0);
+  // Rune variant indices (0 = base, 1 = 'a', 2 = 'b')
+  const [runeAVariantIndex, setRuneAVariantIndex] = useState(0);
+  const [runeBVariantIndex, setRuneBVariantIndex] = useState(0);
   
   // State for Legend card (separate from champion)
   const [legendCard, setLegendCard] = useState(null);
   
   // State for the currently hovered/selected card
   const [selectedCard, setSelectedCard] = useState(null);
+  
+  // Ref to store timeout ID for debounced card selection
+  const hoverTimeoutRef = useRef(null);
+  
+  // Debounced function to set selected card (delays selection to prevent accidental changes on quick mouse movements)
+  const handleCardHover = (cardId) => {
+    // Clear any pending selection
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    
+    // Only set if there's a card to select
+    if (cardId) {
+      // Delay selection by 150ms to allow quick mouse movements without changing selection
+      hoverTimeoutRef.current = setTimeout(() => {
+        setSelectedCard(cardId);
+        hoverTimeoutRef.current = null;
+      }, 150);
+    }
+  };
+  
+  // Cancel pending card selection when mouse leaves
+  const handleCardHoverCancel = () => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+  };
   
   // Dark mode state - initialize from localStorage
   const [isDarkMode, setIsDarkMode] = useState(() => getTheme() === 'dark');
@@ -120,6 +224,8 @@ function App() {
   const [searchResults, setSearchResults] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [isPageTransitioning, setIsPageTransitioning] = useState(false);
+  const [loadedSearchImages, setLoadedSearchImages] = useState(new Set());
   const [isDraggingFromSearch, setIsDraggingFromSearch] = useState(false);
   const [sortOrder, setSortOrder] = useState('A-Z');
   const [sortDescending, setSortDescending] = useState(false);
@@ -155,6 +261,74 @@ function App() {
     isOpen: false,
     deckCode: ''
   });
+  
+  // Variant selection modal state
+  const [variantModal, setVariantModal] = useState({
+    isOpen: false,
+    cardId: null,
+    baseId: null,
+    source: null, // 'mainDeck', 'legend', 'battlefield', 'sideDeck', 'champion'
+    sourceIndex: null, // index in the source array (if applicable)
+    variants: [],
+    variantImages: []
+  });
+  
+  // Toast notifications state
+  const [toasts, setToasts] = useState([]);
+  
+  // Add a toast notification
+  const addToast = (content, duration = 1800) => {
+    const id = Date.now() + Math.random();
+    const newToast = { id, content, dismissing: false };
+    
+    setToasts(prev => [...prev, newToast]);
+    
+    // Auto-dismiss after duration
+    setTimeout(() => {
+      // Mark as dismissing to trigger slide-out animation
+      setToasts(prev => prev.map(toast => 
+        toast.id === id ? { ...toast, dismissing: true } : toast
+      ));
+      
+      // Remove after animation completes (300ms)
+      setTimeout(() => {
+        setToasts(prev => prev.filter(toast => toast.id !== id));
+      }, 300);
+    }, duration);
+    
+    return id;
+  };
+  
+  // Remove a toast by ID
+  const removeToast = (id) => {
+    // Mark as dismissing to trigger slide-out animation
+    setToasts(prev => prev.map(toast => 
+      toast.id === id ? { ...toast, dismissing: true } : toast
+    ));
+    
+    // Remove after animation completes (300ms)
+    setTimeout(() => {
+      setToasts(prev => prev.filter(toast => toast.id !== id));
+    }, 300);
+  };
+  
+  // Show max copies toast notification
+  const showMaxCopiesToast = (cardId) => {
+    const card = getCardDetails(cardId);
+    const cardName = card?.name || 'Unknown Card';
+    addToast(
+      <>Maximum copies reached for <strong>{cardName}</strong></>,
+      1800
+    );
+  };
+  
+  // Show no space available toast notification
+  const showNoSpaceToast = (areaName) => {
+    addToast(
+      <>No space available for <strong>{areaName}</strong></>,
+      1800
+    );
+  };
   
   // Show notification modal (OK button only)
   const showNotification = (title, message) => {
@@ -339,6 +513,38 @@ function App() {
       messages.push(`✓ Side deck is ${sideDeckCount}/8`);
     }
     
+    // Rule 9: Signature cards must match a tag with the legend
+    if (legendCard) {
+      const legendTags = legendData?.tags || [];
+      const allDeckCardsForSignature = [...mainDeck.filter(c => c), ...sideDeck.filter(c => c)];
+      if (chosenChampion) {
+        allDeckCardsForSignature.push(chosenChampion);
+      }
+      
+      let invalidSignatureCards = [];
+      for (const cardId of allDeckCardsForSignature) {
+        const cardData = getCardDetails(cardId);
+        if (cardData && cardData.super === "Signature") {
+          const cardTags = cardData.tags || [];
+          // Check if at least one tag matches a legend tag
+          const hasMatchingTag = cardTags.some(tag => legendTags.includes(tag));
+          if (!hasMatchingTag) {
+            invalidSignatureCards.push(cardData.name || cardId);
+          }
+        }
+      }
+      
+      if (invalidSignatureCards.length > 0) {
+        messages.push(`Signature cards without matching legend tag: ${invalidSignatureCards.slice(0, 5).join(", ")}${invalidSignatureCards.length > 5 ? "..." : ""}`);
+        isValid = false;
+      } else {
+        messages.push("✓ All Signature cards match legend tags");
+      }
+    } else {
+      // Can't validate signature cards without a legend, but this is already caught by Rule 1
+      // So we'll skip this validation if legend is missing
+    }
+    
     setDeckValidation({ isValid, messages });
   };
   
@@ -347,6 +553,16 @@ function App() {
     validateDeck();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [legendCard, battlefields, mainDeck, sideDeck, chosenChampion]);
+  
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+      }
+    };
+  }, []);
+  
   const [containerScale, setContainerScale] = useState(1);
   
   // Toggle dark mode with persistence
@@ -365,6 +581,8 @@ function App() {
       battlefields: [...battlefields.filter(c => c)],
       runeACount: runeACount,
       runeBCount: runeBCount,
+      runeAVariantIndex: runeAVariantIndex,
+      runeBVariantIndex: runeBVariantIndex,
       legendCard: legendCard
     };
   };
@@ -375,6 +593,7 @@ function App() {
     setChosenChampion(cards.chosenChampion || null);
     setSideDeck(compactSideDeck(cards.sideDeck || []));
     setBattlefields(cards.battlefields || []);
+    setLegendCard(cards.legendCard || null);
     
     // Normalize rune counts: if they don't total 12, set to 6-6
     const runeA = cards.runeACount || 0;
@@ -387,7 +606,48 @@ function App() {
       setRuneBCount(runeB);
     }
     
-    setLegendCard(cards.legendCard || null);
+    // Load rune variant indices (default to 0 if not present or invalid)
+    const runeAVariant = cards.runeAVariantIndex ?? 0;
+    const runeBVariant = cards.runeBVariantIndex ?? 0;
+    
+    // Get rune base IDs from legend card (need to do this after legend is set)
+    // We'll use a helper function to get rune base IDs directly
+    let runeABaseId = null;
+    let runeBBaseId = null;
+    if (cards.legendCard) {
+      const legendCardData = getCardDetails(cards.legendCard);
+      const colors = legendCardData?.colors || [];
+      const color1 = colors[0] || null;
+      const color2 = colors[1] || null;
+      
+      const colorMap = {
+        "Mind": "OGN-089",
+        "Order": "OGN-214",
+        "Body": "OGN-126",
+        "Calm": "OGN-042",
+        "Chaos": "OGN-166",
+        "Fury": "OGN-007"
+      };
+      runeABaseId = color1 ? colorMap[color1] : null;
+      runeBBaseId = color2 ? colorMap[color2] : null;
+    }
+    
+    // Validate variant indices exist for the runes
+    if (runeABaseId) {
+      const runeACard = getCardDetails(runeABaseId);
+      const maxVariantIndex = runeACard?.variants ? runeACard.variants.length - 1 : 0;
+      setRuneAVariantIndex(Math.min(Math.max(0, runeAVariant), maxVariantIndex));
+    } else {
+      setRuneAVariantIndex(0);
+    }
+    
+    if (runeBBaseId) {
+      const runeBCard = getCardDetails(runeBBaseId);
+      const maxVariantIndex = runeBCard?.variants ? runeBCard.variants.length - 1 : 0;
+      setRuneBVariantIndex(Math.min(Math.max(0, runeBVariant), maxVariantIndex));
+    } else {
+      setRuneBVariantIndex(0);
+    }
   };
   
   // Bootstrap: Initialize decks and load last selected deck
@@ -437,6 +697,33 @@ function App() {
       }
     }
   }, []); // Run only on mount
+  
+  // Validate rune variant indices when legend card changes
+  useEffect(() => {
+    const { runeABaseId, runeBBaseId } = getRuneCards();
+    
+    // Validate rune A variant index
+    if (runeABaseId) {
+      const runeACard = getCardDetails(runeABaseId);
+      const maxVariantIndex = runeACard?.variants ? runeACard.variants.length - 1 : 0;
+      if (runeAVariantIndex > maxVariantIndex) {
+        setRuneAVariantIndex(0);
+      }
+    } else {
+      setRuneAVariantIndex(0);
+    }
+    
+    // Validate rune B variant index
+    if (runeBBaseId) {
+      const runeBCard = getCardDetails(runeBBaseId);
+      const maxVariantIndex = runeBCard?.variants ? runeBCard.variants.length - 1 : 0;
+      if (runeBVariantIndex > maxVariantIndex) {
+        setRuneBVariantIndex(0);
+      }
+    } else {
+      setRuneBVariantIndex(0);
+    }
+  }, [legendCard]); // Re-validate when legend card changes
   
   // Apply theme on mount
   useEffect(() => {
@@ -859,6 +1146,12 @@ function App() {
           newSideDeck.push(cardId);
         }
         setSideDeck(compactSideDeck(newSideDeck));
+      } else if (cardId && totalCopyCount >= 3) {
+        // Too many copies
+        showMaxCopiesToast(cardId);
+      } else if (cardId && currentSideDeckCount >= 8) {
+        // Side deck is full
+        showNoSpaceToast('Side Deck');
       }
     } else {
       // Right-click handling
@@ -866,11 +1159,17 @@ function App() {
         // Right-click on Legend: Add to legend slot if empty
         if (!legendCard) {
           setLegendCard(cardId);
+        } else {
+          // Legend slot is full
+          showNoSpaceToast('Legend');
         }
       } else if (cardType === 'Battlefield') {
         // Right-click on Battlefield: Add to battlefield slot if there's room (max 3) and not already present
         if (battlefields.length < 3 && !battlefields.includes(cardId)) {
           setBattlefields([...battlefields, cardId]);
+        } else if (battlefields.length >= 3) {
+          // Battlefields are full
+          showNoSpaceToast('Battlefields');
         }
       } else {
         // Right-click: Add to main deck (for non-Legend/Battlefield cards)
@@ -883,6 +1182,12 @@ function App() {
           if (!wasSetAsChampion) {
             setMainDeck(prev => [...prev, cardId]);
           }
+        } else if (cardId && totalCopyCount >= 3) {
+          // Too many copies
+          showMaxCopiesToast(cardId);
+        } else if (cardId && totalCards >= 40) {
+          // Main deck is full
+          showNoSpaceToast('Main Deck');
         }
       }
     }
@@ -968,6 +1273,11 @@ function App() {
           if (card.type !== 'Unit' || card.super !== 'Champion') {
             return false;
           }
+        } else if (searchFilters.cardType === 'Equipment') {
+          // Equipment filter: must have "Equipment" in tags
+          if (!(card.tags && card.tags.includes('Equipment'))) {
+            return false;
+          }
         } else {
           // Other types: match type exactly
           if (card.type !== searchFilters.cardType) {
@@ -1021,8 +1331,8 @@ function App() {
         }
       }
       
-      // Might range filter (skip if Gear, Spell, Legend, or Battlefield)
-      if (searchFilters.cardType !== 'Gear' && searchFilters.cardType !== 'Spell' && searchFilters.cardType !== 'Legend' && searchFilters.cardType !== 'Battlefield') {
+      // Might range filter (skip if Gear, Equipment, Spell, Legend, or Battlefield)
+      if (searchFilters.cardType !== 'Gear' && searchFilters.cardType !== 'Equipment' && searchFilters.cardType !== 'Spell' && searchFilters.cardType !== 'Legend' && searchFilters.cardType !== 'Battlefield') {
         const might = card.might || 0;
         if (searchFilters.mightMin && might < parseInt(searchFilters.mightMin)) {
           return false;
@@ -1081,21 +1391,78 @@ function App() {
       return sortDescending ? -nameDiff : nameDiff;
     });
     
-    // Store filtered cards (not just variantNumbers) for pagination
-    setSearchResults(sorted);
+    // Expand cards into variants: each card becomes multiple results (base + all variants)
+    const expandedResults = [];
+    for (const card of sorted) {
+      // Add base card (variant index 0)
+      expandedResults.push({
+        ...card,
+        variantIndex: 0,
+        displayCardId: formatCardId(card.variantNumber, 0)
+      });
+      
+      // Add all variants immediately after the base card
+      if (card.variants && card.variants.length > 1) {
+        for (let i = 1; i < card.variants.length; i++) {
+          expandedResults.push({
+            ...card,
+            variantIndex: i,
+            displayCardId: formatCardId(card.variantNumber, i)
+          });
+        }
+      }
+    }
+    
+    // Store expanded results (each variant is a separate entry) for pagination
+    setSearchResults(expandedResults);
     setCurrentPage(1);
-    setTotalPages(Math.ceil(sorted.length / 24)); // 15 cards per page (3x5)
+    setTotalPages(Math.ceil(expandedResults.length / 24)); // 24 cards per page (4x6)
+    setIsPageTransitioning(false); // Reset transition state
+    setLoadedSearchImages(new Set()); // Reset loaded images on new search
   };
   
   // Handle pagination
   const handlePageChange = (newPage) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setCurrentPage(newPage);
+    if (newPage >= 1 && newPage <= totalPages && newPage !== currentPage) {
+      // Clear current page first (flash empty)
+      setIsPageTransitioning(true);
+      setLoadedSearchImages(new Set()); // Reset loaded images
+      
+      // After a brief delay, load the new page
+      setTimeout(() => {
+        setCurrentPage(newPage);
+        setIsPageTransitioning(false);
+      }, 100); // 100ms delay to show empty state
     }
+  };
+  
+  // Handle image load for search results
+  const handleSearchImageLoad = (cardId) => {
+    setLoadedSearchImages(prev => {
+      // Only update if not already in the set to prevent unnecessary re-renders
+      if (prev.has(cardId)) {
+        return prev; // Return same reference to prevent re-render
+      }
+      const newSet = new Set(prev);
+      newSet.add(cardId);
+      return newSet;
+    });
+  };
+  
+  // Check if all images on current page are loaded
+  const areAllSearchImagesLoaded = () => {
+    const currentResults = getCurrentPageResults();
+    const cardIds = currentResults.map(r => r?.displayCardId).filter(Boolean);
+    if (cardIds.length === 0) return true; // No cards to load
+    return cardIds.every(cardId => loadedSearchImages.has(cardId));
   };
   
   // Get current page results
   const getCurrentPageResults = () => {
+    // Return empty array during page transition to show empty state
+    if (isPageTransitioning) {
+      return [];
+    }
     const startIndex = (currentPage - 1) * 24;
     const endIndex = startIndex + 24;
     return searchResults.slice(startIndex, endIndex);
@@ -1114,9 +1481,14 @@ function App() {
     }
   };
   
-  // Count how many copies of a card are in the main deck
+  // Count how many copies of a card are in the main deck (compares by baseId, not variant index)
   const countCardCopies = (cardId) => {
-    return mainDeck.filter(id => id === cardId).length;
+    if (!cardId) return 0;
+    const { baseId } = parseCardId(cardId);
+    return mainDeck.filter(id => {
+      const { baseId: otherBaseId } = parseCardId(id);
+      return otherBaseId === baseId;
+    }).length;
   };
   
   // Helper function to compact side deck (remove nulls from middle, pad to 8 at end)
@@ -1128,11 +1500,22 @@ function App() {
     return nonNulls;
   };
 
-  // Count total copies of a card across main deck (including champion) and side deck
+  // Count total copies of a card across main deck (including champion) and side deck (compares by baseId)
   const countTotalCardCopies = (cardId) => {
-    const mainDeckCopies = mainDeck.filter(id => id === cardId).length;
-    const championCopies = (chosenChampion === cardId) ? 1 : 0;
-    const sideDeckCopies = sideDeck.filter(id => id === cardId).length;
+    if (!cardId) return 0;
+    const { baseId } = parseCardId(cardId);
+    const mainDeckCopies = mainDeck.filter(id => {
+      const { baseId: otherBaseId } = parseCardId(id);
+      return otherBaseId === baseId;
+    }).length;
+    const championCopies = chosenChampion ? (() => {
+      const { baseId: championBaseId } = parseCardId(chosenChampion);
+      return championBaseId === baseId ? 1 : 0;
+    })() : 0;
+    const sideDeckCopies = sideDeck.filter(id => {
+      const { baseId: otherBaseId } = parseCardId(id);
+      return otherBaseId === baseId;
+    }).length;
     return mainDeckCopies + championCopies + sideDeckCopies;
   };
   
@@ -1218,7 +1601,13 @@ function App() {
           // Reset tap tracking
           setLastTap({ time: 0, cardId: null });
         } else {
-          // Conditions not met, reset tap tracking
+          // Conditions not met, show appropriate toast
+          if (totalCopyCountAfterMove > 3) {
+            showMaxCopiesToast(cardId);
+          } else if (totalCards >= 40) {
+            showNoSpaceToast('Main Deck');
+          }
+          // Reset tap tracking
           setLastTap({ time: 0, cardId: null });
         }
       } else {
@@ -1268,7 +1657,13 @@ function App() {
           // Reset tap tracking
           setLastTap({ time: 0, cardId: null });
         } else {
-          // Conditions not met, reset tap tracking
+          // Conditions not met, show appropriate toast
+          if (totalCopyCountAfterMove > 3) {
+            showMaxCopiesToast(cardId);
+          } else if (currentSideDeckCount >= 8) {
+            showNoSpaceToast('Side Deck');
+          }
+          // Reset tap tracking
           setLastTap({ time: 0, cardId: null });
         }
       }
@@ -1361,6 +1756,9 @@ function App() {
           if (battlefields.length < 3 && !battlefields.includes(draggedCard)) {
             newBattlefields.splice(dropIndex, 0, draggedCard);
             setBattlefields(newBattlefields);
+          } else if (battlefields.length >= 3) {
+            // Battlefields are full
+            showNoSpaceToast('Battlefields');
           }
           // If already at 3 or already present, do nothing
         } else if (isDraggingFromBattlefield) {
@@ -1446,7 +1844,13 @@ function App() {
               
               newSideDeck.splice(dropIndex, 0, draggedCard);
               setSideDeck(compactSideDeck(newSideDeck));
+            } else {
+              // Too many copies
+              showMaxCopiesToast(draggedCard);
             }
+          } else {
+            // Side deck is full
+            showNoSpaceToast('Side Deck');
           }
           // If side deck is full or too many copies, do nothing (don't add/swaps)
         } else if (isDraggingFromSideDeck) {
@@ -1484,6 +1888,9 @@ function App() {
                 // Auto-fill champion slot with next available champion from deck
                 autoFillChampion();
               }
+            } else {
+              // Too many copies
+              showMaxCopiesToast(draggedCard);
             }
             // If too many copies, don't swap
           } else {
@@ -1500,6 +1907,9 @@ function App() {
               
               newSideDeck.splice(dropIndex, 0, draggedCard);
               setSideDeck(compactSideDeck(newSideDeck));
+            } else {
+              // Too many copies
+              showMaxCopiesToast(draggedCard);
             }
             // If too many copies, card just doesn't get added
           }
@@ -1549,8 +1959,13 @@ function App() {
         }
         
         if (isDraggingFromSearch) {
-          // Dragged from search results - just overwrite legend, don't add previous to deck
-          setLegendCard(draggedCard);
+          // Dragged from search results - check if legend slot is already full
+          if (legendCard) {
+            // Legend slot is full
+            showNoSpaceToast('Legend');
+          } else {
+            setLegendCard(draggedCard);
+          }
         } else if (isDraggingFromLegend) {
           // Dropping the legend back onto itself, just restore it
           setLegendCard(draggedCard);
@@ -1667,6 +2082,12 @@ function App() {
               newDeck.splice(dropIndex, 0, draggedCard);
               setMainDeck(newDeck);
             }
+          } else if (totalCopyCount >= 3) {
+            // Too many copies
+            showMaxCopiesToast(draggedCard);
+          } else if (totalCards >= 40) {
+            // Main deck is full
+            showNoSpaceToast('Main Deck');
           }
           // If deck is full or too many copies, do nothing (don't add/swaps)
         } else if (isDraggingFromSideDeck) {
@@ -1713,6 +2134,7 @@ function App() {
               });
             } else {
               // Too many copies, restore card to side deck
+              showMaxCopiesToast(draggedCard);
               if (dragIndex !== null && dragIndex < 8) {
                 setSideDeck(prevSideDeck => {
                   const newSideDeck = [...prevSideDeck];
@@ -1760,6 +2182,12 @@ function App() {
               if (!wasSetAsChampion) {
                 setMainDeck([...mainDeck, draggedCard]);
               }
+            } else if (totalCopyCount >= 3) {
+              // Too many copies
+              showMaxCopiesToast(draggedCard);
+            } else if (totalCards >= 40) {
+              // Main deck is full
+              showNoSpaceToast('Main Deck');
             }
           } else if (isDraggingFromSideDeck) {
             // Add to end of deck, but check copy limit and deck size
@@ -1785,6 +2213,12 @@ function App() {
               });
             } else {
               // Either deck full or too many copies, restore card to side deck
+              if (totalCopyCount >= 3) {
+                showMaxCopiesToast(draggedCard);
+              } else if (totalCards >= 40) {
+                // Main deck is full
+                showNoSpaceToast('Main Deck');
+              }
               if (dragIndex !== null && dragIndex < 8) {
                 setSideDeck(prevSideDeck => {
                   const newSideDeck = [...prevSideDeck];
@@ -1804,12 +2238,18 @@ function App() {
               setMainDeck([...mainDeck, draggedCard]);
               // Auto-fill champion slot
               autoFillChampion();
+            } else {
+              // Too many copies
+              showMaxCopiesToast(draggedCard);
             }
           } else {
             // Dropped in grid but not on a card - add to end, check copy limit
             const totalCopyCount = countTotalCardCopies(draggedCard);
             if (totalCopyCount < 3) {
               setMainDeck([...mainDeck, draggedCard]);
+            } else {
+              // Too many copies
+              showMaxCopiesToast(draggedCard);
             }
           }
         } else {
@@ -1884,8 +2324,8 @@ function App() {
   }, [searchFilters.cardType]);
 
   useEffect(() => {
-    if (searchFilters.cardType === 'Gear' || searchFilters.cardType === 'Spell' || searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield') {
-      // Disable and reset Might filter for Gear/Spell/Legend/Battlefield
+    if (searchFilters.cardType === 'Gear' || searchFilters.cardType === 'Equipment' || searchFilters.cardType === 'Spell' || searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield') {
+      // Disable and reset Might filter for Gear/Equipment/Spell/Legend/Battlefield
       setSearchFilters(prev => ({
         ...prev,
         mightMin: '',
@@ -1903,6 +2343,38 @@ function App() {
       }));
     }
   }, [searchFilters.cardType]);
+
+  // Check if search result images are already loaded (for cached images)
+  useEffect(() => {
+    if (!isPageTransitioning) {
+      // Small delay to ensure images are rendered
+      const timeoutId = setTimeout(() => {
+        const currentResults = getCurrentPageResults();
+        const cardIds = currentResults.map(r => r?.displayCardId).filter(Boolean);
+        
+        // Check each image to see if it's already loaded
+        // Only check images that aren't already marked as loaded
+        cardIds.forEach(cardId => {
+          // Use a closure to capture the current state
+          setLoadedSearchImages(prev => {
+            if (prev.has(cardId)) {
+              return prev; // Already loaded, no update needed
+            }
+            const img = document.querySelector(`img[alt="Search Result ${cardId}"]`);
+            if (img && img.complete && img.naturalHeight !== 0) {
+              // Image is already loaded, add it to the set
+              const newSet = new Set(prev);
+              newSet.add(cardId);
+              return newSet;
+            }
+            return prev; // Not loaded yet, keep current state
+          });
+        });
+      }, 50);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [currentPage, searchResults, isPageTransitioning]);
 
   // Global mouse event listeners for dragging
   useEffect(() => {
@@ -1932,10 +2404,17 @@ function App() {
       // Shift + right-click: Add a copy of the card at this position
       const cardId = mainDeck[index];
       const currentTotalCount = countTotalCardCopies(cardId);
-      if (cardId && mainDeck.length + (chosenChampion ? 1 : 0) < 40 && currentTotalCount < 3) {
+      const totalCards = mainDeck.length + (chosenChampion ? 1 : 0);
+      if (cardId && totalCards < 40 && currentTotalCount < 3) {
         const newDeck = [...mainDeck];
         newDeck.splice(index, 0, cardId);
         setMainDeck(newDeck);
+      } else if (cardId && currentTotalCount >= 3) {
+        // Too many copies
+        showMaxCopiesToast(cardId);
+      } else if (cardId && totalCards >= 40) {
+        // Main deck is full
+        showNoSpaceToast('Main Deck');
       }
     } else {
       // Right-click: Remove the card
@@ -1953,45 +2432,22 @@ function App() {
       // Shift + right-click: Add a copy of the card at this position
       const cardId = sideDeck[index];
       const currentTotalCount = countTotalCardCopies(cardId);
-      if (cardId && sideDeck.filter(c => c).length < 8 && currentTotalCount < 3) {
+      const currentSideDeckCount = sideDeck.filter(c => c).length;
+      if (cardId && currentSideDeckCount < 8 && currentTotalCount < 3) {
         const newSideDeck = [...sideDeck];
         newSideDeck.splice(index, 0, cardId);
         setSideDeck(compactSideDeck(newSideDeck));
+      } else if (cardId && currentTotalCount >= 3) {
+        // Too many copies
+        showMaxCopiesToast(cardId);
+      } else if (cardId && currentSideDeckCount >= 8) {
+        // Side deck is full
+        showNoSpaceToast('Side Deck');
       }
     } else {
       // Right-click: Remove the card
       const newSideDeck = sideDeck.filter((_, i) => i !== index);
       setSideDeck(compactSideDeck(newSideDeck));
-    }
-  };
-  
-  // Handle middle-click: add a copy of the card
-  const handleMiddleClick = (e, index) => {
-    // Check if middle button (button 1) was clicked
-    if (e.button === 1) {
-      e.preventDefault();
-      const cardId = mainDeck[index];
-      const currentTotalCount = countTotalCardCopies(cardId);
-      if (cardId && mainDeck.length + (chosenChampion ? 1 : 0) < 40 && currentTotalCount < 3) {
-        const newDeck = [...mainDeck];
-        newDeck.splice(index, 0, cardId);
-        setMainDeck(newDeck);
-      }
-    }
-  };
-  
-  // Handle middle-click: add a copy of the card for side deck
-  const handleSideDeckMiddleClick = (e, index) => {
-    // Check if middle button (button 1) was clicked
-    if (e.button === 1) {
-      e.preventDefault();
-      const cardId = sideDeck[index];
-      const currentTotalCount = countTotalCardCopies(cardId);
-      if (cardId && sideDeck.filter(c => c).length < 8 && currentTotalCount < 3) {
-        const newSideDeck = [...sideDeck];
-        newSideDeck.splice(index, 0, cardId);
-        setSideDeck(compactSideDeck(newSideDeck));
-      }
     }
   };
   
@@ -2005,6 +2461,12 @@ function App() {
         const totalCopyCount = countTotalCardCopies(chosenChampion);
         if (totalCards < 40 && totalCopyCount < 3) {
           setMainDeck(prev => [...prev, chosenChampion]);
+        } else if (totalCopyCount >= 3) {
+          // Too many copies
+          showMaxCopiesToast(chosenChampion);
+        } else if (totalCards >= 40) {
+          // Main deck is full
+          showNoSpaceToast('Main Deck');
         }
       } else {
         // Right-click: Remove champion and auto-fill
@@ -2013,17 +2475,102 @@ function App() {
     }
   };
   
-  // Handle champion middle-click (add a copy to the main deck)
-  const handleChampionMiddleClick = (e) => {
-    if (e.button === 1 && chosenChampion) {
+  // Handle middle-click: open variant selection modal
+  const handleMiddleClick = (e, cardId, source, sourceIndex = null) => {
+    if (e.button === 1 && cardId) { // Middle button
       e.preventDefault();
-      // Add a copy of the champion to the end of the main deck if under 40 cards and under 3 total copies
-      const currentTotal = mainDeck.length + (chosenChampion ? 1 : 0);
-      const currentTotalCount = countTotalCardCopies(chosenChampion);
-      if (currentTotal < 40 && currentTotalCount < 3) {
-        setMainDeck(prev => [...prev, chosenChampion]);
+      e.stopPropagation();
+      
+      const { baseId } = parseCardId(cardId);
+      const card = getCardDetails(baseId);
+      
+      if (card && card.variants && card.variants.length > 1) {
+        // Open variant selection modal
+        setVariantModal({
+          isOpen: true,
+          cardId: cardId,
+          baseId: baseId,
+          source: source,
+          sourceIndex: sourceIndex,
+          variants: card.variants || [],
+          variantImages: card.variantImages || []
+        });
+      } else {
+        // Show toast notification for no variants
+        const cardName = card?.name || 'Unknown Card';
+        addToast(
+          <>No variants available for <strong>{cardName}</strong></>,
+          1800
+        );
       }
     }
+  };
+  
+  // Handle variant selection from modal
+  const handleVariantSelect = (variantIndex) => {
+    const { baseId } = variantModal;
+    const newCardId = formatCardId(baseId, variantIndex);
+    
+    // Update the card based on source
+    switch (variantModal.source) {
+      case 'mainDeck':
+        if (variantModal.sourceIndex !== null) {
+          const newMainDeck = [...mainDeck];
+          newMainDeck[variantModal.sourceIndex] = newCardId;
+          setMainDeck(newMainDeck);
+        }
+        break;
+      case 'sideDeck':
+        if (variantModal.sourceIndex !== null) {
+          const newSideDeck = [...sideDeck];
+          newSideDeck[variantModal.sourceIndex] = newCardId;
+          setSideDeck(compactSideDeck(newSideDeck));
+        }
+        break;
+      case 'battlefield':
+        if (variantModal.sourceIndex !== null) {
+          const newBattlefields = [...battlefields];
+          newBattlefields[variantModal.sourceIndex] = newCardId;
+          setBattlefields(newBattlefields);
+        }
+        break;
+      case 'legend':
+        setLegendCard(newCardId);
+        break;
+      case 'champion':
+        setChosenChampion(newCardId);
+        break;
+      case 'runeA':
+        setRuneAVariantIndex(variantIndex);
+        break;
+      case 'runeB':
+        setRuneBVariantIndex(variantIndex);
+        break;
+    }
+    
+    // Close modal
+    setVariantModal({
+      isOpen: false,
+      cardId: null,
+      baseId: null,
+      source: null,
+      sourceIndex: null,
+      variants: [],
+      variantImages: []
+    });
+  };
+  
+  // Handle variant modal cancel
+  const handleVariantModalCancel = () => {
+    setVariantModal({
+      isOpen: false,
+      cardId: null,
+      baseId: null,
+      source: null,
+      sourceIndex: null,
+      variants: [],
+      variantImages: []
+    });
   };
   
   // Handle legend context menu (right-click)
@@ -2035,33 +2582,11 @@ function App() {
     }
   };
   
-  // Handle legend middle-click (add a copy to the main deck)
-  const handleLegendMiddleClick = (e) => {
-    if (e.button === 1 && legendCard) {
-      e.preventDefault();
-      // Add a copy of the legend to the end of the main deck if under 40 cards and under 3 total copies
-      const currentTotalCount = countTotalCardCopies(legendCard);
-      if (mainDeck.length < 40 && currentTotalCount < 3) {
-        setMainDeck(prev => [...prev, legendCard]);
-      }
-    }
-  };
-  
   // Handle battlefield context menu (right-click)
   const handleBattlefieldContext = (e, index) => {
     e.preventDefault();
     if (battlefields[index]) {
       // Remove the card
-      const newBattlefields = battlefields.filter((_, i) => i !== index);
-      setBattlefields(newBattlefields);
-    }
-  };
-  
-  // Handle battlefield middle-click
-  const handleBattlefieldMiddleClick = (e, index) => {
-    if (e.button === 1 && battlefields[index]) {
-      e.preventDefault();
-      // Remove the battlefield card
       const newBattlefields = battlefields.filter((_, i) => i !== index);
       setBattlefields(newBattlefields);
     }
@@ -2411,7 +2936,7 @@ function App() {
     return colorMap[color] || null;
   };
   
-  // Helper function to get rune cards from legend
+  // Helper function to get rune cards from legend (with variant indices)
   const getRuneCards = () => {
     if (!legendCard) return { runeA: null, runeB: null };
     
@@ -2420,9 +2945,15 @@ function App() {
     const color1 = colors[0] || null;
     const color2 = colors[1] || null;
     
+    const runeABaseId = color1 ? getRuneCardId(color1) : null;
+    const runeBBaseId = color2 ? getRuneCardId(color2) : null;
+    
+    // Return variant-aware card IDs
     return {
-      runeA: color1 ? getRuneCardId(color1) : null,
-      runeB: color2 ? getRuneCardId(color2) : null
+      runeA: runeABaseId ? formatCardId(runeABaseId, runeAVariantIndex) : null,
+      runeB: runeBBaseId ? formatCardId(runeBBaseId, runeBVariantIndex) : null,
+      runeABaseId: runeABaseId,
+      runeBBaseId: runeBBaseId
     };
   };
   
@@ -2517,6 +3048,8 @@ function App() {
       setSideDeck(compactSideDeck([]));
       setRuneACount(6);
       setRuneBCount(6);
+      setRuneAVariantIndex(0);
+      setRuneBVariantIndex(0);
     }
   };
   
@@ -2527,23 +3060,34 @@ function App() {
       const clipboardText = await navigator.clipboard.readText();
       
       // Parse the clipboard string
-      // Format: "OGN-265-1 OGN-246-1 OGN-103-1 ..."
-      // We need to drop the -1, -2, etc. suffixes
+      // Format: "OGN-265-1 OGN-246-2 OGN-103-1 ..."
+      // Parse and preserve variant indices
       const cardIds = clipboardText.trim().split(/\s+/);
       
       const parsedCards = [];
       for (const cardStr of cardIds) {
-        // Parse format: OGN-265-1 -> OGN-265
-        // or OGN-265 -> OGN-265
-        const match = cardStr.match(/^([A-Z]+)-(\d+)(?:-\d+)?$/);
-        if (match) {
-          const [, setCode, cardId] = match;
-          parsedCards.push(`${setCode}-${cardId}`);
+        // Parse format: OGN-265-1 -> { baseId: "OGN-265", variantIndex: 1 }
+        // or OGN-265 -> { baseId: "OGN-265", variantIndex: 0 }
+        const { baseId, variantIndex } = parseCardId(cardStr);
+        if (baseId) {
+          // Log when a variant is detected (variantIndex > 0 means it's not the base card)
+          if (variantIndex > 0) {
+            const card = getCardDetails(baseId);
+            const cardName = card?.name || baseId;
+            const variantNumber = card?.variants?.[variantIndex] || `variant ${variantIndex}`;
+            console.log(`[Import] Variant detected: ${cardStr} -> ${cardName} (${baseId}) using variant index ${variantIndex} (variants[${variantIndex}] = ${variantNumber})`);
+          }
+          // Format with variant index (0 becomes no suffix, 1+ becomes -1, -2, etc.)
+          const formattedId = formatCardId(baseId, variantIndex);
+          parsedCards.push(formattedId);
         }
       }
       
       // Check if any valid cards were found
-      const foundValidCards = parsedCards.some(cardId => getCardDetails(cardId) !== undefined);
+      const foundValidCards = parsedCards.some(cardId => {
+        const { baseId } = parseCardId(cardId);
+        return getCardDetails(baseId) !== undefined;
+      });
       
       if (parsedCards.length === 0 || !foundValidCards) {
         await showNotification('Invalid Deck', 'Invalid deck in clipboard');
@@ -2557,6 +3101,8 @@ function App() {
       setBattlefields([null, null, null]);
       setRuneACount(6);
       setRuneBCount(6);
+      setRuneAVariantIndex(0);
+      setRuneBVariantIndex(0);
       setLegendCard(null);
       
       // Parse deck structure:
@@ -2576,16 +3122,20 @@ function App() {
       
       // 1. First card is the legend
       if (i < parsedCards.length) {
-        const firstCard = getCardDetails(parsedCards[i]);
+        const cardId = parsedCards[i];
+        const { baseId } = parseCardId(cardId);
+        const firstCard = getCardDetails(baseId);
         if (firstCard?.type === 'Legend') {
-          legendCard = parsedCards[i];
+          legendCard = cardId; // Preserve variant index
           i++;
         }
       }
       
       // 2. Main deck - add cards until we hit a battlefield or rune
       while (i < parsedCards.length) {
-        const card = getCardDetails(parsedCards[i]);
+        const cardId = parsedCards[i];
+        const { baseId } = parseCardId(cardId);
+        const card = getCardDetails(baseId);
         if (!card) {
           i++;
           continue;
@@ -2595,20 +3145,22 @@ function App() {
           break;
         }
         
-        mainDeckCards.push(parsedCards[i]);
+        mainDeckCards.push(cardId); // Preserve variant index
         i++;
       }
       
       // 3. Battlefields (0-3)
       while (i < parsedCards.length && battlefieldCards.length < 3) {
-        const card = getCardDetails(parsedCards[i]);
+        const cardId = parsedCards[i];
+        const { baseId } = parseCardId(cardId);
+        const card = getCardDetails(baseId);
         if (!card) {
           i++;
           continue;
         }
         
         if (card.type === 'Battlefield') {
-          battlefieldCards.push(parsedCards[i]);
+          battlefieldCards.push(cardId); // Preserve variant index
           i++;
         } else if (card.type === 'Rune') {
           break;
@@ -2619,14 +3171,16 @@ function App() {
       
       // 4. Runes (0-12)
       while (i < parsedCards.length && runeCards.length < 12) {
-        const card = getCardDetails(parsedCards[i]);
+        const cardId = parsedCards[i];
+        const { baseId } = parseCardId(cardId);
+        const card = getCardDetails(baseId);
         if (!card) {
           i++;
           continue;
         }
         
         if (card.type === 'Rune') {
-          runeCards.push(parsedCards[i]);
+          runeCards.push(cardId); // Preserve variant index
           i++;
         } else {
           break;
@@ -2635,12 +3189,14 @@ function App() {
       
       // 5. Remaining cards go to side deck (up to 8)
       while (i < parsedCards.length && sideDeckCards.length < 8) {
-        const card = getCardDetails(parsedCards[i]);
+        const cardId = parsedCards[i];
+        const { baseId } = parseCardId(cardId);
+        const card = getCardDetails(baseId);
         if (!card) {
           i++;
           continue;
         }
-        sideDeckCards.push(parsedCards[i]);
+        sideDeckCards.push(cardId); // Preserve variant index
         i++;
       }
       
@@ -2651,12 +3207,13 @@ function App() {
       
       // Handle champion - try to find the first champion in main deck
       const firstChampion = mainDeckCards.find(id => {
-        const card = getCardDetails(id);
+        const { baseId } = parseCardId(id);
+        const card = getCardDetails(baseId);
         return card?.super === "Champion";
       });
       
       if (firstChampion) {
-        setChosenChampion(firstChampion);
+        setChosenChampion(firstChampion); // Preserve variant index
         // Remove champion from main deck
         const championIndex = mainDeckCards.indexOf(firstChampion);
         const newMainDeck = mainDeckCards.filter((_, idx) => idx !== championIndex);
@@ -2667,21 +3224,58 @@ function App() {
       
       setBattlefields([...battlefieldCards, null, null, null].slice(0, 3));
       
-      // Parse runes to determine counts for A and B
+      // Parse runes to determine counts for A and B, and extract variant indices
       if (legendCard) {
-        const legendData = getCardDetails(legendCard);
+        const { baseId: legendBaseId } = parseCardId(legendCard);
+        const legendData = getCardDetails(legendBaseId);
         const colors = legendData?.colors || [];
         
-        // Count runes by color
-        const newRuneACount = runeCards.filter(id => {
-          const card = getCardDetails(id);
+        // Separate runes by color and extract variant indices
+        const runeACards = runeCards.filter(id => {
+          const { baseId } = parseCardId(id);
+          const card = getCardDetails(baseId);
           return card?.colors?.[0] === colors[0];
-        }).length;
+        });
         
-        const newRuneBCount = runeCards.filter(id => {
-          const card = getCardDetails(id);
+        const runeBCards = runeCards.filter(id => {
+          const { baseId } = parseCardId(id);
+          const card = getCardDetails(baseId);
           return card?.colors?.[0] === colors[1];
-        }).length;
+        });
+        
+        const newRuneACount = runeACards.length;
+        const newRuneBCount = runeBCards.length;
+        
+        // Extract variant indices from first rune of each color
+        if (runeACards.length > 0) {
+          const firstRuneA = runeACards[0];
+          const { variantIndex } = parseCardId(firstRuneA);
+          const runeABaseId = getRuneCardId(colors[0]);
+          if (runeABaseId) {
+            const runeACard = getCardDetails(runeABaseId);
+            const maxVariantIndex = runeACard?.variants ? runeACard.variants.length - 1 : 0;
+            setRuneAVariantIndex(Math.min(Math.max(0, variantIndex), maxVariantIndex));
+          } else {
+            setRuneAVariantIndex(0);
+          }
+        } else {
+          setRuneAVariantIndex(0);
+        }
+        
+        if (runeBCards.length > 0) {
+          const firstRuneB = runeBCards[0];
+          const { variantIndex } = parseCardId(firstRuneB);
+          const runeBBaseId = getRuneCardId(colors[1]);
+          if (runeBBaseId) {
+            const runeBCard = getCardDetails(runeBBaseId);
+            const maxVariantIndex = runeBCard?.variants ? runeBCard.variants.length - 1 : 0;
+            setRuneBVariantIndex(Math.min(Math.max(0, variantIndex), maxVariantIndex));
+          } else {
+            setRuneBVariantIndex(0);
+          }
+        } else {
+          setRuneBVariantIndex(0);
+        }
         
         // If total doesn't equal 12, normalize to 6-6
         if (newRuneACount + newRuneBCount !== 12) {
@@ -2692,9 +3286,11 @@ function App() {
           setRuneBCount(Math.min(newRuneBCount, 12));
         }
       } else {
-        // No legend card, ensure runes are 6-6
+        // No legend card, ensure runes are 6-6 and reset variant indices
         setRuneACount(6);
         setRuneBCount(6);
+        setRuneAVariantIndex(0);
+        setRuneBVariantIndex(0);
       }
       
       // Side deck - up to 8 cards
@@ -2947,20 +3543,33 @@ function App() {
               <div 
                 key="champion"
                 data-champion-slot
-                className={`rounded border-2 flex items-center justify-center overflow-hidden cursor-pointer transition-colors ${isDarkMode ? 'bg-gray-700 border-yellow-600 hover:border-yellow-500' : 'bg-yellow-100 border-yellow-600 hover:border-yellow-700'}`}
+                className={`rounded border-2 flex items-center justify-center overflow-hidden cursor-pointer transition-colors relative ${isDarkMode ? 'bg-gray-700 border-yellow-600 hover:border-yellow-500' : 'bg-yellow-100 border-yellow-600 hover:border-yellow-700'}`}
                 style={{ aspectRatio: '515/685' }}
-                onMouseDown={handleChampionMouseDown}
-                onMouseEnter={() => chosenChampion && setSelectedCard(chosenChampion)}
+                onMouseDown={(e) => {
+                  if (e.button === 1 && chosenChampion) {
+                    handleMiddleClick(e, chosenChampion, 'champion');
+                  } else if (chosenChampion) {
+                    handleChampionMouseDown(e);
+                  }
+                }}
+                onMouseEnter={() => handleCardHover(chosenChampion)}
+                onMouseLeave={handleCardHoverCancel}
                 onContextMenu={handleChampionContext}
-                onAuxClick={handleChampionMiddleClick}
               >
                 {chosenChampion ? (
-                  <img
-                    src={getCardImageUrl(chosenChampion)}
-                    alt={`Chosen Champion ${chosenChampion}`}
-                    className="w-[92%] object-contain pointer-events-none"
-                    style={{ aspectRatio: '515/719' }}
-                  />
+                  <>
+                    <img
+                      src={getCardImageUrl(chosenChampion)}
+                      alt={`Chosen Champion ${chosenChampion}`}
+                      className="w-[92%] object-contain pointer-events-none"
+                      style={{ aspectRatio: '515/719' }}
+                    />
+                    {isFutureRelease(getCardDetails(chosenChampion)?.releaseDate) && (
+                      <div className="absolute top-1 right-1 bg-black/50 border-4 border-red-500 text-white text-[10px] font-bold px-1 py-0.5 rounded-full shadow-md z-10">
+                        Future
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className="text-yellow-600 text-[16px] font-bold">Champion</div>
                 )}
@@ -2973,12 +3582,18 @@ function App() {
                   <div 
                     key={index}
                     data-card-index={index}
-                    className={`rounded border flex items-center justify-center overflow-hidden cursor-pointer transition-colors select-none ${isDarkMode ? 'bg-gray-700 border-gray-600 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`}
+                    className={`rounded border flex items-center justify-center overflow-hidden cursor-pointer transition-colors select-none relative ${isDarkMode ? 'bg-gray-700 border-gray-600 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`}
                     style={{ aspectRatio: '515/685' }}
-                    onMouseDown={(e) => cardId && handleMouseDown(e, index)}
-                    onMouseEnter={() => cardId && setSelectedCard(cardId)}
+                    onMouseDown={(e) => {
+                      if (e.button === 1 && cardId) {
+                        handleMiddleClick(e, cardId, 'mainDeck', index);
+                      } else if (cardId) {
+                        handleMouseDown(e, index);
+                      }
+                    }}
+                    onMouseEnter={() => handleCardHover(cardId)}
+                    onMouseLeave={handleCardHoverCancel}
                     onContextMenu={(e) => cardId && handleCardContext(e, index)}
-                    onAuxClick={(e) => cardId && handleMiddleClick(e, index)}
                     onTouchEnd={(e) => {
                       e.preventDefault();
                       if (cardId) {
@@ -2987,12 +3602,19 @@ function App() {
                     }}
                   >
                     {cardId ? (
-                      <img
-                        src={getCardImageUrl(cardId)}
-                        alt={`Card ${cardId} slot ${index + 1}`}
-                        className="w-[92%] object-contain pointer-events-none"
-                        style={{ aspectRatio: '515/719' }}
-                      />
+                      <>
+                        <img
+                          src={getCardImageUrl(cardId)}
+                          alt={`Card ${cardId} slot ${index + 1}`}
+                          className="w-[92%] object-contain pointer-events-none"
+                          style={{ aspectRatio: '515/719' }}
+                        />
+                        {isFutureRelease(getCardDetails(cardId)?.releaseDate) && (
+                          <div className="absolute top-1 right-1 bg-black/50 border-4 border-red-500 text-white text-[10px] font-bold px-1 py-0.5 rounded-full shadow-md z-10">
+                            Future
+                          </div>
+                        )}
+                      </>
                     ) : (
                       <div className="text-gray-400 text-[20px]">+</div>
                     )}
@@ -3010,20 +3632,33 @@ function App() {
               <div className={`text-[12px] font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-700'}`}>Legend:</div>
               {/* Legend card slot - same aspect ratio as other cards, full width */}
               <div 
-                className={`w-full rounded border flex items-center justify-center overflow-hidden cursor-pointer transition-colors mb-1 ${isDarkMode ? 'bg-gray-700 border-gray-600 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`}
+                className={`w-full rounded border flex items-center justify-center overflow-hidden cursor-pointer transition-colors mb-1 relative ${isDarkMode ? 'bg-gray-700 border-gray-600 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`}
                 data-legend-slot
-                onMouseDown={handleLegendMouseDown}
-                onMouseEnter={() => legendCard && setSelectedCard(legendCard)}
+                onMouseDown={(e) => {
+                  if (e.button === 1 && legendCard) {
+                    handleMiddleClick(e, legendCard, 'legend');
+                  } else if (legendCard) {
+                    handleLegendMouseDown(e);
+                  }
+                }}
+                onMouseEnter={() => handleCardHover(legendCard)}
+                onMouseLeave={handleCardHoverCancel}
                 onContextMenu={handleLegendContext}
-                onAuxClick={handleLegendMiddleClick}
                 style={{ aspectRatio: '515/719' }}
               >
                 {legendCard ? (
-                  <img
-                    src={getCardImageUrl(legendCard)}
-                    alt={`Legend ${legendCard}`}
-                    className="w-full h-full object-contain pointer-events-none"
-                  />
+                  <>
+                    <img
+                      src={getCardImageUrl(legendCard)}
+                      alt={`Legend ${legendCard}`}
+                      className="w-full h-full object-contain pointer-events-none"
+                    />
+                    {isFutureRelease(getCardDetails(legendCard)?.releaseDate) && (
+                      <div className="absolute top-2 right-2 bg-black/50 border-4 border-red-500 text-white text-[13px] font-bold px-1.5 py-1 rounded-full shadow-md z-10">
+                        Future
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className="text-gray-400 text-[20px]">+</div>
                 )}
@@ -3097,20 +3732,33 @@ function App() {
                         <div 
                           key={index}
                           data-battlefield-index={index}
-                          className={`rounded border flex items-center justify-center overflow-hidden cursor-pointer transition-colors ${isDarkMode ? 'bg-gray-700 border-gray-600 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`}
-                          onMouseDown={(e) => cardId && handleBattlefieldMouseDown(e, index)}
-                          onMouseEnter={() => cardId && setSelectedCard(cardId)}
+                          className={`rounded border flex items-center justify-center overflow-hidden cursor-pointer transition-colors relative ${isDarkMode ? 'bg-gray-700 border-gray-600 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`}
+                          onMouseDown={(e) => {
+                            if (e.button === 1 && cardId) {
+                              handleMiddleClick(e, cardId, 'battlefield', index);
+                            } else if (cardId) {
+                              handleBattlefieldMouseDown(e, index);
+                            }
+                          }}
+                          onMouseEnter={() => handleCardHover(cardId)}
+                          onMouseLeave={handleCardHoverCancel}
                           onContextMenu={(e) => cardId && handleBattlefieldContext(e, index)}
-                          onAuxClick={(e) => cardId && handleBattlefieldMiddleClick(e, index)}
                           style={{ aspectRatio: '719/515' }}
                         >
                           {cardId ? (
-                            <img
-                              src={getCardImageUrl(cardId)}
-                              alt={`Battlefield ${cardId}`}
-                              className="w-[116%] h-[116%] object-contain pointer-events-none"
-                              style={{ transform: 'rotate(90deg)' }}
-                            />
+                            <>
+                              <img
+                                src={getCardImageUrl(cardId)}
+                                alt={`Battlefield ${cardId}`}
+                                className="w-[116%] h-[116%] object-contain pointer-events-none"
+                                style={{ transform: 'rotate(90deg)' }}
+                              />
+                              {isFutureRelease(getCardDetails(cardId)?.releaseDate) && (
+                                <div className="absolute top-1 right-1 bg-black/50 border-4 border-red-500 text-white text-[10px] font-bold px-1 py-0.5 rounded-full shadow-md z-10">
+                                  Future
+                                </div>
+                              )}
+                            </>
                           ) : (
                             <div className="text-gray-400 text-[20px] rotate-90">+</div>
                           )}
@@ -3130,7 +3778,16 @@ function App() {
                         className={`rounded border flex items-center justify-center overflow-hidden w-full max-w-[80px] cursor-pointer transition-colors select-none ${isDarkMode ? 'bg-gray-700 border-gray-600 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`} 
                         style={{ aspectRatio: '515/719' }}
                         onClick={() => handleRuneClick('A')}
-                        onMouseDown={(e) => e.preventDefault()}
+                        onMouseDown={(e) => {
+                          if (e.button === 1) {
+                            const { runeABaseId } = getRuneCards();
+                            if (runeABaseId) {
+                              handleMiddleClick(e, formatCardId(runeABaseId, runeAVariantIndex), 'runeA');
+                            }
+                          } else {
+                            e.preventDefault();
+                          }
+                        }}
                         onMouseEnter={() => {
                           const { runeA } = getRuneCards();
                           if (runeA) setSelectedCard(runeA);
@@ -3143,7 +3800,7 @@ function App() {
                               src={getCardImageUrl(runeA)}
                               alt="Rune A"
                               className="w-[92%] object-contain pointer-events-none"
-                              style={{ aspectRatio: '515/719' }}
+                              style={{ aspectRatio: '515/719', outline: '1px solid black', outlineOffset: '0px' }}
                             />
                           ) : (
                             <div className={`${isDarkMode ? 'text-gray-500' : 'text-gray-400'} text-[8px] text-center`}>Rune A</div>
@@ -3163,7 +3820,16 @@ function App() {
                         className={`rounded border flex items-center justify-center overflow-hidden w-full max-w-[80px] cursor-pointer transition-colors select-none ${isDarkMode ? 'bg-gray-700 border-gray-600 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`} 
                         style={{ aspectRatio: '515/719' }}
                         onClick={() => handleRuneClick('B')}
-                        onMouseDown={(e) => e.preventDefault()}
+                        onMouseDown={(e) => {
+                          if (e.button === 1) {
+                            const { runeBBaseId } = getRuneCards();
+                            if (runeBBaseId) {
+                              handleMiddleClick(e, formatCardId(runeBBaseId, runeBVariantIndex), 'runeB');
+                            }
+                          } else {
+                            e.preventDefault();
+                          }
+                        }}
                         onMouseEnter={() => {
                           const { runeB } = getRuneCards();
                           if (runeB) setSelectedCard(runeB);
@@ -3176,7 +3842,7 @@ function App() {
                               src={getCardImageUrl(runeB)}
                               alt="Rune B"
                               className="w-[92%] object-contain pointer-events-none"
-                              style={{ aspectRatio: '515/719' }}
+                              style={{ aspectRatio: '515/719', outline: '1px solid black', outlineOffset: '0px' }}
                             />
                           ) : (
                             <div className={`${isDarkMode ? 'text-gray-500' : 'text-gray-400'} text-[8px] text-center`}>Rune B</div>
@@ -3199,11 +3865,17 @@ function App() {
                       <div 
                         key={index}
                         data-side-deck-index={index}
-                        className={`rounded border flex items-center justify-center overflow-hidden cursor-pointer transition-colors select-none ${isDarkMode ? 'bg-gray-700 border-gray-600 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`}
-                        onMouseDown={(e) => cardId && handleSideDeckMouseDown(e, index)}
-                        onMouseEnter={() => cardId && setSelectedCard(cardId)}
+                        className={`rounded border flex items-center justify-center overflow-hidden cursor-pointer transition-colors select-none relative ${isDarkMode ? 'bg-gray-700 border-gray-600 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`}
+                        onMouseDown={(e) => {
+                          if (e.button === 1 && cardId) {
+                            handleMiddleClick(e, cardId, 'sideDeck', index);
+                          } else if (cardId) {
+                            handleSideDeckMouseDown(e, index);
+                          }
+                        }}
+                        onMouseEnter={() => handleCardHover(cardId)}
+                        onMouseLeave={handleCardHoverCancel}
                         onContextMenu={(e) => cardId && handleSideDeckContext(e, index)}
-                        onAuxClick={(e) => cardId && handleSideDeckMiddleClick(e, index)}
                         onTouchEnd={(e) => {
                           e.preventDefault();
                           if (cardId) {
@@ -3213,12 +3885,19 @@ function App() {
                         style={{ aspectRatio: '515/685' }}
                       >
                         {cardId ? (
-                          <img
-                            src={getCardImageUrl(cardId)}
-                            alt={`Side Deck Card ${cardId} slot ${index + 1}`}
-                            className="w-[92%] object-contain pointer-events-none"
-                style={{ aspectRatio: '515/685' }}
-                          />
+                          <>
+                            <img
+                              src={getCardImageUrl(cardId)}
+                              alt={`Side Deck Card ${cardId} slot ${index + 1}`}
+                              className="w-[92%] object-contain pointer-events-none"
+                              style={{ aspectRatio: '515/685' }}
+                            />
+                            {isFutureRelease(getCardDetails(cardId)?.releaseDate) && (
+                              <div className="absolute top-1 right-1 bg-black/50 border-4 border-red-500 text-white text-[10px] font-bold px-1 py-0.5 rounded-full shadow-md z-10">
+                                Future
+                              </div>
+                            )}
+                          </>
                         ) : (
                           <div className={`${isDarkMode ? 'text-gray-500' : 'text-gray-400'} text-[20px]`}>+</div>
                         )}
@@ -3285,6 +3964,7 @@ function App() {
                   <option value="Battlefield">Battlefield</option>
                   <option value="Champion">Champion</option>
                   <option value="Gear">Gear</option>
+                  <option value="Equipment">Equipment</option>
                 </select>
               </div>
               <div className="flex flex-col">
@@ -3371,8 +4051,8 @@ function App() {
                     type="number"
                     value={searchFilters.mightMin}
                     onChange={(e) => setSearchFilters({...searchFilters, mightMin: e.target.value})}
-                    disabled={searchFilters.cardType === 'Gear' || searchFilters.cardType === 'Spell' || searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield'}
-                    className={`w-12 px-1 py-1 text-[10px] rounded border ${isDarkMode ? 'bg-gray-600 border-gray-500 text-gray-100' : 'bg-white border-gray-300 text-gray-800'} ${(searchFilters.cardType === 'Gear' || searchFilters.cardType === 'Spell' || searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield') ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    disabled={searchFilters.cardType === 'Gear' || searchFilters.cardType === 'Equipment' || searchFilters.cardType === 'Spell' || searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield'}
+                    className={`w-12 px-1 py-1 text-[10px] rounded border ${isDarkMode ? 'bg-gray-600 border-gray-500 text-gray-100' : 'bg-white border-gray-300 text-gray-800'} ${(searchFilters.cardType === 'Gear' || searchFilters.cardType === 'Equipment' || searchFilters.cardType === 'Spell' || searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield') ? 'opacity-50 cursor-not-allowed' : ''}`}
                     placeholder="Min"
                   />
                   <span className={`text-[10px] ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>≤</span>
@@ -3382,8 +4062,8 @@ function App() {
                     type="number"
                     value={searchFilters.mightMax}
                     onChange={(e) => setSearchFilters({...searchFilters, mightMax: e.target.value})}
-                    disabled={searchFilters.cardType === 'Gear' || searchFilters.cardType === 'Spell' || searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield'}
-                    className={`w-12 px-1 py-1 text-[10px] rounded border ${isDarkMode ? 'bg-gray-600 border-gray-500 text-gray-100' : 'bg-white border-gray-300 text-gray-800'} ${(searchFilters.cardType === 'Gear' || searchFilters.cardType === 'Spell' || searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield') ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    disabled={searchFilters.cardType === 'Gear' || searchFilters.cardType === 'Equipment' || searchFilters.cardType === 'Spell' || searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield'}
+                    className={`w-12 px-1 py-1 text-[10px] rounded border ${isDarkMode ? 'bg-gray-600 border-gray-500 text-gray-100' : 'bg-white border-gray-300 text-gray-800'} ${(searchFilters.cardType === 'Gear' || searchFilters.cardType === 'Equipment' || searchFilters.cardType === 'Spell' || searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield') ? 'opacity-50 cursor-not-allowed' : ''}`}
                     placeholder="Max"
                   />
                 </div>
@@ -3464,17 +4144,19 @@ function App() {
               </button>
             </div>
             
-            {/* Results Grid - 3 columns x 5 rows */}
-            <div className="flex-1 grid grid-cols-4 gap-2 min-h-0" data-is-search-grid>
+            {/* Results Grid - 4 columns x 6 rows */}
+            <div className="flex-1 grid grid-cols-4 gap-2 min-h-0 relative" data-is-search-grid>
               {Array.from({ length: 24 }).map((_, index) => {
                 const currentResults = getCurrentPageResults();
-                const cardId = currentResults[index]?.variantNumber || null;
+                const result = currentResults[index];
+                const cardId = result?.displayCardId || null;
                 return (
                   <div
                     key={index}
-                    className={`rounded border flex items-center justify-center overflow-hidden cursor-pointer transition-colors select-none ${isDarkMode ? 'bg-gray-600 border-gray-500 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`}
+                    className={`rounded border flex items-center justify-center overflow-hidden cursor-pointer transition-colors select-none relative ${isDarkMode ? 'bg-gray-600 border-gray-500 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`}
                     onMouseDown={(e) => cardId && handleSearchResultMouseDown(e, cardId)}
-                    onMouseEnter={() => cardId && setSelectedCard(cardId)}
+                    onMouseEnter={() => handleCardHover(cardId)}
+                    onMouseLeave={handleCardHoverCancel}
                     onContextMenu={(e) => cardId && handleSearchResultContext(e, cardId)}
                     onTouchEnd={(e) => {
                       e.preventDefault();
@@ -3485,18 +4167,56 @@ function App() {
                     style={{ aspectRatio: '460/650', padding: '2px' }}
                   >
                     {cardId ? (
-                      <img
-                        src={getCardImageUrl(cardId)}
-                        alt={`Search Result ${cardId}`}
-                        className="w-full h-full object-contain pointer-events-none"
-                        style={{ aspectRatio: '460/650' }}
-                      />
+                      <>
+                        <img
+                          src={getCardImageUrl(cardId)}
+                          alt={`Search Result ${cardId}`}
+                          className="w-full h-full object-contain pointer-events-none"
+                          style={{ 
+                            aspectRatio: '460/650',
+                            opacity: areAllSearchImagesLoaded() && !isPageTransitioning ? 1 : 0
+                          }}
+                          ref={(img) => {
+                            // Check if image is already loaded (cached images)
+                            // Only check if not already marked as loaded to prevent infinite loops
+                            if (img && img.complete && img.naturalHeight !== 0 && !loadedSearchImages.has(cardId)) {
+                              // Use setTimeout to defer state update and break the render cycle
+                              setTimeout(() => {
+                                handleSearchImageLoad(cardId);
+                              }, 0);
+                            }
+                          }}
+                          onLoad={() => handleSearchImageLoad(cardId)}
+                          onError={() => handleSearchImageLoad(cardId)} // Also mark as "loaded" on error to prevent infinite loading
+                        />
+                        {isFutureRelease(getCardDetails(cardId)?.releaseDate) && (
+                          <div className="absolute top-1 right-1 bg-black/50 border-4 border-red-500 text-white text-[10px] font-bold px-1 py-0.5 rounded-full shadow-md z-10">
+                            Future
+                          </div>
+                        )}
+                      </>
                     ) : (
                       <div className={`${isDarkMode ? 'text-gray-500' : 'text-gray-400'} text-[14px]`}>+</div>
                     )}
                   </div>
                 );
               })}
+              
+              {/* Loading Overlay */}
+              {!areAllSearchImagesLoaded() && !isPageTransitioning && (
+                <div 
+                  className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${
+                    isDarkMode 
+                      ? 'bg-gray-800 bg-opacity-70' 
+                      : 'bg-gray-300 bg-opacity-70'
+                  }`}
+                  style={{ zIndex: 10 }}
+                >
+                  <div className={`text-lg font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                    Loading...
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -3524,6 +4244,7 @@ function App() {
               transformOrigin: 'center center',
               transition: 'none',
             }}
+            className="relative"
           >
             <img
               src={getCardImageUrl(draggedCard)}
@@ -3535,6 +4256,11 @@ function App() {
                 transform: rotation
               }}
             />
+            {isFutureRelease(cardDetails?.releaseDate) && (
+              <div className="absolute top-1 right-1 bg-black/50 border-4 border-red-500 text-white text-[10px] font-bold px-1 py-0.5 rounded-full shadow-md z-10">
+                Future
+              </div>
+            )}
           </div>
         );
       })()}
@@ -3658,6 +4384,106 @@ function App() {
           </div>
         </div>
       )}
+      
+      {/* Variant Selection Modal */}
+      {variantModal.isOpen && (() => {
+        const variantCount = variantModal.variants.length;
+        const cardWidth = 120; // Fixed width for each variant card
+        const gap = 16; // gap-4 = 1rem = 16px
+        const sidePadding = 24; // px-6 = 1.5rem = 24px per side
+        const totalGaps = (variantCount - 1) * gap;
+        const totalPadding = sidePadding * 2;
+        const calculatedWidth = (variantCount * cardWidth) + totalGaps + totalPadding;
+        const minWidth = 300; // Minimum width for the modal
+        const maxWidth = Math.min(window.innerWidth * 0.9, calculatedWidth);
+        const modalWidth = Math.max(minWidth, maxWidth);
+        
+        return (
+          <div 
+            className="fixed inset-0 z-[9999] flex items-center justify-center"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                handleVariantModalCancel();
+              }
+            }}
+          >
+            {/* Backdrop */}
+            <div className="absolute inset-0 bg-black bg-opacity-50" />
+            
+            {/* Modal Content */}
+            <div 
+              className={`relative z-10 rounded-lg shadow-2xl border-2 ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-400'}`}
+              style={{ 
+                width: `${modalWidth}px`,
+                transform: `scale(${containerScale})`, 
+                transformOrigin: 'center center' 
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className={`px-6 py-4 border-b ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`}>
+                <h2 className={`text-xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                  Select Variant
+                </h2>
+              </div>
+              
+              {/* Body */}
+              <div className={`px-6 py-6 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                <div className="flex justify-center gap-4">
+                  {variantModal.variants.map((variant, index) => {
+                    const variantCardId = formatCardId(variantModal.baseId, index);
+                    const imageUrl = variantModal.variantImages[index] || getCardImageUrl(variantCardId);
+                    
+                    return (
+                      <div
+                        key={index}
+                        className="flex flex-col items-center cursor-pointer group"
+                        style={{ width: `${cardWidth}px` }}
+                        onClick={() => handleVariantSelect(index)}
+                      >
+                      <div className={`w-full rounded border-2 transition-all ${
+                        variantModal.cardId === variantCardId
+                          ? isDarkMode ? 'border-yellow-500 ring-2 ring-yellow-500' : 'border-yellow-600 ring-2 ring-yellow-600'
+                          : isDarkMode ? 'border-gray-600 group-hover:border-blue-500' : 'border-gray-300 group-hover:border-blue-500'
+                      }`}
+                      style={{ aspectRatio: '515/685' }}
+                      >
+                        <img
+                          src={imageUrl}
+                          alt={`Variant ${variant}`}
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <div className={`mt-2 text-center text-sm font-medium ${
+                        variantModal.cardId === variantCardId
+                          ? isDarkMode ? 'text-yellow-400' : 'text-yellow-600'
+                          : isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                      }`}>
+                        {variant}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            
+            {/* Footer */}
+            <div className={`px-6 py-4 border-t flex justify-center gap-3 ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`}>
+              <button
+                onClick={handleVariantModalCancel}
+                className={`px-4 py-2 rounded font-medium transition-colors ${
+                  isDarkMode 
+                    ? 'bg-gray-700 text-gray-200 hover:bg-gray-600' 
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+        );
+      })()}
       
       {/* Name Input Modal */}
       {nameModal.isOpen && (
@@ -3807,6 +4633,53 @@ function App() {
           </div>
         </div>
       )}
+      
+      {/* Toast Notifications */}
+      <div className="fixed top-4 right-4 z-[10000] flex flex-col gap-2 pointer-events-none">
+        {toasts.map((toast, index) => (
+          <div
+            key={toast.id}
+            className={`pointer-events-auto rounded-lg shadow-lg border px-4 py-3 min-w-[200px] max-w-[300px] transform transition-all duration-300 ${
+              isDarkMode 
+                ? 'bg-gray-800 border-gray-600 text-gray-100' 
+                : 'bg-white border-gray-300 text-gray-800'
+            }`}
+            style={{
+              animation: toast.dismissing 
+                ? 'slideOutRight 0.3s ease-in forwards' 
+                : 'slideInRight 0.3s ease-out',
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">{toast.content}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      {/* Toast animation styles */}
+      <style>{`
+        @keyframes slideInRight {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        @keyframes slideOutRight {
+          from {
+            transform: translateX(0);
+            opacity: 1;
+          }
+          to {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+        }
+      `}</style>
     </>
   );
 }
