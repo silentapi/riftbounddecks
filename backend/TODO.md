@@ -13,26 +13,26 @@ _Comprehensive, test-driven action plan for implementing the FastAPI + MongoDB b
 ---
 
 ## 0. Foundation & Project Bootstrap
-- ☐ **Create backend project scaffold**
-  - 🧪 Add `tests/` package with `conftest.py` to configure async test client & Mongo test fixtures (use in-memory Mongo like `mongomock_motor` or spin up Testcontainers).
-  - 📝 Initialize FastAPI app factory pattern (`backend/app/main.py`), define lifespan events for DB connection, and wire uvicorn entrypoint.
-- ☐ **Dependency management with `uv`**
-  - 🧪 Add `pyproject.toml` + `uv.lock`; ensure `uv pip compile` or equivalent reproducibility.
-  - 📝 Include FastAPI, Pydantic v2, Motor, python-jose/bcrypt, httpx, pytest, pytest-asyncio, freezegun, passlib, structlog/logging deps.
-- ☐ **Configuration module**
-  - 🧪 Tests verifying environment variables (Mongo URI, JWT secret/expiry, logging paths) are loaded with defaults and validation errors for missing required fields.
-  - 📝 Implement centralized settings (e.g., `backend/app/core/config.py`) using Pydantic `BaseSettings`.
-- ☐ **Database client abstraction**
-  - 🧪 Unit tests ensuring `get_db()` dependency yields Motor client + handles startup/shutdown cleanly; include retry/backoff logic tests using `pytest-mock`.
-  - 📝 Provide typed collection accessors (users, decks, registration_keys, registration_usage, user_preferences) with index creation helpers.
+- ☑ **Create backend project scaffold**
+  - ☑ 🧪 Added `backend/tests/` package with shared async HTTPX client fixture (`conftest.py`).
+  - ☑ 📝 Implemented FastAPI app factory (`backend/app/main.py`) with lifespan-managed Mongo client stub and health/ping endpoints for readiness probes.
+- ⧖ **Dependency management with `uv`**
+  - ☑ 📝 Established initial `pyproject.toml` enumerating runtime and dev dependencies aligned with API.md roadmap.
+  - 🔁 🧪 Follow-up: generate `uv.lock` once dependency set stabilises and integrate uv-based install workflow.
+- ☑ **Configuration module**
+  - ☑ 🧪 Added tests covering environment overrides, default fallbacks, and validation for required values.
+  - ☑ 📝 Implemented centralised settings loader (`backend/app/core/config.py`) using `pydantic-settings` with caching and strict validators.
+- ☑ **Database client abstraction**
+  - ☑ 🧪 Implemented unit tests for `MongoClientManager` ensuring lifecycle management without touching a real Mongo instance.
+  - ☑ 📝 Added minimal async context manager (`backend/app/db/client.py`); typed collection helpers + index creation remain TODO for future milestone.
 
 ## 1. Authentication & User Accounts
-- ☐ **User data models and schemas**
-  - 🧪 Pydantic schema tests covering validation rules, sanitized response (no `password_hash`).
-  - 📝 Model modules: `backend/app/models/user.py`, `backend/app/schemas/user.py`.
-- ☐ **Password hashing utilities**
-  - 🧪 Tests verifying bcrypt hashing + verification, rejecting weak passwords, enforcing minimal complexity (if required by API).
-  - 📝 Use passlib `CryptContext`; include rate-limiting hooks for future integration.
+- ☑ **User data models and schemas**
+  - ☑ 🧪 Added unit tests for Mongo document model (`backend/tests/models/test_user.py`) and public/create schemas (`backend/tests/schemas/test_user_schema.py`) enforcing username/email validation and response sanitisation.
+  - ☑ 📝 Implemented storage model + public/create schemas with shared validators (`backend/app/models/user.py`, `backend/app/schemas/user.py`); helper ensures ObjectId coercion for consistency.
+- ☑ **Password hashing utilities**
+  - ☑ 🧪 Added dedicated unit tests (`backend/tests/core/test_security.py`) covering strength validation, hashing, and verification failure cases.
+  - ☑ 📝 Implemented shared helper module (`backend/app/core/security.py`) exposing `hash_password`, `verify_password`, and `validate_password_strength`; schema validators now reuse shared logic.
 - ☐ **JWT token service**
   - 🧪 Tests for token generation, expiration handling, invalid signature detection, refresh token workflow (if implemented), claims contain user ID.
   - 📝 Store signing key + algorithm in config; support token blacklist extension point.
