@@ -259,7 +259,8 @@ function App() {
   // Export deck modal state
   const [exportModal, setExportModal] = useState({
     isOpen: false,
-    deckCode: ''
+    deckCode: '',
+    runLengthCode: ''
   });
   
   // Variant selection modal state
@@ -650,14 +651,72 @@ function App() {
     }
   };
   
+  // Ref to track if we've loaded from URL to prevent re-initialization
+  const hasLoadedFromUrlRef = useRef(false);
+  
   // Bootstrap: Initialize decks and load last selected deck
   useEffect(() => {
+    // Skip if we've already loaded from URL (prevents re-initialization)
+    if (hasLoadedFromUrlRef.current) {
+      return;
+    }
+    
+    // Define loadDeckFromUrl locally to avoid hoisting issues
+    const loadDeckFromUrlLocal = (encodedCode) => {
+      try {
+        // Decode URL-encoded deck code
+        const deckCode = decodeURIComponent(encodedCode);
+        
+        // Parse and load the deck (no notifications)
+        const result = parseAndLoadDeckCode(deckCode, false);
+        
+        if (!result.success) {
+          console.error('[Deck Load] Failed to load deck from URL:', result.error);
+          hasLoadedFromUrlRef.current = false; // Reset ref on failure
+          return;
+        }
+        
+        // Set current deck to null (no deck selected)
+        // This ensures no deck is selected when loading from URL
+        setCurrentDeckId(null);
+        
+        // Set selected card to the legend (just like normal deck loading)
+        setSelectedCard(result.legendCard || null);
+        
+      } catch (error) {
+        console.error('[Deck Load] Error loading deck from URL:', error);
+        hasLoadedFromUrlRef.current = false; // Reset ref on error
+      }
+    };
+    
     try {
-      // Ensure at least one deck exists
+      // Check if we're loading a deck from URL first
+      const path = window.location.pathname;
+      const deckMatch = path.match(/^\/deck\/(.+)$/);
+      
+      if (deckMatch) {
+        // If it's a deck URL, load the deck from URL and skip ALL normal initialization
+        const encodedCode = deckMatch[1];
+        
+        // Mark that we're loading from URL FIRST to prevent any re-initialization
+        hasLoadedFromUrlRef.current = true;
+        
+        // Load the deck from URL
+        loadDeckFromUrlLocal(encodedCode);
+        
+        // Still initialize decks list (but don't load any deck)
+        // Do this after loading the deck to ensure deck state is set first
+        let initialDecks = ensureAtLeastOneDeck();
+        setDecks(initialDecks);
+        
+        return; // Exit early - do NOT load last viewed deck
+      }
+      
+      // Normal initialization: Ensure at least one deck exists
       let initialDecks = ensureAtLeastOneDeck();
       setDecks(initialDecks);
       
-      // Try to load last selected deck
+      // Try to load last selected deck (only runs if NOT loading from URL)
       const lastId = getLastDeckId();
       let selectedDeck = null;
       
@@ -848,11 +907,7 @@ function App() {
   
   // Save As handler
   const handleSaveAs = (name) => {
-    if (!currentDeckId) return;
-    
-    const currentDeck = decks.find(d => d.id === currentDeckId);
-    if (!currentDeck) return;
-    
+    // Save As works even when no deck is selected (saves current editor state)
     const newDeck = {
       ...createDeck(name),
       cards: getCurrentDeckCards()
@@ -2112,8 +2167,26 @@ function App() {
             }
           } else {
             // Main deck has space, check if we can add (max 3 copies total)
-            const totalCopyCount = countTotalCardCopies(draggedCard);
-            if (totalCopyCount < 3) {
+            // IMPORTANT: The card was already removed from sideDeck when dragging started,
+            // so we need to count copies excluding the one being moved
+            const { baseId } = parseCardId(draggedCard);
+            const mainDeckCopies = mainDeck.filter(id => {
+              const { baseId: otherBaseId } = parseCardId(id);
+              return otherBaseId === baseId;
+            }).length;
+            const championCopies = chosenChampion ? (() => {
+              const { baseId: championBaseId } = parseCardId(chosenChampion);
+              return championBaseId === baseId ? 1 : 0;
+            })() : 0;
+            // Count side deck copies - the dragged card was already removed when dragging started
+            const sideDeckCopies = sideDeck.filter(id => {
+              const { baseId: otherBaseId } = parseCardId(id);
+              return otherBaseId === baseId;
+            }).length;
+            // Total copies after adding this one: current copies + 1 (the one being added)
+            const totalCopyCountAfterAdd = mainDeckCopies + championCopies + sideDeckCopies + 1;
+            
+            if (totalCopyCountAfterAdd <= 3) {
               // Try to set as champion if it's a champion and chosenChampion is null
               const wasSetAsChampion = trySetChampionIfNeeded(draggedCard);
               // Only add to main deck if it wasn't set as champion
@@ -2122,16 +2195,8 @@ function App() {
                 setMainDeck(newDeck);
               }
               
-              // Successfully added to main deck (or set as champion), so clean up the null placeholder and shift the array
-              setSideDeck(prevSideDeck => {
-                const newSideDeck = [];
-                for (let i = 0; i < prevSideDeck.length; i++) {
-                  if (i !== dragIndex) {
-                    newSideDeck.push(prevSideDeck[i]);
-                  }
-                }
-                return compactSideDeck(newSideDeck);
-              });
+              // Card was already removed from side deck when dragging started, so no cleanup needed
+              // The side deck is already in the correct state (compacted)
             } else {
               // Too many copies, restore card to side deck
               showMaxCopiesToast(draggedCard);
@@ -2191,9 +2256,27 @@ function App() {
             }
           } else if (isDraggingFromSideDeck) {
             // Add to end of deck, but check copy limit and deck size
+            // IMPORTANT: The card was already removed from sideDeck when dragging started,
+            // so we need to count copies excluding the one being moved
+            const { baseId } = parseCardId(draggedCard);
+            const mainDeckCopies = mainDeck.filter(id => {
+              const { baseId: otherBaseId } = parseCardId(id);
+              return otherBaseId === baseId;
+            }).length;
+            const championCopies = chosenChampion ? (() => {
+              const { baseId: championBaseId } = parseCardId(chosenChampion);
+              return championBaseId === baseId ? 1 : 0;
+            })() : 0;
+            // Count side deck copies - the dragged card was already removed when dragging started
+            const sideDeckCopies = sideDeck.filter(id => {
+              const { baseId: otherBaseId } = parseCardId(id);
+              return otherBaseId === baseId;
+            }).length;
+            // Total copies after adding this one: current copies + 1 (the one being added)
+            const totalCopyCountAfterAdd = mainDeckCopies + championCopies + sideDeckCopies + 1;
             const totalCards = mainDeck.length + (chosenChampion ? 1 : 0);
-            const totalCopyCount = countTotalCardCopies(draggedCard);
-            if (totalCards < 40 && totalCopyCount < 3) {
+            
+            if (totalCards < 40 && totalCopyCountAfterAdd <= 3) {
               // Try to set as champion if it's a champion and chosenChampion is null
               const wasSetAsChampion = trySetChampionIfNeeded(draggedCard);
               // Only add to main deck if it wasn't set as champion
@@ -2201,19 +2284,11 @@ function App() {
                 setMainDeck([...mainDeck, draggedCard]);
               }
               
-              // Clean up side deck
-              setSideDeck(prevSideDeck => {
-                const newSideDeck = [];
-                for (let i = 0; i < prevSideDeck.length; i++) {
-                  if (i !== dragIndex) {
-                    newSideDeck.push(prevSideDeck[i]);
-                  }
-                }
-                return compactSideDeck(newSideDeck);
-              });
+              // Card was already removed from side deck when dragging started, so no cleanup needed
+              // The side deck is already in the correct state (compacted)
             } else {
               // Either deck full or too many copies, restore card to side deck
-              if (totalCopyCount >= 3) {
+              if (totalCopyCountAfterAdd > 3) {
                 showMaxCopiesToast(draggedCard);
               } else if (totalCards >= 40) {
                 // Main deck is full
@@ -2974,6 +3049,155 @@ function App() {
     }
   };
   
+  // Set code mapping for URL compression
+  const SET_CODE_MAP = {
+    'OGN': '0',
+    'OGS': '1',
+    'SFD': '2',
+    'ARC': '9'
+  };
+  
+  // Reverse mapping for decoding
+  const SET_CODE_REVERSE = {
+    '0': 'OGN',
+    '1': 'OGS',
+    '2': 'SFD',
+    '9': 'ARC'
+  };
+  
+  // Encode card ID with set code replacement (compact format)
+  // OGN-247 -> 0247 (no dash, no variant suffix for normal variant)
+  // OGN-247-1 -> 0247 (variant 1 is normal, so no suffix)
+  // OGN-247-2 -> 02472 (variant 2, append variant number)
+  // OGN-247-3 -> 02473 (variant 3, append variant number)
+  const encodeCardIdWithSetCode = (cardId) => {
+    if (!cardId) return '';
+    // Match format: SET-NUMBER or SET-NUMBER-VARIANT
+    const match = cardId.match(/^([A-Z]+)-(\d+)(?:-(\d+))?$/);
+    if (match) {
+      const setCode = match[1];
+      const number = match[2];
+      const variant = match[3] ? parseInt(match[3], 10) : 1; // Default to 1 if no variant
+      const encodedSet = SET_CODE_MAP[setCode] || setCode; // Fallback to original if not in map
+      
+      // Pad number to 3 digits for consistency
+      const paddedNumber = number.padStart(3, '0');
+      
+      // Variant 1 (normal) has no suffix, variant 2+ appends the variant number
+      if (variant === 1) {
+        return `${encodedSet}${paddedNumber}`;
+      } else {
+        return `${encodedSet}${paddedNumber}${variant}`;
+      }
+    }
+    return cardId; // Fallback to original if format doesn't match
+  };
+  
+  // Decode card ID with set code replacement (compact format)
+  // 0247 -> OGN-247-1 (normal variant)
+  // 02472 -> OGN-247-2 (variant 2)
+  // 20202 -> SFD-020-2 (variant 2)
+  // 9172 -> ARC-172-1 (normal variant)
+  const decodeCardIdWithSetCode = (encodedId) => {
+    if (!encodedId) return '';
+    
+    // Try to match: SETCODE(1 digit) + NUMBER(3 digits) + VARIANT(optional 1-2 digits)
+    // Set codes can be: 0 (OGN), 1 (OGS), 2 (SFD), or 9 (ARC)
+    // The key insight: we always pad numbers to 3 digits when encoding,
+    // so we can safely extract exactly 3 digits for the number part
+    
+    // First, try with variant (5-6 digits total: 1 set + 3 number + 1-2 variant)
+    let match = encodedId.match(/^([0-2]|9)(\d{3})(\d{1,2})$/);
+    if (match) {
+      const encodedSet = match[1];
+      const number = match[2]; // Keep as string to preserve leading zeros (e.g., "020")
+      const variantStr = match[3];
+      const setCode = SET_CODE_REVERSE[encodedSet] || encodedSet;
+      const variant = parseInt(variantStr, 10);
+      // Preserve leading zeros in number
+      return `${setCode}-${number}-${variant}`;
+    }
+    
+    // No variant (exactly 4 digits: 1 set + 3-digit number)
+    match = encodedId.match(/^([0-2]|9)(\d{3})$/);
+    if (match) {
+      const encodedSet = match[1];
+      const number = match[2]; // Keep as string to preserve leading zeros
+      const setCode = SET_CODE_REVERSE[encodedSet] || encodedSet;
+      // Preserve leading zeros in number
+      return `${setCode}-${number}-1`;
+    }
+    
+    return encodedId; // Fallback to original if format doesn't match
+  };
+  
+  // Apply run-length encoding to deck code for URL compression
+  const encodeRunLength = (cardIds) => {
+    if (cardIds.length === 0) return '';
+    
+    const encoded = [];
+    let currentCard = null;
+    let count = 0;
+    
+    for (const cardId of cardIds) {
+      // Encode card ID with set code replacement
+      const encodedCard = encodeCardIdWithSetCode(cardId);
+      
+      if (encodedCard === currentCard) {
+        count++;
+      } else {
+        if (currentCard !== null) {
+          // Output previous card with count if > 1
+          if (count > 1) {
+            encoded.push(`${currentCard}x${count}`);
+          } else {
+            encoded.push(currentCard);
+          }
+        }
+        currentCard = encodedCard;
+        count = 1;
+      }
+    }
+    
+    // Output last card
+    if (currentCard !== null) {
+      if (count > 1) {
+        encoded.push(`${currentCard}x${count}`);
+      } else {
+        encoded.push(currentCard);
+      }
+    }
+    
+    return encoded.join('-');
+  };
+  
+  // Decode run-length encoded deck code
+  const decodeRunLength = (encodedString) => {
+    if (!encodedString) return [];
+    
+    const decoded = [];
+    // Support dash, comma, and space separators for backward compatibility
+    const parts = encodedString.trim().split(/[-,\s]+/);
+    
+    for (const part of parts) {
+      // Check for run-length encoding (e.g., "0004x3")
+      const runLengthMatch = part.match(/^(.+)x(\d+)$/);
+      if (runLengthMatch) {
+        const encodedCardId = runLengthMatch[1];
+        const count = parseInt(runLengthMatch[2], 10);
+        const cardId = decodeCardIdWithSetCode(encodedCardId);
+        for (let i = 0; i < count; i++) {
+          decoded.push(cardId);
+        }
+      } else {
+        const cardId = decodeCardIdWithSetCode(part);
+        decoded.push(cardId);
+      }
+    }
+    
+    return decoded;
+  };
+  
   // Handle export deck
   const handleExportDeck = () => {
     const deckCodeParts = [];
@@ -3012,9 +3236,13 @@ function App() {
     deckCodeParts.push(...sideDeckCards);
     
     const deckCode = deckCodeParts.join(' ');
+    // Create run-length encoded version for URL
+    const runLengthCode = encodeRunLength(deckCodeParts);
+    
     setExportModal({
       isOpen: true,
-      deckCode
+      deckCode,
+      runLengthCode // Store run-length encoded version for URL
     });
   };
   
@@ -3022,7 +3250,7 @@ function App() {
   const handleCopyDeckCode = async () => {
     const deckCode = exportModal.deckCode;
     // Close export modal first
-    setExportModal({ isOpen: false, deckCode: '' });
+    setExportModal({ isOpen: false, deckCode: '', runLengthCode: '' });
     
     try {
       await navigator.clipboard.writeText(deckCode);
@@ -3030,6 +3258,27 @@ function App() {
     } catch (error) {
       console.error('Error copying to clipboard:', error);
       await showNotification('Copy Failed', 'Failed to copy deck code to clipboard.');
+    }
+  };
+  
+  // Handle copy deck URL
+  const handleCopyDeckUrl = async () => {
+    // Use run-length encoded code for URL to make it shorter
+    const urlCode = exportModal.runLengthCode || exportModal.deckCode;
+    // Close export modal first
+    setExportModal({ isOpen: false, deckCode: '', runLengthCode: '' });
+    
+    try {
+      // URL encode the compact deck code (no base64, keeps length roughly the same)
+      // Our format only uses numbers, commas, and 'x' which are all URL-safe
+      const encodedDeckCode = encodeURIComponent(urlCode);
+      // Create the URL: base URL + /deck/<encoded>
+      const deckUrl = `${window.location.origin}/deck/${encodedDeckCode}`;
+      await navigator.clipboard.writeText(deckUrl);
+      await showNotification('Copied', 'Deck URL copied to clipboard!');
+    } catch (error) {
+      console.error('Error copying URL to clipboard:', error);
+      await showNotification('Copy Failed', 'Failed to copy deck URL to clipboard.');
     }
   };
   
@@ -3053,252 +3302,329 @@ function App() {
     }
   };
   
+  // Parse deck code string and load into editor (reusable function)
+  const parseAndLoadDeckCode = (deckCodeString, showNotifications = true) => {
+    // Parse the deck string - support both formats:
+    // Regular format: "OGN-265-1 OGN-246-2 OGN-103-1 ..." (space-separated)
+    // Compressed format: "0004x3-20202-0172-..." (dash-separated, no dashes in card codes, no -1 for normal variants)
+    // First decode run-length encoding and set codes if present
+    const cardIds = decodeRunLength(deckCodeString);
+    
+    const parsedCards = [];
+    for (const cardStr of cardIds) {
+      // Parse format: OGN-265-1 -> { baseId: "OGN-265", variantIndex: 1 }
+      // or OGN-265 -> { baseId: "OGN-265", variantIndex: 0 }
+      const { baseId, variantIndex } = parseCardId(cardStr);
+      if (baseId) {
+        // Log when a variant is detected (variantIndex > 0 means it's not the base card)
+        if (variantIndex > 0) {
+          const card = getCardDetails(baseId);
+          const cardName = card?.name || baseId;
+          const variantNumber = card?.variants?.[variantIndex] || `variant ${variantIndex}`;
+          console.log(`[Import] Variant detected: ${cardStr} -> ${cardName} (${baseId}) using variant index ${variantIndex} (variants[${variantIndex}] = ${variantNumber})`);
+        }
+        // Format with variant index (0 becomes no suffix, 1+ becomes -1, -2, etc.)
+        const formattedId = formatCardId(baseId, variantIndex);
+        parsedCards.push(formattedId);
+      }
+    }
+    
+    // Check if any valid cards were found
+    const foundValidCards = parsedCards.some(cardId => {
+      const { baseId } = parseCardId(cardId);
+      return getCardDetails(baseId) !== undefined;
+    });
+    
+    if (parsedCards.length === 0 || !foundValidCards) {
+      return { success: false, error: 'Invalid deck format' };
+    }
+    
+    // Clear current deck only if we have valid cards to import
+    setChosenChampion(null);
+    setMainDeck([]);
+    setSideDeck(compactSideDeck([]));
+    setBattlefields([null, null, null]);
+    setRuneACount(6);
+    setRuneBCount(6);
+    setRuneAVariantIndex(0);
+    setRuneBVariantIndex(0);
+    setLegendCard(null);
+    
+    // Parse deck structure:
+    // 1. First card = legend
+    // 2. Next N cards = main deck (up to 40, until we hit a battlefield or rune)
+    // 3. Then 0-3 battlefields
+    // 4. Then 0-12 runes
+    // 5. Remaining cards = side deck (up to 8)
+    
+    let legendCard = null;
+    const mainDeckCards = [];
+    const battlefieldCards = [];
+    const runeCards = [];
+    const sideDeckCards = [];
+    
+    let i = 0;
+    
+    // 1. First card is the legend
+    if (i < parsedCards.length) {
+      const cardId = parsedCards[i];
+      const { baseId } = parseCardId(cardId);
+      const firstCard = getCardDetails(baseId);
+      if (firstCard?.type === 'Legend') {
+        legendCard = cardId; // Preserve variant index
+        i++;
+      }
+    }
+    
+    // 2. Main deck - add cards until we hit a battlefield or rune
+    while (i < parsedCards.length) {
+      const cardId = parsedCards[i];
+      const { baseId } = parseCardId(cardId);
+      const card = getCardDetails(baseId);
+      if (!card) {
+        i++;
+        continue;
+      }
+      
+      if (card.type === 'Battlefield' || card.type === 'Rune') {
+        break;
+      }
+      
+      mainDeckCards.push(cardId); // Preserve variant index
+      i++;
+    }
+    
+    // 3. Battlefields (0-3)
+    while (i < parsedCards.length && battlefieldCards.length < 3) {
+      const cardId = parsedCards[i];
+      const { baseId } = parseCardId(cardId);
+      const card = getCardDetails(baseId);
+      if (!card) {
+        i++;
+        continue;
+      }
+      
+      if (card.type === 'Battlefield') {
+        battlefieldCards.push(cardId); // Preserve variant index
+        i++;
+      } else if (card.type === 'Rune') {
+        break;
+      } else {
+        break;
+      }
+    }
+    
+    // 4. Runes (0-12)
+    while (i < parsedCards.length && runeCards.length < 12) {
+      const cardId = parsedCards[i];
+      const { baseId } = parseCardId(cardId);
+      const card = getCardDetails(baseId);
+      if (!card) {
+        i++;
+        continue;
+      }
+      
+      if (card.type === 'Rune') {
+        runeCards.push(cardId); // Preserve variant index
+        i++;
+      } else {
+        break;
+      }
+    }
+    
+    // 5. Remaining cards go to side deck (up to 8)
+    while (i < parsedCards.length && sideDeckCards.length < 8) {
+      const cardId = parsedCards[i];
+      const { baseId } = parseCardId(cardId);
+      const card = getCardDetails(baseId);
+      if (!card) {
+        i++;
+        continue;
+      }
+      sideDeckCards.push(cardId); // Preserve variant index
+      i++;
+    }
+    
+    // Update state
+    if (legendCard) {
+      setLegendCard(legendCard);
+    }
+    
+    // Handle champion - try to find the first champion in main deck
+    const firstChampion = mainDeckCards.find(id => {
+      const { baseId } = parseCardId(id);
+      const card = getCardDetails(baseId);
+      return card?.super === "Champion";
+    });
+    
+    if (firstChampion) {
+      setChosenChampion(firstChampion); // Preserve variant index
+      // Remove champion from main deck
+      const championIndex = mainDeckCards.indexOf(firstChampion);
+      const newMainDeck = mainDeckCards.filter((_, idx) => idx !== championIndex);
+      setMainDeck(newMainDeck.slice(0, 39));
+    } else {
+      setMainDeck(mainDeckCards.slice(0, 39)); // Main deck is 39 cards (40 total with champion)
+    }
+    
+    setBattlefields([...battlefieldCards, null, null, null].slice(0, 3));
+    
+    // Parse runes to determine counts for A and B, and extract variant indices
+    if (legendCard) {
+      const { baseId: legendBaseId } = parseCardId(legendCard);
+      const legendData = getCardDetails(legendBaseId);
+      const colors = legendData?.colors || [];
+      
+      // Separate runes by color and extract variant indices
+      const runeACards = runeCards.filter(id => {
+        const { baseId } = parseCardId(id);
+        const card = getCardDetails(baseId);
+        return card?.colors?.[0] === colors[0];
+      });
+      
+      const runeBCards = runeCards.filter(id => {
+        const { baseId } = parseCardId(id);
+        const card = getCardDetails(baseId);
+        return card?.colors?.[0] === colors[1];
+      });
+      
+      const newRuneACount = runeACards.length;
+      const newRuneBCount = runeBCards.length;
+      
+      // Extract variant indices from first rune of each color
+      if (runeACards.length > 0) {
+        const firstRuneA = runeACards[0];
+        const { variantIndex } = parseCardId(firstRuneA);
+        const runeABaseId = getRuneCardId(colors[0]);
+        if (runeABaseId) {
+          const runeACard = getCardDetails(runeABaseId);
+          const maxVariantIndex = runeACard?.variants ? runeACard.variants.length - 1 : 0;
+          setRuneAVariantIndex(Math.min(Math.max(0, variantIndex), maxVariantIndex));
+        } else {
+          setRuneAVariantIndex(0);
+        }
+      } else {
+        setRuneAVariantIndex(0);
+      }
+      
+      if (runeBCards.length > 0) {
+        const firstRuneB = runeBCards[0];
+        const { variantIndex } = parseCardId(firstRuneB);
+        const runeBBaseId = getRuneCardId(colors[1]);
+        if (runeBBaseId) {
+          const runeBCard = getCardDetails(runeBBaseId);
+          const maxVariantIndex = runeBCard?.variants ? runeBCard.variants.length - 1 : 0;
+          setRuneBVariantIndex(Math.min(Math.max(0, variantIndex), maxVariantIndex));
+        } else {
+          setRuneBVariantIndex(0);
+        }
+      } else {
+        setRuneBVariantIndex(0);
+      }
+      
+      // If total doesn't equal 12, normalize to 6-6
+      if (newRuneACount + newRuneBCount !== 12) {
+        setRuneACount(6);
+        setRuneBCount(6);
+      } else {
+        setRuneACount(Math.min(newRuneACount, 12));
+        setRuneBCount(Math.min(newRuneBCount, 12));
+      }
+    } else {
+      // No legend card, ensure runes are 6-6 and reset variant indices
+      setRuneACount(6);
+      setRuneBCount(6);
+      setRuneAVariantIndex(0);
+      setRuneBVariantIndex(0);
+    }
+    
+    // Side deck - up to 8 cards
+    setSideDeck(compactSideDeck(sideDeckCards.slice(0, 8)));
+    
+    const result = {
+      success: true,
+      legendCard,
+      mainDeckCount: mainDeckCards.length,
+      battlefieldCount: battlefieldCards.length,
+      runeCount: runeCards.length,
+      sideDeckCount: sideDeckCards.length
+    };
+    
+    // Console log the details
+    console.log('[Deck Load] Deck loaded from code:', {
+      legend: legendCard ? 'Yes' : 'No',
+      main: mainDeckCards.length,
+      battlefields: battlefieldCards.length,
+      runes: runeCards.length,
+      side: sideDeckCards.length
+    });
+    
+    return result;
+  };
+  
+  // Load deck from URL
+  const loadDeckFromUrl = (encodedCode) => {
+    try {
+      // Decode URL-encoded deck code
+      const deckCode = decodeURIComponent(encodedCode);
+      
+      // Parse and load the deck (no notifications)
+      const result = parseAndLoadDeckCode(deckCode, false);
+      
+      if (!result.success) {
+        console.error('[Deck Load] Failed to load deck from URL:', result.error);
+        return;
+      }
+      
+      // Set current deck to null (no deck selected)
+      setCurrentDeckId(null);
+      
+      // Set selected card to the legend (just like normal deck loading)
+      setSelectedCard(result.legendCard || null);
+      
+      // Mark that we've loaded from URL to prevent re-initialization
+      hasLoadedFromUrlRef.current = true;
+      
+    } catch (error) {
+      console.error('[Deck Load] Error loading deck from URL:', error);
+    }
+  };
+  
+  // Watch for URL changes to load deck from /deck/<encoded> (for navigation after initial load)
+  useEffect(() => {
+    // Also listen for popstate events (back/forward navigation)
+    // Note: replaceState does NOT trigger popstate, only pushState and actual browser navigation do
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      const deckMatch = path.match(/^\/deck\/(.+)$/);
+      
+      if (deckMatch) {
+        const encodedCode = deckMatch[1];
+        // Use the global loadDeckFromUrl function
+        loadDeckFromUrl(encodedCode);
+      }
+    };
+    
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [loadDeckFromUrl]);
+  
   // Handle import deck from clipboard
   const handleImportDeck = async () => {
     try {
       // Read from clipboard
       const clipboardText = await navigator.clipboard.readText();
       
-      // Parse the clipboard string
-      // Format: "OGN-265-1 OGN-246-2 OGN-103-1 ..."
-      // Parse and preserve variant indices
-      const cardIds = clipboardText.trim().split(/\s+/);
+      const result = parseAndLoadDeckCode(clipboardText, true);
       
-      const parsedCards = [];
-      for (const cardStr of cardIds) {
-        // Parse format: OGN-265-1 -> { baseId: "OGN-265", variantIndex: 1 }
-        // or OGN-265 -> { baseId: "OGN-265", variantIndex: 0 }
-        const { baseId, variantIndex } = parseCardId(cardStr);
-        if (baseId) {
-          // Log when a variant is detected (variantIndex > 0 means it's not the base card)
-          if (variantIndex > 0) {
-            const card = getCardDetails(baseId);
-            const cardName = card?.name || baseId;
-            const variantNumber = card?.variants?.[variantIndex] || `variant ${variantIndex}`;
-            console.log(`[Import] Variant detected: ${cardStr} -> ${cardName} (${baseId}) using variant index ${variantIndex} (variants[${variantIndex}] = ${variantNumber})`);
-          }
-          // Format with variant index (0 becomes no suffix, 1+ becomes -1, -2, etc.)
-          const formattedId = formatCardId(baseId, variantIndex);
-          parsedCards.push(formattedId);
-        }
-      }
-      
-      // Check if any valid cards were found
-      const foundValidCards = parsedCards.some(cardId => {
-        const { baseId } = parseCardId(cardId);
-        return getCardDetails(baseId) !== undefined;
-      });
-      
-      if (parsedCards.length === 0 || !foundValidCards) {
+      if (!result.success) {
         await showNotification('Invalid Deck', 'Invalid deck in clipboard');
         return;
       }
       
-      // Clear current deck only if we have valid cards to import
-      setChosenChampion(null);
-      setMainDeck([]);
-      setSideDeck(compactSideDeck([]));
-      setBattlefields([null, null, null]);
-      setRuneACount(6);
-      setRuneBCount(6);
-      setRuneAVariantIndex(0);
-      setRuneBVariantIndex(0);
-      setLegendCard(null);
-      
-      // Parse deck structure:
-      // 1. First card = legend
-      // 2. Next N cards = main deck (up to 40, until we hit a battlefield or rune)
-      // 3. Then 0-3 battlefields
-      // 4. Then 0-12 runes
-      // 5. Remaining cards = side deck (up to 8)
-      
-      let legendCard = null;
-      const mainDeckCards = [];
-      const battlefieldCards = [];
-      const runeCards = [];
-      const sideDeckCards = [];
-      
-      let i = 0;
-      
-      // 1. First card is the legend
-      if (i < parsedCards.length) {
-        const cardId = parsedCards[i];
-        const { baseId } = parseCardId(cardId);
-        const firstCard = getCardDetails(baseId);
-        if (firstCard?.type === 'Legend') {
-          legendCard = cardId; // Preserve variant index
-          i++;
-        }
-      }
-      
-      // 2. Main deck - add cards until we hit a battlefield or rune
-      while (i < parsedCards.length) {
-        const cardId = parsedCards[i];
-        const { baseId } = parseCardId(cardId);
-        const card = getCardDetails(baseId);
-        if (!card) {
-          i++;
-          continue;
-        }
-        
-        if (card.type === 'Battlefield' || card.type === 'Rune') {
-          break;
-        }
-        
-        mainDeckCards.push(cardId); // Preserve variant index
-        i++;
-      }
-      
-      // 3. Battlefields (0-3)
-      while (i < parsedCards.length && battlefieldCards.length < 3) {
-        const cardId = parsedCards[i];
-        const { baseId } = parseCardId(cardId);
-        const card = getCardDetails(baseId);
-        if (!card) {
-          i++;
-          continue;
-        }
-        
-        if (card.type === 'Battlefield') {
-          battlefieldCards.push(cardId); // Preserve variant index
-          i++;
-        } else if (card.type === 'Rune') {
-          break;
-        } else {
-          break;
-        }
-      }
-      
-      // 4. Runes (0-12)
-      while (i < parsedCards.length && runeCards.length < 12) {
-        const cardId = parsedCards[i];
-        const { baseId } = parseCardId(cardId);
-        const card = getCardDetails(baseId);
-        if (!card) {
-          i++;
-          continue;
-        }
-        
-        if (card.type === 'Rune') {
-          runeCards.push(cardId); // Preserve variant index
-          i++;
-        } else {
-          break;
-        }
-      }
-      
-      // 5. Remaining cards go to side deck (up to 8)
-      while (i < parsedCards.length && sideDeckCards.length < 8) {
-        const cardId = parsedCards[i];
-        const { baseId } = parseCardId(cardId);
-        const card = getCardDetails(baseId);
-        if (!card) {
-          i++;
-          continue;
-        }
-        sideDeckCards.push(cardId); // Preserve variant index
-        i++;
-      }
-      
-      // Update state
-      if (legendCard) {
-        setLegendCard(legendCard);
-      }
-      
-      // Handle champion - try to find the first champion in main deck
-      const firstChampion = mainDeckCards.find(id => {
-        const { baseId } = parseCardId(id);
-        const card = getCardDetails(baseId);
-        return card?.super === "Champion";
-      });
-      
-      if (firstChampion) {
-        setChosenChampion(firstChampion); // Preserve variant index
-        // Remove champion from main deck
-        const championIndex = mainDeckCards.indexOf(firstChampion);
-        const newMainDeck = mainDeckCards.filter((_, idx) => idx !== championIndex);
-        setMainDeck(newMainDeck.slice(0, 39));
-      } else {
-        setMainDeck(mainDeckCards.slice(0, 39)); // Main deck is 39 cards (40 total with champion)
-      }
-      
-      setBattlefields([...battlefieldCards, null, null, null].slice(0, 3));
-      
-      // Parse runes to determine counts for A and B, and extract variant indices
-      if (legendCard) {
-        const { baseId: legendBaseId } = parseCardId(legendCard);
-        const legendData = getCardDetails(legendBaseId);
-        const colors = legendData?.colors || [];
-        
-        // Separate runes by color and extract variant indices
-        const runeACards = runeCards.filter(id => {
-          const { baseId } = parseCardId(id);
-          const card = getCardDetails(baseId);
-          return card?.colors?.[0] === colors[0];
-        });
-        
-        const runeBCards = runeCards.filter(id => {
-          const { baseId } = parseCardId(id);
-          const card = getCardDetails(baseId);
-          return card?.colors?.[0] === colors[1];
-        });
-        
-        const newRuneACount = runeACards.length;
-        const newRuneBCount = runeBCards.length;
-        
-        // Extract variant indices from first rune of each color
-        if (runeACards.length > 0) {
-          const firstRuneA = runeACards[0];
-          const { variantIndex } = parseCardId(firstRuneA);
-          const runeABaseId = getRuneCardId(colors[0]);
-          if (runeABaseId) {
-            const runeACard = getCardDetails(runeABaseId);
-            const maxVariantIndex = runeACard?.variants ? runeACard.variants.length - 1 : 0;
-            setRuneAVariantIndex(Math.min(Math.max(0, variantIndex), maxVariantIndex));
-          } else {
-            setRuneAVariantIndex(0);
-          }
-        } else {
-          setRuneAVariantIndex(0);
-        }
-        
-        if (runeBCards.length > 0) {
-          const firstRuneB = runeBCards[0];
-          const { variantIndex } = parseCardId(firstRuneB);
-          const runeBBaseId = getRuneCardId(colors[1]);
-          if (runeBBaseId) {
-            const runeBCard = getCardDetails(runeBBaseId);
-            const maxVariantIndex = runeBCard?.variants ? runeBCard.variants.length - 1 : 0;
-            setRuneBVariantIndex(Math.min(Math.max(0, variantIndex), maxVariantIndex));
-          } else {
-            setRuneBVariantIndex(0);
-          }
-        } else {
-          setRuneBVariantIndex(0);
-        }
-        
-        // If total doesn't equal 12, normalize to 6-6
-        if (newRuneACount + newRuneBCount !== 12) {
-          setRuneACount(6);
-          setRuneBCount(6);
-        } else {
-          setRuneACount(Math.min(newRuneACount, 12));
-          setRuneBCount(Math.min(newRuneBCount, 12));
-        }
-      } else {
-        // No legend card, ensure runes are 6-6 and reset variant indices
-        setRuneACount(6);
-        setRuneBCount(6);
-        setRuneAVariantIndex(0);
-        setRuneBVariantIndex(0);
-      }
-      
-      // Side deck - up to 8 cards
-      setSideDeck(compactSideDeck(sideDeckCards.slice(0, 8)));
-      
       await showNotification(
         'Deck Imported',
-        `Deck imported successfully!\nLegend: ${legendCard ? 'Yes' : 'No'}\nMain: ${mainDeckCards.length}\nBattlefields: ${battlefieldCards.length}\nRunes: ${runeCards.length}\nSide: ${sideDeckCards.length}`
+        `Deck imported successfully!\nLegend: ${result.legendCard ? 'Yes' : 'No'}\nMain: ${result.mainDeckCount}\nBattlefields: ${result.battlefieldCount}\nRunes: ${result.runeCount}\nSide: ${result.sideDeckCount}`
       );
       
     } catch (error) {
@@ -3376,7 +3702,8 @@ function App() {
                 {/* Row 1 */}
                 <button 
                   onClick={handleImportDeck}
-                  className="py-1 px-2 rounded text-[11px] font-medium bg-blue-600 text-white shadow-md hover:bg-blue-700 active:bg-blue-800 transition-colors">
+                  disabled={!currentDeckId}
+                  className={`py-1 px-2 rounded text-[11px] font-medium bg-blue-600 text-white shadow-md hover:bg-blue-700 active:bg-blue-800 transition-colors ${!currentDeckId ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   Import Deck
                 </button>
                 <button 
@@ -3388,26 +3715,32 @@ function App() {
                 {/* Row 2 */}
                 <button 
                   onClick={handleDeleteDeck}
-                  disabled={isSaving}
-                  className={`py-1 px-2 rounded text-[11px] font-medium bg-red-600 text-white shadow-md hover:bg-red-700 active:bg-red-800 transition-colors ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                  disabled={isSaving || !currentDeckId}
+                  className={`py-1 px-2 rounded text-[11px] font-medium bg-red-600 text-white shadow-md hover:bg-red-700 active:bg-red-800 transition-colors ${(isSaving || !currentDeckId) ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   Delete Deck
                 </button>
                 <button 
                   onClick={handleClearDeck}
-                  className="py-1 px-2 rounded text-[11px] font-medium bg-red-600 text-white shadow-md hover:bg-red-700 active:bg-red-800 transition-colors">
+                  disabled={!currentDeckId}
+                  className={`py-1 px-2 rounded text-[11px] font-medium bg-red-600 text-white shadow-md hover:bg-red-700 active:bg-red-800 transition-colors ${!currentDeckId ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   Clear Deck
                 </button>
 
                 {/* Deck Dropdown - spans 2 columns */}
                 <select
                   value={currentDeckId || ''}
-                  onChange={(e) => handleSelectDeck(e.target.value)}
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      handleSelectDeck(e.target.value);
+                    }
+                  }}
                   className={`col-span-2 py-1 px-2 rounded text-[11px] font-medium border shadow-sm cursor-pointer transition-colors ${
                     isDarkMode 
                       ? 'bg-gray-600 border-gray-500 text-gray-100 hover:bg-gray-500' 
                       : 'bg-gray-100 border-gray-300 text-gray-800 hover:bg-gray-200'
                   }`}
                 >
+                  <option value="" disabled hidden style={{ display: 'none' }}></option>
                   {decks.map(deck => (
                     <option key={deck.id} value={deck.id}>
                       {deck.name}
@@ -3428,16 +3761,21 @@ function App() {
                       openNameModal('rename', currentDeck.name);
                     }
                   }}
-                  className="py-1 px-2 rounded text-[11px] font-medium bg-blue-600 text-white shadow-md hover:bg-blue-700 active:bg-blue-800 transition-colors">
+                  disabled={!currentDeckId}
+                  className={`py-1 px-2 rounded text-[11px] font-medium bg-blue-600 text-white shadow-md hover:bg-blue-700 active:bg-blue-800 transition-colors ${!currentDeckId ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   Rename Deck
                 </button>
 
                 {/* Row 4 */}
                 <button 
                   onClick={() => {
-                    const currentDeck = decks.find(d => d.id === currentDeckId);
-                    if (currentDeck) {
-                      openNameModal('saveAs', `Copy of ${currentDeck.name}`);
+                    if (currentDeckId) {
+                      const currentDeck = decks.find(d => d.id === currentDeckId);
+                      if (currentDeck) {
+                        openNameModal('saveAs', `Copy of ${currentDeck.name}`);
+                      }
+                    } else {
+                      openNameModal('saveAs', 'New Deck');
                     }
                   }}
                   className="py-1 px-2 rounded text-[11px] font-medium bg-green-600 text-white shadow-md hover:bg-green-700 active:bg-green-800 transition-colors">
@@ -3445,8 +3783,8 @@ function App() {
                 </button>
                 <button 
                   onClick={handleSaveDeck}
-                  disabled={isSaving}
-                  className={`py-1 px-2 rounded text-[11px] font-medium bg-green-600 text-white shadow-md hover:bg-green-700 active:bg-green-800 transition-colors ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                  disabled={isSaving || !currentDeckId}
+                  className={`py-1 px-2 rounded text-[11px] font-medium bg-green-600 text-white shadow-md hover:bg-green-700 active:bg-green-800 transition-colors ${(isSaving || !currentDeckId) ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   Save Deck
                 </button>
 
@@ -4108,7 +4446,7 @@ function App() {
           </div>
           
           {/* Results Box */}
-          <div className={`flex-1 border-2 rounded px-3 py-3 flex flex-col min-h-0 ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-400'}`}>
+          <div className={`flex-1 border-2 rounded px-5 py-3 flex flex-col min-h-0 ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-400'}`}>
             {/* Pagination */}
             <div className="flex items-center justify-center gap-2 mb-2">
               <button
@@ -4332,7 +4670,7 @@ function App() {
           className="fixed inset-0 z-[9999] flex items-center justify-center"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
-              setExportModal({ isOpen: false, deckCode: '' });
+              setExportModal({ isOpen: false, deckCode: '', runLengthCode: '' });
             }
           }}
         >
@@ -4365,7 +4703,7 @@ function App() {
             {/* Footer */}
             <div className={`px-6 py-4 border-t flex gap-3 justify-center ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`}>
               <button
-                onClick={() => setExportModal({ isOpen: false, deckCode: '' })}
+                onClick={() => setExportModal({ isOpen: false, deckCode: '', runLengthCode: '' })}
                 className={`px-4 py-2 rounded font-medium transition-colors ${
                   isDarkMode 
                     ? 'bg-gray-600 text-gray-200 hover:bg-gray-500' 
@@ -4379,6 +4717,12 @@ function App() {
                 className="px-4 py-2 rounded font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
               >
                 Copy
+              </button>
+              <button
+                onClick={handleCopyDeckUrl}
+                className="px-4 py-2 rounded font-medium bg-green-600 text-white hover:bg-green-700 transition-colors"
+              >
+                Copy URL
               </button>
             </div>
           </div>
