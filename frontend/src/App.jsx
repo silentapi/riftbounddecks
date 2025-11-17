@@ -1,21 +1,27 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import LayoutContainer from './components/LayoutContainer';
 import cardsData from './data/cards.json';
 import { domToPng } from 'modern-screenshot';
 import {
-  loadDecks,
-  saveDecks,
-  ensureAtLeastOneDeck,
   findDeckByNameCI,
   createDeck,
-  getLastDeckId,
-  setLastDeckId,
   getTheme,
-  setTheme,
+  setTheme as setThemeLocal,
   getScreenshotMode,
-  setScreenshotMode,
-  validateDeckName
+  setScreenshotMode as setScreenshotModeLocal,
+  validateDeckName,
+  getEditingDeckUUID,
+  setEditingDeckUUID,
+  loadDecks as loadDecksLocal,
+  saveDecks as saveDecksLocal,
+  ensureAtLeastOneDeck,
+  getDefaultDeckId,
+  setDefaultDeckId
 } from './utils/deckStorage';
+import { validateDeck as validateDeckRules } from './utils/deckValidation';
+import { getDecks, ensureOneDeck, updateDeck, createDeck as createDeckApi, getDeck, deleteDeck as deleteDeckApi } from './utils/decksApi';
+import { getPreferences, updatePreferences } from './utils/preferencesApi';
+import { migrateLegacyDecks } from './utils/legacyMigration';
 
 function App() {
   // Helper function to parse card ID with variant index
@@ -188,6 +194,9 @@ function App() {
   const [decks, setDecks] = useState([]);
   const [currentDeckId, setCurrentDeckId] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [defaultDeckId, setDefaultDeckIdState] = useState(null);
+  const [loadingDecks, setLoadingDecks] = useState(true);
+  const hasMigratedRef = useRef(false);
   
   // Name input modal state
   const [nameModal, setNameModal] = useState({
@@ -383,170 +392,15 @@ function App() {
   
   // Validate deck based on rules
   const validateDeck = () => {
-    const messages = [];
-    let isValid = true;
-    
-    // Rule 1: Legend is 1/1
-    if (!legendCard) {
-      messages.push("Legend is missing (must be 1/1)");
-      isValid = false;
-    } else {
-      messages.push("✓ Legend is 1/1");
-    }
-    
-    // Rule 2: Battlefields are 3/3
-    if (battlefields.length !== 3) {
-      messages.push(`Battlefields are ${battlefields.length}/3 (must be exactly 3)`);
-      isValid = false;
-    } else {
-      messages.push("✓ Battlefields are 3/3");
-    }
-    
-    // Rule 3: Main deck is 40/40
-    const mainDeckCount = mainDeck.filter(c => c).length + (chosenChampion ? 1 : 0);
-    if (mainDeckCount !== 40) {
-      messages.push(`Main deck is ${mainDeckCount}/40 (must be exactly 40)`);
-      isValid = false;
-    } else {
-      messages.push("✓ Main deck is 40/40");
-    }
-    
-    // Rule 4: Main and side deck cards' colors must be subset of legend's colors
-    const legendData = getCardDetails(legendCard);
-    const legendColors = legendData?.colors || [];
-    
-    if (legendCard && legendColors.length > 0) {
-      const allDeckCards = [...mainDeck.filter(c => c), ...sideDeck.filter(c => c)];
-      if (chosenChampion) {
-        allDeckCards.push(chosenChampion);
-      }
-      
-      let invalidColorCards = [];
-      for (const cardId of allDeckCards) {
-        const cardData = getCardDetails(cardId);
-        if (cardData && cardData.colors && cardData.colors.length > 0) {
-          // Check if any color in the card is not in legend's colors
-          const hasInvalidColor = cardData.colors.some(color => !legendColors.includes(color));
-          if (hasInvalidColor) {
-            invalidColorCards.push(cardData.name || cardId);
-          }
-        }
-      }
-      
-      if (invalidColorCards.length > 0) {
-        messages.push(`Cards with invalid colors: ${invalidColorCards.slice(0, 5).join(", ")}${invalidColorCards.length > 5 ? "..." : ""}`);
-        isValid = false;
-      } else {
-        messages.push("✓ All cards' colors are valid (subset of legend's colors)");
-      }
-    } else if (!legendCard) {
-      messages.push("Cannot validate colors: Legend is missing");
-      isValid = false;
-    } else {
-      messages.push("✓ Legend has no colors to validate");
-    }
-    
-    // Rule 5: Chosen champion and legend share a Tag
-    if (chosenChampion && legendCard) {
-      const championData = getCardDetails(chosenChampion);
-      const championTags = championData?.tags || [];
-      const legendTags = legendData?.tags || [];
-      
-      const sharedTags = championTags.filter(tag => legendTags.includes(tag));
-      
-      if (sharedTags.length === 0) {
-        messages.push(`Champion and Legend do not share any tags`);
-        isValid = false;
-      } else {
-        messages.push(`✓ Champion and Legend share tag(s): ${sharedTags.join(", ")}`);
-      }
-    } else {
-      if (!chosenChampion) {
-        messages.push("Cannot validate tag sharing: Champion is missing");
-      }
-      if (!legendCard) {
-        messages.push("Cannot validate tag sharing: Legend is missing");
-      }
-      if (!chosenChampion || !legendCard) {
-        isValid = false;
-      }
-    }
-    
-    // Rule 6: No more than 3 copies of any individual card across main and side
-    const cardCounts = {};
-    const allCards = [...mainDeck.filter(c => c), ...sideDeck.filter(c => c)];
-    if (chosenChampion) {
-      allCards.push(chosenChampion);
-    }
-    
-    for (const cardId of allCards) {
-      cardCounts[cardId] = (cardCounts[cardId] || 0) + 1;
-    }
-    
-    const exceedingCards = Object.entries(cardCounts)
-      .filter(([cardId, count]) => count > 3)
-      .map(([cardId]) => {
-        const cardData = getCardDetails(cardId);
-        return cardData?.name || cardId;
-      });
-    
-    if (exceedingCards.length > 0) {
-      messages.push(`Cards exceeding 3 copies: ${exceedingCards.slice(0, 5).join(", ")}${exceedingCards.length > 5 ? "..." : ""}`);
-      isValid = false;
-    } else {
-      messages.push("✓ No card exceeds 3 copies");
-    }
-    
-    // Rule 7: Chosen champion exists
-    if (!chosenChampion) {
-      messages.push("Chosen champion is missing");
-      isValid = false;
-    } else {
-      messages.push("✓ Chosen champion exists");
-    }
-    
-    // Rule 8: Side deck must be exactly 0 or exactly 8 cards
-    const sideDeckCount = sideDeck.filter(c => c).length;
-    if (sideDeckCount !== 0 && sideDeckCount !== 8) {
-      messages.push(`Side deck is ${sideDeckCount}/8 (must be exactly 0 or exactly 8)`);
-      isValid = false;
-    } else {
-      messages.push(`✓ Side deck is ${sideDeckCount}/8`);
-    }
-    
-    // Rule 9: Signature cards must match a tag with the legend
-    if (legendCard) {
-      const legendTags = legendData?.tags || [];
-      const allDeckCardsForSignature = [...mainDeck.filter(c => c), ...sideDeck.filter(c => c)];
-      if (chosenChampion) {
-        allDeckCardsForSignature.push(chosenChampion);
-      }
-      
-      let invalidSignatureCards = [];
-      for (const cardId of allDeckCardsForSignature) {
-        const cardData = getCardDetails(cardId);
-        if (cardData && cardData.super === "Signature") {
-          const cardTags = cardData.tags || [];
-          // Check if at least one tag matches a legend tag
-          const hasMatchingTag = cardTags.some(tag => legendTags.includes(tag));
-          if (!hasMatchingTag) {
-            invalidSignatureCards.push(cardData.name || cardId);
-          }
-        }
-      }
-      
-      if (invalidSignatureCards.length > 0) {
-        messages.push(`Signature cards without matching legend tag: ${invalidSignatureCards.slice(0, 5).join(", ")}${invalidSignatureCards.length > 5 ? "..." : ""}`);
-        isValid = false;
-      } else {
-        messages.push("✓ All Signature cards match legend tags");
-      }
-    } else {
-      // Can't validate signature cards without a legend, but this is already caught by Rule 1
-      // So we'll skip this validation if legend is missing
-    }
-    
-    setDeckValidation({ isValid, messages });
+    const deckCards = {
+      legendCard,
+      battlefields,
+      mainDeck,
+      sideDeck,
+      chosenChampion
+    };
+    const validation = validateDeckRules(deckCards, getCardDetails);
+    setDeckValidation(validation);
   };
   
   // Update validation whenever deck changes
@@ -567,10 +421,19 @@ function App() {
   const [containerScale, setContainerScale] = useState(1);
   
   // Toggle dark mode with persistence
-  const toggleDarkMode = () => {
+  const toggleDarkMode = async () => {
     const newMode = !isDarkMode;
     setIsDarkMode(newMode);
-    setTheme(newMode ? 'dark' : 'light');
+    const themeValue = newMode ? 'dark' : 'light';
+    setThemeLocal(themeValue);
+    
+    // Update preferences on server
+    try {
+      console.log('[DeckBuilder] Updating theme preference:', themeValue);
+      await updatePreferences({ theme: themeValue });
+    } catch (error) {
+      console.error('[DeckBuilder] Error updating theme preference:', error);
+    }
   };
   
   // Convert editor state to CardEntry format
@@ -653,22 +516,128 @@ function App() {
   
   // Ref to track if we've loaded from URL to prevent re-initialization
   const hasLoadedFromUrlRef = useRef(false);
+  // Ref to track if editingDeckUUID was set when we loaded the page
+  const hadEditingDeckUUIDOnLoadRef = useRef(false);
+  
+  // Helper function to check if a string is a valid UUID
+  const isValidUUID = (str) => {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(str);
+  };
   
   // Bootstrap: Initialize decks and load last selected deck
   useEffect(() => {
+    const initializeData = async () => {
     // Skip if we've already loaded from URL (prevents re-initialization)
     if (hasLoadedFromUrlRef.current) {
       return;
     }
     
-    // Define loadDeckFromUrl locally to avoid hoisting issues
-    const loadDeckFromUrlLocal = (encodedCode) => {
       try {
-        // Decode URL-encoded deck code
-        const deckCode = decodeURIComponent(encodedCode);
+        console.log('[DeckBuilder] Initializing decks and preferences from API...');
         
-        // Parse and load the deck (no notifications)
-        const result = parseAndLoadDeckCode(deckCode, false);
+        // Step 1: Migrate legacy decks if needed (only once)
+        if (!hasMigratedRef.current) {
+          console.log('[DeckBuilder] Checking for legacy decks to migrate...');
+          hasMigratedRef.current = true;
+          await migrateLegacyDecks();
+        }
+        
+        // Step 2: Load preferences from API
+        console.log('[DeckBuilder] Loading preferences from API...');
+        const preferences = await getPreferences();
+        console.log('[DeckBuilder] Loaded preferences:', preferences);
+        
+        // Apply theme from preferences
+        const theme = preferences?.theme || 'dark';
+        setIsDarkMode(theme === 'dark');
+        setThemeLocal(theme);
+        if (theme === 'dark') {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+        
+        // Apply screenshot mode from preferences
+        const mode = preferences?.screenshotMode || 'full';
+        setScreenshotModeState(mode);
+        setScreenshotModeLocal(mode);
+        
+        // Step 3: Ensure at least one deck exists
+        console.log('[DeckBuilder] Ensuring at least one deck exists...');
+        await ensureOneDeck();
+        
+        // Step 4: Load decks from API
+        console.log('[DeckBuilder] Loading decks from API...');
+        const initialDecks = await getDecks();
+        console.log('[DeckBuilder] Loaded decks:', initialDecks.map(d => ({ id: d.id, name: d.name })));
+        setDecks(initialDecks);
+        setLoadingDecks(false);
+        
+        // Step 5: Check if we're loading a deck from URL
+        const path = window.location.pathname;
+        const deckMatch = path.match(/^\/deck\/(.+)$/);
+        
+        if (deckMatch) {
+          // If it's a deck URL, load the deck from URL and skip normal initialization
+          const encodedCode = deckMatch[1];
+          console.log('[DeckBuilder] Loading deck from URL:', encodedCode);
+          
+          // Mark that we're loading from URL FIRST to prevent any re-initialization
+          hasLoadedFromUrlRef.current = true;
+          
+          // Decode URL-encoded code
+          const decodedCode = decodeURIComponent(encodedCode);
+        
+        // Check if the code is a valid UUID
+        if (isValidUUID(decodedCode)) {
+          console.log('[DeckBuilder] Detected UUID in URL:', decodedCode);
+          
+          // Check if editingDeckUUID was set (from homepage Edit button)
+          const editingDeckUUID = getEditingDeckUUID();
+          console.log('[DeckBuilder] editingDeckUUID on load:', editingDeckUUID);
+          
+          if (editingDeckUUID) {
+            // Remember that it was set so we can restore it on Exit
+            hadEditingDeckUUIDOnLoadRef.current = true;
+            console.log('[DeckBuilder] Remembering that editingDeckUUID was set on load');
+            // Clear it now
+            setEditingDeckUUID(null);
+            console.log('[DeckBuilder] Cleared editingDeckUUID');
+          }
+          
+          // Check if this UUID exists in the user's decks
+          const deckById = initialDecks.find(d => d.id === decodedCode);
+          
+          if (deckById) {
+            console.log('[DeckBuilder] Found deck by UUID:', deckById.name, deckById.id);
+            // It's a valid UUID that exists in decks - load it normally
+            setCurrentDeckId(deckById.id);
+            loadDeckCards(deckById.cards);
+            // Set selected card to the legend of the loaded deck (or null if empty)
+            setSelectedCard(deckById.cards.legendCard || null);
+              return; // Exit early
+          } else {
+              console.log('[DeckBuilder] UUID not found in decks, trying to load from API...');
+              try {
+                // Try to load the deck from API (might be a deck we don't have locally yet)
+                const deck = await getDeck(decodedCode);
+                console.log('[DeckBuilder] Loaded deck from API:', deck.name, deck.id);
+                setCurrentDeckId(deck.id);
+                loadDeckCards(deck.cards);
+                setSelectedCard(deck.cards.legendCard || null);
+                // Reload decks list to include this deck
+                const updatedDecks = await getDecks();
+                setDecks(updatedDecks);
+                return; // Exit early
+              } catch (apiError) {
+                console.log('[DeckBuilder] Deck not found in API, treating as deck code');
+              }
+          }
+        }
+        
+        // Not a UUID or UUID doesn't exist - treat as deck code and parse it
+        const result = parseAndLoadDeckCode(decodedCode, false);
         
         if (!result.success) {
           console.error('[Deck Load] Failed to load deck from URL:', result.error);
@@ -677,85 +646,94 @@ function App() {
         }
         
         // Set current deck to null (no deck selected)
-        // This ensures no deck is selected when loading from URL
+        // This ensures no deck is selected when loading from URL code
         setCurrentDeckId(null);
         
         // Set selected card to the legend (just like normal deck loading)
         setSelectedCard(result.legendCard || null);
         
-      } catch (error) {
-        console.error('[Deck Load] Error loading deck from URL:', error);
-        hasLoadedFromUrlRef.current = false; // Reset ref on error
-      }
-    };
-    
-    try {
-      // Check if we're loading a deck from URL first
-      const path = window.location.pathname;
-      const deckMatch = path.match(/^\/deck\/(.+)$/);
-      
-      if (deckMatch) {
-        // If it's a deck URL, load the deck from URL and skip ALL normal initialization
-        const encodedCode = deckMatch[1];
-        
-        // Mark that we're loading from URL FIRST to prevent any re-initialization
-        hasLoadedFromUrlRef.current = true;
-        
-        // Load the deck from URL
-        loadDeckFromUrlLocal(encodedCode);
-        
-        // Still initialize decks list (but don't load any deck)
-        // Do this after loading the deck to ensure deck state is set first
-        let initialDecks = ensureAtLeastOneDeck();
-        setDecks(initialDecks);
-        
-        return; // Exit early - do NOT load last viewed deck
+        return; // Exit early - do NOT load default deck
       }
       
-      // Normal initialization: Ensure at least one deck exists
-      let initialDecks = ensureAtLeastOneDeck();
-      setDecks(initialDecks);
-      
-      // Try to load last selected deck (only runs if NOT loading from URL)
-      const lastId = getLastDeckId();
+        // Normal initialization: Load default deck from preferences
+        const defaultId = preferences?.defaultDeckId || null;
+        console.log('[DeckBuilder] Default deck ID from preferences:', defaultId);
       let selectedDeck = null;
       
-      if (lastId) {
-        selectedDeck = initialDecks.find(d => d.id === lastId);
+      if (defaultId) {
+        selectedDeck = initialDecks.find(d => d.id === defaultId);
       }
       
-      // If no last deck or not found, use first deck
+      // If no default deck or not found, use first deck (empty deck)
       if (!selectedDeck && initialDecks.length > 0) {
         selectedDeck = initialDecks[0];
+        // Set first deck as default if none is selected
+          await updatePreferences({ defaultDeckId: selectedDeck.id });
+        setDefaultDeckIdState(selectedDeck.id);
+      } else if (defaultId) {
+        // Update state with the default deck ID
+        setDefaultDeckIdState(defaultId);
       }
       
       if (selectedDeck) {
         setCurrentDeckId(selectedDeck.id);
         loadDeckCards(selectedDeck.cards);
-        setLastDeckId(selectedDeck.id);
         // Set selected card to the legend of the loaded deck (or null if empty)
         setSelectedCard(selectedDeck.cards.legendCard || null);
       }
     } catch (error) {
-      console.error('Error initializing decks:', error);
-      // Reset to single empty deck on error
-      try {
+        console.error('[DeckBuilder] Error initializing decks:', error);
+        setLoadingDecks(false);
+        // Fallback to localStorage if API fails
+        try {
+          const initialDecks = ensureAtLeastOneDeck();
+          setDecks(initialDecks);
+          const defaultId = getDefaultDeckId();
+          let selectedDeck = null;
+          
+          if (defaultId) {
+            selectedDeck = initialDecks.find(d => d.id === defaultId);
+          }
+          
+          if (!selectedDeck && initialDecks.length > 0) {
+            selectedDeck = initialDecks[0];
+            setDefaultDeckId(selectedDeck.id);
+            setDefaultDeckIdState(selectedDeck.id);
+          } else if (defaultId) {
+            setDefaultDeckIdState(defaultId);
+          }
+          
+          if (selectedDeck) {
+            setCurrentDeckId(selectedDeck.id);
+            loadDeckCards(selectedDeck.cards);
+            setSelectedCard(selectedDeck.cards.legendCard || null);
+          }
+        } catch (fallbackError) {
+          console.error('[DeckBuilder] Critical error during deck initialization:', fallbackError);
+          // Last resort: create empty deck
         const emptyDeck = createDeck('Empty Deck');
         setDecks([emptyDeck]);
         setCurrentDeckId(emptyDeck.id);
         loadDeckCards(emptyDeck.cards);
-        setLastDeckId(emptyDeck.id);
-        // Set selected card to null for empty deck
+        setDefaultDeckIdState(emptyDeck.id);
         setSelectedCard(null);
-        // Show notification asynchronously to avoid blocking initialization
-        setTimeout(() => {
-          showNotification('Deck Data Reset', 'There was an error loading your decks. A new empty deck has been created.').catch(console.error);
-        }, 100);
-      } catch (fallbackError) {
-        console.error('Critical error during deck initialization:', fallbackError);
+        }
       }
-    }
+    };
+    
+    initializeData();
   }, []); // Run only on mount
+  
+  // Sort decks alphabetically by name for display
+  const sortedDecks = useMemo(() => {
+    return [...decks].sort((a, b) => {
+      const nameA = a.name.toLowerCase();
+      const nameB = b.name.toLowerCase();
+      if (nameA < nameB) return -1;
+      if (nameA > nameB) return 1;
+      return 0;
+    });
+  }, [decks]);
   
   // Validate rune variant indices when legend card changes
   useEffect(() => {
@@ -811,9 +789,24 @@ function App() {
     if (deck) {
       setCurrentDeckId(deckId);
       loadDeckCards(deck.cards);
-      setLastDeckId(deckId);
       // Set selected card to the legend of the newly loaded deck (or null if empty)
       setSelectedCard(deck.cards.legendCard || null);
+    }
+  };
+  
+  // Set current deck as default
+  const handleSetAsDefault = async () => {
+    if (currentDeckId) {
+      try {
+        console.log('[DeckBuilder] Setting default deck:', currentDeckId);
+        await updatePreferences({ defaultDeckId: currentDeckId });
+      setDefaultDeckIdState(currentDeckId);
+      // Show notification
+        await showNotification('Default Deck Set', `"${decks.find(d => d.id === currentDeckId)?.name || 'Deck'}" is now your default deck.`);
+      } catch (error) {
+        console.error('[DeckBuilder] Error setting default deck:', error);
+        await showNotification('Error', 'Failed to set default deck.');
+      }
     }
   };
   
@@ -864,17 +857,36 @@ function App() {
   };
   
   // New Deck handler
-  const handleNewDeck = (name) => {
-    const newDeck = createDeck(name);
-    const updatedDecks = [...decks, newDeck];
+  const handleNewDeck = async (name) => {
+    try {
+      console.log('[DeckBuilder] Creating new deck:', name);
+      const newDeck = await createDeckApi({
+        name,
+        cards: {
+          mainDeck: [],
+          chosenChampion: null,
+          sideDeck: [],
+          battlefields: [],
+          runeACount: 6,
+          runeBCount: 6,
+          runeAVariantIndex: 0,
+          runeBVariantIndex: 0,
+          legendCard: null
+        }
+      });
+      console.log('[DeckBuilder] Created deck:', newDeck);
+      // Reload decks from API
+      const updatedDecks = await getDecks();
     setDecks(updatedDecks);
-    saveDecks(updatedDecks);
     setCurrentDeckId(newDeck.id);
     loadDeckCards(newDeck.cards);
-    setLastDeckId(newDeck.id);
     // Set selected card to null for empty deck
     setSelectedCard(null);
-    showNotification('Deck Created', `Deck "${name}" has been created.`);
+      await showNotification('Deck Created', `Deck "${name}" has been created.`);
+    } catch (error) {
+      console.error('[DeckBuilder] Error creating deck:', error);
+      await showNotification('Error', 'Failed to create deck.');
+    }
   };
   
   // Save Deck handler
@@ -883,22 +895,18 @@ function App() {
     
     setIsSaving(true);
     try {
-      const updatedDecks = decks.map(deck => {
-        if (deck.id === currentDeckId) {
-          return {
-            ...deck,
-            cards: getCurrentDeckCards(),
-            updatedAt: new Date().toISOString()
-          };
-        }
-        return deck;
-      });
+      console.log('[DeckBuilder] Saving deck:', currentDeckId);
+      const currentCards = getCurrentDeckCards();
+      const updatedDeck = await updateDeck(currentDeckId, { cards: currentCards });
+      console.log('[DeckBuilder] Deck saved:', updatedDeck);
       
+      // Reload decks from API to get updated timestamps
+      const updatedDecks = await getDecks();
       setDecks(updatedDecks);
-      saveDecks(updatedDecks);
+      
       await showNotification('Deck Saved', 'Deck saved successfully.');
     } catch (error) {
-      console.error('Error saving deck:', error);
+      console.error('[DeckBuilder] Error saving deck:', error);
       await showNotification('Error', 'Failed to save deck.');
     } finally {
       setIsSaving(false);
@@ -906,41 +914,48 @@ function App() {
   };
   
   // Save As handler
-  const handleSaveAs = (name) => {
+  const handleSaveAs = async (name) => {
+    try {
     // Save As works even when no deck is selected (saves current editor state)
-    const newDeck = {
-      ...createDeck(name),
-      cards: getCurrentDeckCards()
-    };
-    
-    const updatedDecks = [...decks, newDeck];
+      console.log('[DeckBuilder] Saving deck as:', name);
+      const currentCards = getCurrentDeckCards();
+      const newDeck = await createDeckApi({
+        name,
+        cards: currentCards
+      });
+      console.log('[DeckBuilder] Deck saved as:', newDeck);
+      
+      // Reload decks from API
+      const updatedDecks = await getDecks();
     setDecks(updatedDecks);
-    saveDecks(updatedDecks);
     setCurrentDeckId(newDeck.id);
-    setLastDeckId(newDeck.id);
     // Set selected card to the legend of the newly saved deck (or null if empty)
     setSelectedCard(newDeck.cards.legendCard || null);
-    showNotification('Deck Saved As', `Deck saved as "${name}".`);
+      await showNotification('Deck Saved As', `Deck saved as "${name}".`);
+    } catch (error) {
+      console.error('[DeckBuilder] Error saving deck as:', error);
+      await showNotification('Error', 'Failed to save deck.');
+    }
   };
   
   // Rename Deck handler
-  const handleRenameDeck = (name) => {
+  const handleRenameDeck = async (name) => {
     if (!currentDeckId) return;
     
-    const updatedDecks = decks.map(deck => {
-      if (deck.id === currentDeckId) {
-        return {
-          ...deck,
-          name,
-          updatedAt: new Date().toISOString()
-        };
-      }
-      return deck;
-    });
-    
+    try {
+      console.log('[DeckBuilder] Renaming deck:', currentDeckId, 'to', name);
+      const updatedDeck = await updateDeck(currentDeckId, { name });
+      console.log('[DeckBuilder] Deck renamed:', updatedDeck);
+      
+      // Reload decks from API
+      const updatedDecks = await getDecks();
     setDecks(updatedDecks);
-    saveDecks(updatedDecks);
-    showNotification('Deck Renamed', `Deck renamed to "${name}".`);
+      
+      await showNotification('Deck Renamed', `Deck renamed to "${name}".`);
+    } catch (error) {
+      console.error('[DeckBuilder] Error renaming deck:', error);
+      await showNotification('Error', 'Failed to rename deck.');
+    }
   };
   
   // Delete Deck handler
@@ -966,33 +981,45 @@ function App() {
     
     if (!confirmed) return;
     
+    try {
+      console.log('[DeckBuilder] Deleting deck:', currentDeckId);
+      await deleteDeckApi(currentDeckId);
+      console.log('[DeckBuilder] Deck deleted:', currentDeckId);
+      
+      // Reload decks from API
+      const updatedDecks = await getDecks();
+      setDecks(updatedDecks);
+    
     // Find next deck to select
     const currentIndex = decks.findIndex(d => d.id === currentDeckId);
     let nextDeck = null;
     
     if (currentIndex < decks.length - 1) {
       // Select next deck
-      nextDeck = decks[currentIndex + 1];
+        nextDeck = updatedDecks.find(d => d.id === decks[currentIndex + 1]?.id) || updatedDecks[0];
     } else if (currentIndex > 0) {
       // Select previous deck
-      nextDeck = decks[currentIndex - 1];
+        nextDeck = updatedDecks.find(d => d.id === decks[currentIndex - 1]?.id) || updatedDecks[0];
+      } else if (updatedDecks.length > 0) {
+        // Select first deck
+        nextDeck = updatedDecks[0];
     }
-    
-    // Remove deck
-    const updatedDecks = decks.filter(d => d.id !== currentDeckId);
-    setDecks(updatedDecks);
-    saveDecks(updatedDecks);
     
     // Select next deck
     if (nextDeck) {
       setCurrentDeckId(nextDeck.id);
       loadDeckCards(nextDeck.cards);
-      setLastDeckId(nextDeck.id);
-      // Set selected card to the legend of the newly loaded deck (or null if empty)
       setSelectedCard(nextDeck.cards.legendCard || null);
+      } else {
+        setCurrentDeckId(null);
+        setSelectedCard(null);
     }
     
-    showNotification('Deck Deleted', `Deck "${currentDeck.name}" has been deleted.`);
+      await showNotification('Deck Deleted', `"${currentDeck.name}" has been deleted.`);
+    } catch (error) {
+      console.error('[DeckBuilder] Error deleting deck:', error);
+      await showNotification('Error', 'Failed to delete deck.');
+    }
   };
   
   // Handle mouse down from champion slot
@@ -2550,34 +2577,92 @@ function App() {
     }
   };
   
-  // Handle middle-click: open variant selection modal
+  // Core function to open variant selection modal
+  const openVariantModal = (cardId, source, sourceIndex = null) => {
+    if (!cardId) return;
+    
+    const { baseId } = parseCardId(cardId);
+    const card = getCardDetails(baseId);
+    
+    if (card && card.variants && card.variants.length > 1) {
+      // Open variant selection modal
+      setVariantModal({
+        isOpen: true,
+        cardId: cardId,
+        baseId: baseId,
+        source: source,
+        sourceIndex: sourceIndex,
+        variants: card.variants || [],
+        variantImages: card.variantImages || []
+      });
+    } else {
+      // Show toast notification for no variants
+      const cardName = card?.name || 'Unknown Card';
+      addToast(
+        <>No variants available for <strong>{cardName}</strong></>,
+        1800
+      );
+    }
+  };
+
+  // Track triple-click for mobile (using refs to track per card)
+  const tripleClickTimers = useRef({});
+  const tripleClickCounts = useRef({});
+
+  // Handle triple-click detection for mobile
+  const handleTripleClick = (cardId, source, sourceIndex = null) => {
+    if (!cardId) return;
+    
+    const key = `${source}-${sourceIndex !== null ? sourceIndex : 'none'}`;
+    const now = Date.now();
+    const lastClick = tripleClickTimers.current[key] || 0;
+    const count = tripleClickCounts.current[key] || 0;
+    
+    // Reset if more than 500ms since last click
+    if (now - lastClick > 500) {
+      tripleClickCounts.current[key] = 1;
+    } else {
+      tripleClickCounts.current[key] = count + 1;
+    }
+    
+    tripleClickTimers.current[key] = now;
+    
+    // If we've reached 3 clicks within 500ms, open modal
+    if (tripleClickCounts.current[key] >= 3) {
+      tripleClickCounts.current[key] = 0;
+      tripleClickTimers.current[key] = 0;
+      openVariantModal(cardId, source, sourceIndex);
+    }
+  };
+
+  // Handle middle-click, Ctrl/Command+click: open variant selection modal
   const handleMiddleClick = (e, cardId, source, sourceIndex = null) => {
-    if (e.button === 1 && cardId) { // Middle button
+    // Check for middle button OR Ctrl/Command + left click
+    const isMiddleClick = e.button === 1;
+    const isCtrlClick = (e.ctrlKey || e.metaKey) && e.button === 0;
+    
+    console.log('[Variant Modal] handleMiddleClick called:', {
+      cardId,
+      source,
+      sourceIndex,
+      button: e.button,
+      ctrlKey: e.ctrlKey,
+      metaKey: e.metaKey,
+      shiftKey: e.shiftKey,
+      altKey: e.altKey,
+      type: e.type,
+      isMiddleClick,
+      isCtrlClick,
+      willTrigger: (isMiddleClick || isCtrlClick) && cardId
+    });
+    
+    if ((isMiddleClick || isCtrlClick) && cardId) {
       e.preventDefault();
       e.stopPropagation();
-      
-      const { baseId } = parseCardId(cardId);
-      const card = getCardDetails(baseId);
-      
-      if (card && card.variants && card.variants.length > 1) {
-        // Open variant selection modal
-        setVariantModal({
-          isOpen: true,
-          cardId: cardId,
-          baseId: baseId,
-          source: source,
-          sourceIndex: sourceIndex,
-          variants: card.variants || [],
-          variantImages: card.variantImages || []
-        });
-      } else {
-        // Show toast notification for no variants
-        const cardName = card?.name || 'Unknown Card';
-        addToast(
-          <>No variants available for <strong>{cardName}</strong></>,
-          1800
-        );
-      }
+      console.log('[Variant Modal] Opening variant modal for:', { cardId, source, sourceIndex });
+      openVariantModal(cardId, source, sourceIndex);
+    } else {
+      console.log('[Variant Modal] Not triggering - conditions not met');
     }
   };
   
@@ -2974,12 +3059,20 @@ function App() {
   };
   
   // Handle toggle screenshot view
-  const handleToggleScreenshotView = () => {
+  const handleToggleScreenshotView = async () => {
     const newView = screenshotModal.currentView === 'full' ? 'deck' : 'full';
     setScreenshotModal(prev => ({ ...prev, currentView: newView }));
     // Save preference
-    setScreenshotMode(newView);
     setScreenshotModeState(newView);
+    setScreenshotModeLocal(newView);
+    
+    // Update preferences on server
+    try {
+      console.log('[DeckBuilder] Updating screenshot mode preference:', newView);
+      await updatePreferences({ screenshotMode: newView });
+    } catch (error) {
+      console.error('[DeckBuilder] Error updating screenshot mode preference:', error);
+    }
   };
   
   // Handle opening screenshot in new tab
@@ -3172,26 +3265,47 @@ function App() {
   };
   
   // Decode run-length encoded deck code
+  // Supports both formats:
+  // - Compressed: "2185-20202-0004x3-..." (dash-separated, encoded set codes)
+  // - Uncompressed: "SFD-185-1 SFD-020-2 OGN-004-1 ..." (space-separated, full card IDs)
   const decodeRunLength = (encodedString) => {
     if (!encodedString) return [];
     
     const decoded = [];
-    // Support dash, comma, and space separators for backward compatibility
-    const parts = encodedString.trim().split(/[-,\s]+/);
     
-    for (const part of parts) {
-      // Check for run-length encoding (e.g., "0004x3")
-      const runLengthMatch = part.match(/^(.+)x(\d+)$/);
-      if (runLengthMatch) {
-        const encodedCardId = runLengthMatch[1];
-        const count = parseInt(runLengthMatch[2], 10);
-        const cardId = decodeCardIdWithSetCode(encodedCardId);
-        for (let i = 0; i < count; i++) {
+    // Check if this looks like uncompressed format (contains full card IDs like "SFD-185-1")
+    // Uncompressed format has letters in the set code part
+    const isUncompressedFormat = /[A-Z]+-\d+/.test(encodedString);
+    
+    if (isUncompressedFormat) {
+      // Uncompressed format: split by spaces (or multiple spaces) and use directly
+      const parts = encodedString.trim().split(/\s+/);
+      for (const part of parts) {
+        if (part.trim()) {
+          // Already in full format (e.g., "SFD-185-1"), use as-is
+          decoded.push(part.trim());
+        }
+      }
+    } else {
+      // Compressed format: split by dash, comma, or space and decode
+      const parts = encodedString.trim().split(/[-,\s]+/);
+      
+      for (const part of parts) {
+        if (!part.trim()) continue;
+        
+        // Check for run-length encoding (e.g., "0004x3")
+        const runLengthMatch = part.match(/^(.+)x(\d+)$/);
+        if (runLengthMatch) {
+          const encodedCardId = runLengthMatch[1];
+          const count = parseInt(runLengthMatch[2], 10);
+          const cardId = decodeCardIdWithSetCode(encodedCardId);
+          for (let i = 0; i < count; i++) {
+            decoded.push(cardId);
+          }
+        } else {
+          const cardId = decodeCardIdWithSetCode(part);
           decoded.push(cardId);
         }
-      } else {
-        const cardId = decodeCardIdWithSetCode(part);
-        decoded.push(cardId);
       }
     }
     
@@ -3304,18 +3418,32 @@ function App() {
   
   // Parse deck code string and load into editor (reusable function)
   const parseAndLoadDeckCode = (deckCodeString, showNotifications = true) => {
+    console.log('[Import] Starting deck import, raw input:', deckCodeString);
+    console.log('[Import] Input length:', deckCodeString?.length || 0);
+    
     // Parse the deck string - support both formats:
     // Regular format: "OGN-265-1 OGN-246-2 OGN-103-1 ..." (space-separated)
     // Compressed format: "0004x3-20202-0172-..." (dash-separated, no dashes in card codes, no -1 for normal variants)
     // First decode run-length encoding and set codes if present
     const cardIds = decodeRunLength(deckCodeString);
+    console.log('[Import] After decodeRunLength, cardIds:', cardIds);
+    console.log('[Import] Decoded card count:', cardIds.length);
     
     const parsedCards = [];
+    const invalidCards = [];
+    
     for (const cardStr of cardIds) {
       // Parse format: OGN-265-1 -> { baseId: "OGN-265", variantIndex: 1 }
       // or OGN-265 -> { baseId: "OGN-265", variantIndex: 0 }
       const { baseId, variantIndex } = parseCardId(cardStr);
       if (baseId) {
+        // Check if card exists in database
+        const cardDetails = getCardDetails(baseId);
+        if (!cardDetails) {
+          invalidCards.push({ original: cardStr, baseId, reason: 'Card not found in database' });
+          console.warn(`[Import] Card not found: ${cardStr} (baseId: ${baseId})`);
+        }
+        
         // Log when a variant is detected (variantIndex > 0 means it's not the base card)
         if (variantIndex > 0) {
           const card = getCardDetails(baseId);
@@ -3326,8 +3454,14 @@ function App() {
         // Format with variant index (0 becomes no suffix, 1+ becomes -1, -2, etc.)
         const formattedId = formatCardId(baseId, variantIndex);
         parsedCards.push(formattedId);
+      } else {
+        invalidCards.push({ original: cardStr, baseId: null, reason: 'Failed to parse card ID format' });
+        console.warn(`[Import] Failed to parse card ID: ${cardStr}`);
       }
     }
+    
+    console.log('[Import] Parsed cards count:', parsedCards.length);
+    console.log('[Import] Invalid cards:', invalidCards);
     
     // Check if any valid cards were found
     const foundValidCards = parsedCards.some(cardId => {
@@ -3335,7 +3469,16 @@ function App() {
       return getCardDetails(baseId) !== undefined;
     });
     
+    console.log('[Import] Found valid cards:', foundValidCards);
+    
     if (parsedCards.length === 0 || !foundValidCards) {
+      console.error('[Import] Validation failed:', {
+        parsedCardsLength: parsedCards.length,
+        foundValidCards,
+        invalidCards,
+        sampleParsedCards: parsedCards.slice(0, 5),
+        sampleCardIds: cardIds.slice(0, 5)
+      });
       return { success: false, error: 'Invalid deck format' };
     }
     
@@ -3370,9 +3513,24 @@ function App() {
       const cardId = parsedCards[i];
       const { baseId } = parseCardId(cardId);
       const firstCard = getCardDetails(baseId);
+      console.log('[Import] Checking first card for legend:', {
+        cardId,
+        baseId,
+        cardType: firstCard?.type,
+        cardName: firstCard?.name,
+        isLegend: firstCard?.type === 'Legend'
+      });
       if (firstCard?.type === 'Legend') {
         legendCard = cardId; // Preserve variant index
+        console.log('[Import] Legend found:', legendCard);
         i++;
+      } else {
+        console.warn('[Import] First card is not a Legend:', {
+          cardId,
+          baseId,
+          type: firstCard?.type,
+          name: firstCard?.name
+        });
       }
     }
     
@@ -3565,11 +3723,46 @@ function App() {
   // Load deck from URL
   const loadDeckFromUrl = (encodedCode) => {
     try {
-      // Decode URL-encoded deck code
-      const deckCode = decodeURIComponent(encodedCode);
+      // Decode URL-encoded code
+      const decodedCode = decodeURIComponent(encodedCode);
       
-      // Parse and load the deck (no notifications)
-      const result = parseAndLoadDeckCode(deckCode, false);
+      // Check if the code is a valid UUID
+      if (isValidUUID(decodedCode)) {
+        console.log('[DeckBuilder] loadDeckFromUrl - Detected UUID:', decodedCode);
+        
+        // Check if editingDeckUUID was set (from homepage Edit button)
+        const editingDeckUUID = getEditingDeckUUID();
+        console.log('[DeckBuilder] loadDeckFromUrl - editingDeckUUID:', editingDeckUUID);
+        
+        if (editingDeckUUID) {
+          // Remember that it was set so we can restore it on Exit
+          hadEditingDeckUUIDOnLoadRef.current = true;
+          console.log('[DeckBuilder] loadDeckFromUrl - Remembering that editingDeckUUID was set on load');
+          // Clear it now
+          setEditingDeckUUID(null);
+          console.log('[DeckBuilder] loadDeckFromUrl - Cleared editingDeckUUID');
+        }
+        
+        // Check if this UUID exists in the user's decks
+        const deckById = decks.find(d => d.id === decodedCode);
+        
+        if (deckById) {
+          console.log('[DeckBuilder] loadDeckFromUrl - Found deck:', deckById.name, deckById.id);
+          // It's a valid UUID that exists in decks - load it normally
+          setCurrentDeckId(deckById.id);
+          loadDeckCards(deckById.cards);
+          // Set selected card to the legend of the loaded deck (or null if empty)
+          setSelectedCard(deckById.cards.legendCard || null);
+          // Mark that we've loaded from URL to prevent re-initialization
+          hasLoadedFromUrlRef.current = true;
+          return;
+        } else {
+          console.log('[DeckBuilder] loadDeckFromUrl - UUID not found in decks');
+        }
+      }
+      
+      // Not a UUID or UUID doesn't exist - treat as deck code and parse it
+      const result = parseAndLoadDeckCode(decodedCode, false);
       
       if (!result.success) {
         console.error('[Deck Load] Failed to load deck from URL:', result.error);
@@ -3613,12 +3806,30 @@ function App() {
   const handleImportDeck = async () => {
     try {
       // Read from clipboard
-      const clipboardText = await navigator.clipboard.readText();
+      let clipboardText = await navigator.clipboard.readText();
+      console.log('[Import] Clipboard text read:', clipboardText);
+      console.log('[Import] Clipboard text type:', typeof clipboardText);
+      console.log('[Import] Clipboard text trimmed:', clipboardText?.trim());
+      
+      // Extract deck code from URL if clipboard contains a URL
+      // Support formats like: http://localhost:5173/deck/2185-20202-... or /deck/2185-20202-...
+      const urlMatch = clipboardText.match(/\/deck\/(.+)$/);
+      if (urlMatch) {
+        const deckCode = urlMatch[1];
+        console.log('[Import] Detected URL format, extracted deck code:', deckCode);
+        clipboardText = deckCode;
+      }
       
       const result = parseAndLoadDeckCode(clipboardText, true);
+      console.log('[Import] Parse result:', result);
       
       if (!result.success) {
-        await showNotification('Invalid Deck', 'Invalid deck in clipboard');
+        console.error('[Import] Import failed:', {
+          error: result.error,
+          clipboardText: clipboardText,
+          clipboardLength: clipboardText?.length || 0
+        });
+        await showNotification('Invalid Deck', `Invalid deck in clipboard. Check console for details. Error: ${result.error || 'Unknown error'}`);
         return;
       }
       
@@ -3628,16 +3839,34 @@ function App() {
       );
       
     } catch (error) {
-      console.error('Error importing deck:', error);
+      console.error('[Import] Error importing deck:', error);
+      console.error('[Import] Error stack:', error.stack);
       await showNotification('Import Failed', 'Failed to import deck. Please ensure clipboard contains valid deck format.');
     }
   };
+  
+  // Check if all loading is complete
+  const isLoading = loadingDecks;
   
   return (
     <>
       <LayoutContainer isDarkMode={isDarkMode}>
         {/* Content is sized in pixels based on 1920x1080 reference */}
-        <div className={`w-[1920px] h-[1080px] flex ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`} data-screenshot-container>
+        <div className={`relative w-[1920px] h-[1080px] flex ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`} data-screenshot-container>
+          {/* Full-page loading overlay */}
+          {isLoading && (
+            <div 
+              className={`absolute inset-0 z-50 flex items-center justify-center ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}
+              style={{ pointerEvents: 'all' }}
+            >
+              <div className="flex flex-col items-center gap-4">
+                <div className={`text-2xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                  Loading...
+                </div>
+                <div className="w-16 h-16 border-4 border-t-blue-600 border-r-blue-600 border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+              </div>
+            </div>
+          )}
         {/* Left Panel - 20% (384px) */}
         <div className={`w-[384px] h-full border-r-2 flex flex-col px-4 py-4 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-blue-50 border-gray-300'}`}>
           {/* Card Image - auto height */}
@@ -3741,11 +3970,14 @@ function App() {
                   }`}
                 >
                   <option value="" disabled hidden style={{ display: 'none' }}></option>
-                  {decks.map(deck => (
-                    <option key={deck.id} value={deck.id}>
-                      {deck.name}
-                    </option>
-                  ))}
+                  {sortedDecks.map(deck => {
+                    const isDefault = deck.id === defaultDeckId;
+                    return (
+                      <option key={deck.id} value={deck.id}>
+                        {deck.name}{isDefault ? ' ⭐' : ''}
+                      </option>
+                    );
+                  })}
                 </select>
 
                 {/* Row 3 */}
@@ -3789,18 +4021,32 @@ function App() {
                 </button>
 
                 {/* Row 5 */}
-                <button className="py-1 px-2 rounded text-[11px] font-medium bg-gray-600 text-white shadow-md hover:bg-gray-700 active:bg-gray-800 transition-colors">
+                <button 
+                  onClick={() => {
+                    console.log('[DeckBuilder] Exit button clicked');
+                    console.log('[DeckBuilder] currentDeckId:', currentDeckId);
+                    // Always set the current deck as editingDeckUUID when exiting
+                    // This ensures the homepage will select this deck when we return
+                    if (currentDeckId) {
+                      console.log('[DeckBuilder] Exit button - setting editingDeckUUID:', currentDeckId);
+                      setEditingDeckUUID(currentDeckId);
+                      console.log('[DeckBuilder] Exit button - editingDeckUUID set, navigating...');
+                    } else {
+                      console.log('[DeckBuilder] Exit button - no currentDeckId to save');
+                    }
+                    // Use setTimeout to ensure localStorage write completes before navigation
+                    setTimeout(() => {
+                      window.location.href = '/';
+                    }, 10);
+                  }}
+                  className="py-1 px-2 rounded text-[11px] font-medium bg-gray-600 text-white shadow-md hover:bg-gray-700 active:bg-gray-800 transition-colors">
                   Exit
                 </button>
                 <button 
-                  onClick={toggleDarkMode}
-                  className={`py-1 px-2 rounded text-[11px] font-medium shadow-md transition-colors ${
-                    isDarkMode 
-                      ? 'bg-yellow-500 hover:bg-yellow-600 active:bg-yellow-700 text-white' 
-                      : 'bg-gray-800 hover:bg-gray-900 active:bg-black text-white'
-                  }`}
-                >
-                  {isDarkMode ? '🌙 Dark' : '☀️ Light'}
+                  onClick={handleSetAsDefault}
+                  disabled={!currentDeckId}
+                  className={`py-1 px-2 rounded text-[11px] font-medium bg-blue-600 text-white shadow-md hover:bg-blue-700 active:bg-blue-800 transition-colors ${!currentDeckId ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                  Set as Default
                 </button>
               </div>
             </div>
@@ -3862,8 +4108,23 @@ function App() {
                   Randomize
                 </button>
                 <button 
+                  onClick={toggleDarkMode}
+                  className={`px-3 py-1 text-[11px] font-medium rounded shadow-md transition-colors ${
+                    isDarkMode 
+                      ? 'bg-gray-600 hover:bg-gray-500 text-gray-100' 
+                      : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
+                  }`}
+                  title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                >
+                  {isDarkMode ? '🌙' : '☀️'}
+                </button>
+                <button 
                   onClick={handleScreenshot}
-                  className="px-3 py-1 bg-gray-600 hover:bg-gray-700 text-white text-[11px] font-medium rounded shadow-md transition-colors"
+                  className={`px-3 py-1 text-[11px] font-medium rounded shadow-md transition-colors ${
+                    isDarkMode 
+                      ? 'bg-gray-600 hover:bg-gray-500 text-gray-100' 
+                      : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
+                  }`}
                   title="Take Screenshot"
                 >
                   📷
@@ -3884,10 +4145,30 @@ function App() {
                 className={`rounded border-2 flex items-center justify-center overflow-hidden cursor-pointer transition-colors relative ${isDarkMode ? 'bg-gray-700 border-yellow-600 hover:border-yellow-500' : 'bg-yellow-100 border-yellow-600 hover:border-yellow-700'}`}
                 style={{ aspectRatio: '515/685' }}
                 onMouseDown={(e) => {
-                  if (e.button === 1 && chosenChampion) {
+                  console.log('[Champion] onMouseDown:', {
+                    button: e.button,
+                    ctrlKey: e.ctrlKey,
+                    metaKey: e.metaKey,
+                    shiftKey: e.shiftKey,
+                    altKey: e.altKey,
+                    type: e.type,
+                    hasChampion: !!chosenChampion
+                  });
+                  
+                  // Check for middle-click or Ctrl/Command+click
+                  const isMiddleClick = e.button === 1;
+                  const isCtrlClick = (e.ctrlKey || e.metaKey) && e.button === 0;
+                  
+                  if ((isMiddleClick || isCtrlClick) && chosenChampion) {
                     handleMiddleClick(e, chosenChampion, 'champion');
                   } else if (chosenChampion) {
                     handleChampionMouseDown(e);
+                  }
+                }}
+                onClick={(e) => {
+                  // Triple-click for mobile (handled by handleTripleClick)
+                  if (chosenChampion) {
+                    handleTripleClick(chosenChampion, 'champion');
                   }
                 }}
                 onMouseEnter={() => handleCardHover(chosenChampion)}
@@ -3923,10 +4204,30 @@ function App() {
                     className={`rounded border flex items-center justify-center overflow-hidden cursor-pointer transition-colors select-none relative ${isDarkMode ? 'bg-gray-700 border-gray-600 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`}
                     style={{ aspectRatio: '515/685' }}
                     onMouseDown={(e) => {
-                      if (e.button === 1 && cardId) {
+                      console.log(`[MainDeck ${index}] onMouseDown:`, {
+                        button: e.button,
+                        ctrlKey: e.ctrlKey,
+                        metaKey: e.metaKey,
+                        shiftKey: e.shiftKey,
+                        altKey: e.altKey,
+                        type: e.type,
+                        hasCard: !!cardId
+                      });
+                      
+                      // Check for middle-click or Ctrl/Command+click
+                      const isMiddleClick = e.button === 1;
+                      const isCtrlClick = (e.ctrlKey || e.metaKey) && e.button === 0;
+                      
+                      if ((isMiddleClick || isCtrlClick) && cardId) {
                         handleMiddleClick(e, cardId, 'mainDeck', index);
                       } else if (cardId) {
                         handleMouseDown(e, index);
+                      }
+                    }}
+                    onClick={(e) => {
+                      // Triple-click for mobile (handled by handleTripleClick)
+                      if (cardId) {
+                        handleTripleClick(cardId, 'mainDeck', index);
                       }
                     }}
                     onMouseEnter={() => handleCardHover(cardId)}
@@ -3973,10 +4274,30 @@ function App() {
                 className={`w-full rounded border flex items-center justify-center overflow-hidden cursor-pointer transition-colors mb-1 relative ${isDarkMode ? 'bg-gray-700 border-gray-600 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`}
                 data-legend-slot
                 onMouseDown={(e) => {
-                  if (e.button === 1 && legendCard) {
+                  console.log('[Legend] onMouseDown:', {
+                    button: e.button,
+                    ctrlKey: e.ctrlKey,
+                    metaKey: e.metaKey,
+                    shiftKey: e.shiftKey,
+                    altKey: e.altKey,
+                    type: e.type,
+                    hasLegend: !!legendCard
+                  });
+                  
+                  // Check for middle-click or Ctrl/Command+click
+                  const isMiddleClick = e.button === 1;
+                  const isCtrlClick = (e.ctrlKey || e.metaKey) && e.button === 0;
+                  
+                  if ((isMiddleClick || isCtrlClick) && legendCard) {
                     handleMiddleClick(e, legendCard, 'legend');
                   } else if (legendCard) {
                     handleLegendMouseDown(e);
+                  }
+                }}
+                onClick={(e) => {
+                  // Triple-click for mobile (handled by handleTripleClick)
+                  if (legendCard) {
+                    handleTripleClick(legendCard, 'legend');
                   }
                 }}
                 onMouseEnter={() => handleCardHover(legendCard)}
@@ -4072,10 +4393,30 @@ function App() {
                           data-battlefield-index={index}
                           className={`rounded border flex items-center justify-center overflow-hidden cursor-pointer transition-colors relative ${isDarkMode ? 'bg-gray-700 border-gray-600 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`}
                           onMouseDown={(e) => {
-                            if (e.button === 1 && cardId) {
+                            console.log(`[Battlefield ${index}] onMouseDown:`, {
+                              button: e.button,
+                              ctrlKey: e.ctrlKey,
+                              metaKey: e.metaKey,
+                              shiftKey: e.shiftKey,
+                              altKey: e.altKey,
+                              type: e.type,
+                              hasCard: !!cardId
+                            });
+                            
+                            // Check for middle-click or Ctrl/Command+click
+                            const isMiddleClick = e.button === 1;
+                            const isCtrlClick = (e.ctrlKey || e.metaKey) && e.button === 0;
+                            
+                            if ((isMiddleClick || isCtrlClick) && cardId) {
                               handleMiddleClick(e, cardId, 'battlefield', index);
                             } else if (cardId) {
                               handleBattlefieldMouseDown(e, index);
+                            }
+                          }}
+                          onClick={(e) => {
+                            // Triple-click for mobile (handled by handleTripleClick)
+                            if (cardId) {
+                              handleTripleClick(cardId, 'battlefield', index);
                             }
                           }}
                           onMouseEnter={() => handleCardHover(cardId)}
@@ -4115,14 +4456,36 @@ function App() {
                       <div 
                         className={`rounded border flex items-center justify-center overflow-hidden w-full max-w-[80px] cursor-pointer transition-colors select-none ${isDarkMode ? 'bg-gray-700 border-gray-600 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`} 
                         style={{ aspectRatio: '515/719' }}
-                        onClick={() => handleRuneClick('A')}
+                        onClick={(e) => {
+                          // Check for triple-click first (mobile) - this will only trigger modal after 3 clicks
+                          const { runeABaseId } = getRuneCards();
+                          if (runeABaseId) {
+                            handleTripleClick(formatCardId(runeABaseId, runeAVariantIndex), 'runeA');
+                          }
+                          // Always handle normal rune click (triple-click detection doesn't prevent single clicks)
+                          handleRuneClick('A');
+                        }}
                         onMouseDown={(e) => {
-                          if (e.button === 1) {
+                          console.log('[Rune A] onMouseDown:', {
+                            button: e.button,
+                            ctrlKey: e.ctrlKey,
+                            metaKey: e.metaKey,
+                            shiftKey: e.shiftKey,
+                            altKey: e.altKey,
+                            type: e.type
+                          });
+                          
+                          // Check for middle-click or Ctrl/Command+click
+                          const isMiddleClick = e.button === 1;
+                          const isCtrlClick = (e.ctrlKey || e.metaKey) && e.button === 0;
+                          
+                          if (isMiddleClick || isCtrlClick) {
                             const { runeABaseId } = getRuneCards();
                             if (runeABaseId) {
                               handleMiddleClick(e, formatCardId(runeABaseId, runeAVariantIndex), 'runeA');
                             }
-                          } else {
+                          } else if (e.button !== 0) {
+                            // Only prevent default for non-left clicks (to allow normal left click for rune movement)
                             e.preventDefault();
                           }
                         }}
@@ -4157,14 +4520,36 @@ function App() {
                       <div 
                         className={`rounded border flex items-center justify-center overflow-hidden w-full max-w-[80px] cursor-pointer transition-colors select-none ${isDarkMode ? 'bg-gray-700 border-gray-600 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`} 
                         style={{ aspectRatio: '515/719' }}
-                        onClick={() => handleRuneClick('B')}
+                        onClick={(e) => {
+                          // Check for triple-click first (mobile) - this will only trigger modal after 3 clicks
+                          const { runeBBaseId } = getRuneCards();
+                          if (runeBBaseId) {
+                            handleTripleClick(formatCardId(runeBBaseId, runeBVariantIndex), 'runeB');
+                          }
+                          // Always handle normal rune click (triple-click detection doesn't prevent single clicks)
+                          handleRuneClick('B');
+                        }}
                         onMouseDown={(e) => {
-                          if (e.button === 1) {
+                          console.log('[Rune B] onMouseDown:', {
+                            button: e.button,
+                            ctrlKey: e.ctrlKey,
+                            metaKey: e.metaKey,
+                            shiftKey: e.shiftKey,
+                            altKey: e.altKey,
+                            type: e.type
+                          });
+                          
+                          // Check for middle-click or Ctrl/Command+click
+                          const isMiddleClick = e.button === 1;
+                          const isCtrlClick = (e.ctrlKey || e.metaKey) && e.button === 0;
+                          
+                          if (isMiddleClick || isCtrlClick) {
                             const { runeBBaseId } = getRuneCards();
                             if (runeBBaseId) {
                               handleMiddleClick(e, formatCardId(runeBBaseId, runeBVariantIndex), 'runeB');
                             }
-                          } else {
+                          } else if (e.button !== 0) {
+                            // Only prevent default for non-left clicks (to allow normal left click for rune movement)
                             e.preventDefault();
                           }
                         }}
@@ -4205,10 +4590,30 @@ function App() {
                         data-side-deck-index={index}
                         className={`rounded border flex items-center justify-center overflow-hidden cursor-pointer transition-colors select-none relative ${isDarkMode ? 'bg-gray-700 border-gray-600 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`}
                         onMouseDown={(e) => {
-                          if (e.button === 1 && cardId) {
+                          console.log(`[SideDeck ${index}] onMouseDown:`, {
+                            button: e.button,
+                            ctrlKey: e.ctrlKey,
+                            metaKey: e.metaKey,
+                            shiftKey: e.shiftKey,
+                            altKey: e.altKey,
+                            type: e.type,
+                            hasCard: !!cardId
+                          });
+                          
+                          // Check for middle-click or Ctrl/Command+click
+                          const isMiddleClick = e.button === 1;
+                          const isCtrlClick = (e.ctrlKey || e.metaKey) && e.button === 0;
+                          
+                          if ((isMiddleClick || isCtrlClick) && cardId) {
                             handleMiddleClick(e, cardId, 'sideDeck', index);
                           } else if (cardId) {
                             handleSideDeckMouseDown(e, index);
+                          }
+                        }}
+                        onClick={(e) => {
+                          // Triple-click for mobile (handled by handleTripleClick)
+                          if (cardId) {
+                            handleTripleClick(cardId, 'sideDeck', index);
                           }
                         }}
                         onMouseEnter={() => handleCardHover(cardId)}

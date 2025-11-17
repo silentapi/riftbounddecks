@@ -24,9 +24,11 @@
 
 const STORAGE_KEYS = {
   DECKS: 'decks',
-  LAST_DECK_ID: 'lastDeckId',
+  DEFAULT_DECK_ID: 'defaultDeckId',
   THEME: 'theme',
-  SCREENSHOT_MODE: 'screenshotMode'
+  SCREENSHOT_MODE: 'screenshotMode',
+  USERNAME: 'username',
+  EDITING_DECK_UUID: 'editingDeckUUID'
 };
 
 /**
@@ -133,31 +135,31 @@ export function createDeck(name) {
 }
 
 /**
- * Get last selected deck ID from localStorage
+ * Get default deck ID from localStorage
  * @returns {string|null}
  */
-export function getLastDeckId() {
+export function getDefaultDeckId() {
   try {
-    return localStorage.getItem(STORAGE_KEYS.LAST_DECK_ID);
+    return localStorage.getItem(STORAGE_KEYS.DEFAULT_DECK_ID);
   } catch (error) {
-    console.error('Error loading last deck ID:', error);
+    console.error('Error loading default deck ID:', error);
     return null;
   }
 }
 
 /**
- * Set last selected deck ID in localStorage
+ * Set default deck ID in localStorage
  * @param {string|null} id
  */
-export function setLastDeckId(id) {
+export function setDefaultDeckId(id) {
   try {
     if (id === null) {
-      localStorage.removeItem(STORAGE_KEYS.LAST_DECK_ID);
+      localStorage.removeItem(STORAGE_KEYS.DEFAULT_DECK_ID);
     } else {
-      localStorage.setItem(STORAGE_KEYS.LAST_DECK_ID, id);
+      localStorage.setItem(STORAGE_KEYS.DEFAULT_DECK_ID, id);
     }
   } catch (error) {
-    console.error('Error saving last deck ID:', error);
+    console.error('Error saving default deck ID:', error);
   }
 }
 
@@ -241,5 +243,68 @@ export function validateDeckName(name, existingDecks = [], excludeId = null) {
   }
   
   return { valid: true, normalized, error: null };
+}
+
+/**
+ * Get username from localStorage
+ * @returns {string|null}
+ */
+export function getUsername() {
+  try {
+    return localStorage.getItem(STORAGE_KEYS.USERNAME);
+  } catch (error) {
+    console.error('Error loading username:', error);
+    return null;
+  }
+}
+
+/**
+ * Set username in localStorage
+ * @param {string|null} username
+ */
+export function setUsername(username) {
+  try {
+    if (username === null || username === '') {
+      localStorage.removeItem(STORAGE_KEYS.USERNAME);
+    } else {
+      localStorage.setItem(STORAGE_KEYS.USERNAME, username);
+    }
+  } catch (error) {
+    console.error('Error saving username:', error);
+  }
+}
+
+/**
+ * Get editing deck UUID from localStorage
+ * @returns {string|null}
+ */
+export function getEditingDeckUUID() {
+  try {
+    const id = localStorage.getItem(STORAGE_KEYS.EDITING_DECK_UUID);
+    console.log('[deckStorage] getEditingDeckUUID:', id);
+    return id;
+  } catch (error) {
+    console.error('Error loading editing deck UUID:', error);
+    return null;
+  }
+}
+
+/**
+ * Set editing deck UUID in localStorage
+ * @param {string|null} deckId
+ */
+export function setEditingDeckUUID(deckId) {
+  try {
+    console.log('[deckStorage] setEditingDeckUUID:', deckId);
+    if (deckId === null || deckId === '') {
+      localStorage.removeItem(STORAGE_KEYS.EDITING_DECK_UUID);
+      console.log('[deckStorage] Removed editing deck UUID from storage');
+    } else {
+      localStorage.setItem(STORAGE_KEYS.EDITING_DECK_UUID, deckId);
+      console.log('[deckStorage] Saved editing deck UUID to storage:', deckId);
+    }
+  } catch (error) {
+    console.error('Error saving editing deck UUID:', error);
+  }
 }
 
