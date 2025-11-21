@@ -214,7 +214,8 @@ function App() {
     isOwner: true,
     isShared: false,
     deckId: null,
-    deckName: null // Store deck name for shared decks
+    deckName: null, // Store deck name for shared decks
+    ownerDisplayName: null // Store owner's displayname for non-owned decks
   });
   
   // Name input modal state
@@ -614,7 +615,8 @@ function App() {
               isOwner: false,
               isShared: deck.shared || false,
               deckId: deck.id,
-              deckName: deck.name
+              deckName: deck.name,
+              ownerDisplayName: deck.ownerDisplayName || null
             });
             return; // Exit early
           } catch (apiError) {
@@ -748,7 +750,8 @@ function App() {
                       isOwner: false,
                       isShared: deck.shared || false,
                       deckId: deck.id,
-                      deckName: deck.name
+                      deckName: deck.name,
+                      ownerDisplayName: deck.ownerDisplayName || null
                     });
                     return; // Exit early
                   }
@@ -764,7 +767,8 @@ function App() {
                       isOwner: false,
                       isShared: true,
                       deckId: deck.id,
-                      deckName: deck.name
+                      deckName: deck.name,
+                      ownerDisplayName: deck.ownerDisplayName || null
                     });
                     return;
                   }
@@ -4169,7 +4173,8 @@ function App() {
               isOwner: isOwner,
               isShared: deck.shared || false,
               deckId: deck.id,
-              deckName: deck.name
+              deckName: deck.name,
+              ownerDisplayName: isOwner ? null : (deck.ownerDisplayName || null)
             });
           } else {
             // Not logged in - always read-only
@@ -4179,7 +4184,8 @@ function App() {
               isOwner: false,
               isShared: deck.shared || false,
               deckId: deck.id,
-              deckName: deck.name
+              deckName: deck.name,
+              ownerDisplayName: deck.ownerDisplayName || null
             });
           }
           
@@ -4548,9 +4554,20 @@ function App() {
               </div>
               {/* Deck Name - Centered */}
               <div className="absolute left-1/2 transform -translate-x-1/2">
-                <span className={`text-[14px] font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-700'}`}>
-                  {decks.find(d => d.id === currentDeckId)?.name || currentDeckMetadata.deckName || 'No Deck Selected'}
-                </span>
+                {(() => {
+                  const deckName = decks.find(d => d.id === currentDeckId)?.name || currentDeckMetadata.deckName || 'No Deck Selected';
+                  const ownerDisplayName = currentDeckMetadata.ownerDisplayName;
+                  const isViewingOthersDeck = !currentDeckMetadata.isOwner && ownerDisplayName;
+                  
+                  return (
+                    <span className={`text-[14px] ${isDarkMode ? 'text-gray-100' : 'text-gray-700'}`}>
+                      <span className="font-bold">{deckName}</span>
+                      {isViewingOthersDeck && (
+                        <span className="font-normal"> by {ownerDisplayName}</span>
+                      )}
+                    </span>
+                  );
+                })()}
               </div>
               <div className="flex items-center gap-2" data-deck-controls>
                 {!isReadOnly && (

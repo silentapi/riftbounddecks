@@ -2,6 +2,7 @@ import express from 'express';
 import { body, validationResult, param } from 'express-validator';
 import Deck from '../models/Deck.js';
 import UserPreferences from '../models/UserPreferences.js';
+import User from '../models/User.js';
 import { authenticate, optionalAuthenticate } from '../middleware/auth.js';
 import logger from '../config/logger.js';
 import { randomUUID } from 'crypto';
@@ -92,7 +93,37 @@ router.get('/:id', [
       isShared
     });
 
-    res.json(deck);
+    // Get owner's displayname for non-owner viewers
+    let ownerDisplayName = null;
+    if (!isOwner) {
+      try {
+        const ownerPreferences = await UserPreferences.findOne({ userId: deck.userId });
+        if (ownerPreferences && ownerPreferences.displayName) {
+          ownerDisplayName = ownerPreferences.displayName;
+        } else {
+          // Fallback to username if displayName is not set
+          const owner = await User.findById(deck.userId).select('username');
+          if (owner) {
+            ownerDisplayName = owner.username;
+          }
+        }
+      } catch (error) {
+        logger.warn('Failed to fetch owner displayname', {
+          deckId: id,
+          ownerId: deck.userId.toString(),
+          error: error.message
+        });
+        // Continue without ownerDisplayName if fetch fails
+      }
+    }
+
+    // Convert deck to JSON and add ownerDisplayName if available
+    const deckJson = deck.toJSON();
+    if (ownerDisplayName) {
+      deckJson.ownerDisplayName = ownerDisplayName;
+    }
+
+    res.json(deckJson);
   } catch (error) {
     next(error);
   }
