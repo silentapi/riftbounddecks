@@ -336,6 +336,48 @@ function Profile() {
     }
   };
   
+  // Copy registration link to clipboard
+  const copyRegistrationLink = async (key) => {
+    try {
+      const baseUrl = window.location.origin;
+      const registrationUrl = `${baseUrl}/register/${key}`;
+      
+      // Try modern clipboard API first
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(registrationUrl);
+        addToast('Registration link copied to clipboard!', 2000);
+        return;
+      }
+      
+      // Fallback: Create a temporary textarea element
+      const textarea = document.createElement('textarea');
+      textarea.value = registrationUrl;
+      textarea.style.position = 'fixed';
+      textarea.style.left = '-999999px';
+      textarea.style.top = '-999999px';
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      
+      try {
+        const successful = document.execCommand('copy');
+        document.body.removeChild(textarea);
+        
+        if (successful) {
+          addToast('Registration link copied to clipboard!', 2000);
+        } else {
+          throw new Error('execCommand copy failed');
+        }
+      } catch (err) {
+        document.body.removeChild(textarea);
+        throw err;
+      }
+    } catch (error) {
+      console.error('Error copying registration link to clipboard:', error);
+      addToast('Failed to copy registration link', 2000);
+    }
+  };
+  
   // Handle update preferences
   const handleUpdatePreferences = async () => {
     try {
@@ -574,17 +616,30 @@ function Profile() {
                           </span>
                         )}
                       </div>
-                      <button
-                        onClick={() => copyRegistrationKey(regKey.key)}
-                        disabled={isFullyClaimed}
-                        className={`px-3 py-1 rounded text-xs font-medium transition-colors flex-shrink-0 ml-2 ${
-                          isFullyClaimed
-                            ? 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-50'
-                            : 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800'
-                        }`}
-                      >
-                        Copy Code
-                      </button>
+                      <div className="flex gap-2 flex-shrink-0 ml-2">
+                        <button
+                          onClick={() => copyRegistrationKey(regKey.key)}
+                          disabled={isFullyClaimed}
+                          className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                            isFullyClaimed
+                              ? 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-50'
+                              : 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800'
+                          }`}
+                        >
+                          Copy Code
+                        </button>
+                        <button
+                          onClick={() => copyRegistrationLink(regKey.key)}
+                          disabled={isFullyClaimed}
+                          className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                            isFullyClaimed
+                              ? 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-50'
+                              : 'bg-green-600 text-white hover:bg-green-700 active:bg-green-800'
+                          }`}
+                        >
+                          Copy Link
+                        </button>
+                      </div>
                     </div>
                   );
                 })

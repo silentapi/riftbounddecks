@@ -35,6 +35,25 @@ function Login() {
     }
   }, []);
   
+  // Check for registration code in URL and auto-fill
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    
+    if (code) {
+      // Switch to register mode
+      setIsRegisterMode(true);
+      // Auto-fill the invite code
+      setFormData(prev => ({
+        ...prev,
+        inviteCode: code
+      }));
+      // Clear the code from URL to keep it clean
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, []);
+  
   // Update theme class when isDarkMode changes
   useEffect(() => {
     if (isDarkMode) {

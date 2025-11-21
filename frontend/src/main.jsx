@@ -101,6 +101,19 @@ function Router() {
     return <Profile />;
   }
   
+  // Register link route - redirects to login with code parameter
+  if (path.startsWith('/register/')) {
+    const codeMatch = path.match(/^\/register\/(.+)$/);
+    if (codeMatch) {
+      const code = codeMatch[1];
+      // Redirect to login page with code as query parameter
+      const loginUrl = `/login?code=${encodeURIComponent(code)}`;
+      window.history.replaceState(null, '', loginUrl);
+      setPath('/login');
+      return <Login />;
+    }
+  }
+  
   // Default to Login for unknown routes
   return <Login />;
 }
