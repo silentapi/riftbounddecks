@@ -7,8 +7,10 @@ import RegistrationKey from '../models/RegistrationKey.js';
 import RegistrationUsage from '../models/RegistrationUsage.js';
 import RefreshToken from '../models/RefreshToken.js';
 import { authenticate } from '../middleware/auth.js';
+import { isMasterKey } from '../config/masterKey.js';
 import logger from '../config/logger.js';
 import crypto from 'crypto';
+import { sanitizeForLogging } from '../utils/sanitize.js';
 
 const router = express.Router();
 
@@ -110,7 +112,7 @@ router.post('/register', [
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       logger.warn('Registration validation failed', {
-        errors: errors.array(),
+        errors: sanitizeForLogging(errors.array()),
         username: req.body.username,
         email: req.body.email
       });
@@ -157,34 +159,47 @@ router.post('/register', [
       }
     }
 
-    // Validate registration key
-    const regKey = await RegistrationKey.findOne({ key: registrationKey });
+    // Check if it's the in-memory master key first
+    const isMasterRegistrationKey = isMasterKey(registrationKey);
     
-    if (!regKey) {
-      logger.warn('Registration failed: Invalid registration key', {
+    let regKey = null;
+    
+    if (isMasterRegistrationKey) {
+      // Master key is valid - no need to check database
+      logger.info('Registration using master key (in-memory)', {
         username,
-        email,
-        registrationKey
+        email
       });
-      return res.status(404).json({
-        error: 'Not Found',
-        message: 'Registration key not found'
-      });
-    }
+    } else {
+      // Validate registration key from database
+      regKey = await RegistrationKey.findOne({ key: registrationKey });
+      
+      if (!regKey) {
+        logger.warn('Registration failed: Invalid registration key', {
+          username,
+          email,
+          registrationKey
+        });
+        return res.status(404).json({
+          error: 'Not Found',
+          message: 'Registration key not found'
+        });
+      }
 
-    // Check if key can be used
-    if (!regKey.canBeUsed()) {
-      logger.warn('Registration failed: Registration key exhausted', {
-        username,
-        email,
-        registrationKey: regKey.key,
-        currentUses: regKey.currentUses,
-        maxUses: regKey.maxUses
-      });
-      return res.status(403).json({
-        error: 'Forbidden',
-        message: 'Registration key has been exhausted'
-      });
+      // Check if key can be used
+      if (!regKey.canBeUsed()) {
+        logger.warn('Registration failed: Registration key exhausted', {
+          username,
+          email,
+          registrationKey: regKey.key,
+          currentUses: regKey.currentUses,
+          maxUses: regKey.maxUses
+        });
+        return res.status(403).json({
+          error: 'Forbidden',
+          message: 'Registration key has been exhausted'
+        });
+      }
     }
 
     // Hash password
@@ -221,20 +236,26 @@ router.post('/register', [
       preferencesId: preferences._id.toString()
     });
 
-    // Increment registration key usage
-    await regKey.incrementUsage();
+    // Increment registration key usage (only for database keys, not master key)
+    if (!isMasterRegistrationKey && regKey) {
+      await regKey.incrementUsage();
 
-    // Create registration usage record
-    const usage = new RegistrationUsage({
-      registrationKeyId: regKey._id,
-      registeredUserId: user._id
-    });
-    await usage.save();
+      // Create registration usage record
+      const usage = new RegistrationUsage({
+        registrationKeyId: regKey._id,
+        registeredUserId: user._id
+      });
+      await usage.save();
 
-    logger.debug('Registration usage recorded', {
-      registrationKeyId: regKey._id.toString(),
-      registeredUserId: user._id.toString()
-    });
+      logger.debug('Registration usage recorded', {
+        registrationKeyId: regKey._id.toString(),
+        registeredUserId: user._id.toString()
+      });
+    } else {
+      logger.debug('Registration using master key - no usage tracking', {
+        userId: user._id.toString()
+      });
+    }
 
     // Create 3 separate single-use registration keys for new user
     const newUserRegKeys = [];
@@ -335,7 +356,7 @@ router.post('/login', [
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       logger.warn('Login validation failed', {
-        errors: errors.array()
+        errors: sanitizeForLogging(errors.array())
       });
       return res.status(400).json({
         error: 'Validation Error',
@@ -657,6 +678,101 @@ router.post('/logout', authenticate, async (req, res, next) => {
 
     res.json({
       message: 'Logged out successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * POST /api/auth/change-password
+ * Change user password
+ */
+router.post('/change-password', authenticate, [
+  body('currentPassword')
+    .notEmpty()
+    .withMessage('Current password is required'),
+  body('newPassword')
+    .isLength({ min: 8 })
+    .withMessage('Password must be at least 8 characters long')
+    .matches(/^(?=.*[a-zA-Z])(?=.*\d)/)
+    .withMessage('Password must contain at least one letter and one number')
+], async (req, res, next) => {
+  try {
+    // Check validation errors
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      logger.warn('Change password validation failed', {
+        errors: sanitizeForLogging(errors.array()),
+        userId: req.userId
+      });
+      return res.status(400).json({
+        error: 'Validation Error',
+        message: errors.array().map(e => e.msg).join(', ')
+      });
+    }
+
+    const { currentPassword, newPassword } = req.body;
+
+    logger.info('Password change attempt', {
+      userId: req.userId,
+      username: req.user.username
+    });
+
+    // Get user with password_hash
+    const user = await User.findById(req.userId).select('+password_hash');
+
+    if (!user) {
+      logger.warn('Password change failed: User not found', {
+        userId: req.userId
+      });
+      return res.status(404).json({
+        error: 'Not Found',
+        message: 'User not found'
+      });
+    }
+
+    // Verify current password
+    const isPasswordValid = await user.comparePassword(currentPassword);
+
+    if (!isPasswordValid) {
+      logger.warn('Password change failed: Invalid current password', {
+        userId: req.userId,
+        username: req.user.username
+      });
+      return res.status(401).json({
+        error: 'Unauthorized',
+        message: 'Current password is incorrect'
+      });
+    }
+
+    // Check if new password is the same as current password
+    const isSamePassword = await user.comparePassword(newPassword);
+    if (isSamePassword) {
+      logger.warn('Password change failed: New password same as current', {
+        userId: req.userId,
+        username: req.user.username
+      });
+      return res.status(400).json({
+        error: 'Validation Error',
+        message: 'New password must be different from current password'
+      });
+    }
+
+    // Hash new password
+    const newPasswordHash = await User.hashPassword(newPassword);
+
+    // Update password
+    user.password_hash = newPasswordHash;
+    await user.save();
+
+    logger.info('Password changed successfully', {
+      userId: req.userId,
+      username: req.user.username
+    });
+
+    res.json({
+      message: 'Password changed successfully'
     });
   } catch (error) {
     next(error);

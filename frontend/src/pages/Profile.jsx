@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import LayoutContainer from '../components/LayoutContainer';
-import { getUser } from '../utils/auth';
+import { getUser, changePassword } from '../utils/auth';
 import { getTheme } from '../utils/deckStorage';
 import { getProfilePictureUrl } from '../utils/profilePicture';
 import { getPreferences, updatePreferences, getRegistrationKeys } from '../utils/preferencesApi';
@@ -13,6 +13,7 @@ function Profile() {
   const [profilePictureUrl, setProfilePictureUrl] = useState(null);
   const [profilePictureLoading, setProfilePictureLoading] = useState(true);
   const [profileCardId, setProfileCardId] = useState('OGN-155'); // Default fallback
+  const profilePictureUrlRef = useRef(null); // Track current URL to prevent unnecessary resets
   
   // Preferences form state
   const [preferencesForm, setPreferencesForm] = useState({
@@ -31,6 +32,15 @@ function Profile() {
   // Registration keys state
   const [registrationKeys, setRegistrationKeys] = useState([]);
   const [registrationKeysLoading, setRegistrationKeysLoading] = useState(true);
+  
+  // Change password form state
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
   
   // Toast notifications state
   const [toasts, setToasts] = useState([]);
@@ -118,6 +128,8 @@ function Profile() {
         
         // Set profile card ID (this will trigger the useEffect to load the picture)
         setProfileCardId(cardId);
+        // Clear the ref when loading new preferences
+        profilePictureUrlRef.current = null;
       } catch (error) {
         console.error('Error loading preferences:', error);
         // Fallback to default card ID if preferences fail
@@ -151,19 +163,47 @@ function Profile() {
   // Reload profile picture when profileCardId changes (after preferences are saved)
   useEffect(() => {
     if (profileCardId) {
+      let isCancelled = false;
+      
       const loadPicture = async () => {
         try {
           setProfilePictureLoading(true);
           const url = await getProfilePictureUrl(profileCardId);
-          setProfilePictureUrl(url);
+          
+          // Only update if this effect hasn't been cancelled (cardId hasn't changed)
+          if (!isCancelled) {
+            if (url) {
+              setProfilePictureUrl(url);
+              profilePictureUrlRef.current = url;
+            } else {
+              // Only set to null if we got a null response and don't have a previous URL
+              // This prevents showing default when there's a transient error
+              if (!profilePictureUrlRef.current) {
+                setProfilePictureUrl(null);
+              }
+              console.warn('Profile picture URL is null for cardId:', profileCardId);
+            }
+          }
         } catch (error) {
           console.error('Error loading profile picture:', error);
-          setProfilePictureUrl(null);
+          // Don't reset to null on error - keep previous image if available
+          // Only set to null if this is the initial load (no previous URL)
+          if (!isCancelled && !profilePictureUrlRef.current) {
+            setProfilePictureUrl(null);
+          }
         } finally {
-          setProfilePictureLoading(false);
+          if (!isCancelled) {
+            setProfilePictureLoading(false);
+          }
         }
       };
+      
       loadPicture();
+      
+      // Cleanup function to prevent race conditions
+      return () => {
+        isCancelled = true;
+      };
     }
   }, [profileCardId]);
   
@@ -235,6 +275,9 @@ function Profile() {
     try {
       // Update preferences with new profile picture card ID
       await updatePreferences({ profilePictureCardId: cardId });
+      
+      // Clear the ref when changing card ID
+      profilePictureUrlRef.current = null;
       
       // Update local state
       setProfileCardId(cardId);
@@ -335,6 +378,68 @@ function Profile() {
     }
   };
   
+  // Handle password form field changes
+  const handlePasswordChange = (field, value) => {
+    setPasswordForm(prev => ({ ...prev, [field]: value }));
+    // Clear error when user starts typing
+    if (passwordError) {
+      setPasswordError('');
+    }
+  };
+  
+  // Handle change password
+  const handleChangePassword = async () => {
+    // Clear previous errors
+    setPasswordError('');
+    
+    // Client-side validation
+    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+      setPasswordError('All fields are required');
+      return;
+    }
+    
+    if (passwordForm.newPassword.length < 8) {
+      setPasswordError('New password must be at least 8 characters long');
+      return;
+    }
+    
+    if (!/^(?=.*[a-zA-Z])(?=.*\d)/.test(passwordForm.newPassword)) {
+      setPasswordError('New password must contain at least one letter and one number');
+      return;
+    }
+    
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordError('New passwords do not match');
+      return;
+    }
+    
+    try {
+      setChangingPassword(true);
+      
+      await changePassword({
+        currentPassword: passwordForm.currentPassword,
+        newPassword: passwordForm.newPassword
+      });
+      
+      // Clear form on success
+      setPasswordForm({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+      
+      // Show success toast
+      addToast('Password changed successfully!', 2000);
+    } catch (error) {
+      console.error('Error changing password:', error);
+      // Show error message
+      setPasswordError(error.message || 'Failed to change password');
+      addToast(error.message || 'Failed to change password', 3000);
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+  
   // Check if all loading is complete
   const isLoading = preferencesLoading || profilePictureLoading || registrationKeysLoading;
   
@@ -396,6 +501,12 @@ function Profile() {
                     alt="Profile Picture"
                     className="w-24 h-24 rounded-full border-2 object-cover transition-opacity hover:opacity-80"
                     style={{ borderColor: isDarkMode ? '#4B5563' : '#D1D5DB' }}
+                    onError={(e) => {
+                      // If image fails to load, don't reset to default - keep trying
+                      // This prevents the image from disappearing on transient errors
+                      console.warn('Profile picture image failed to load, but keeping URL:', profilePictureUrl);
+                      // Don't set src to null or empty - let the browser handle retries
+                    }}
                   />
                 ) : (
                   <div className={`w-24 h-24 rounded-full border-2 flex items-center justify-center transition-opacity hover:opacity-80 ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-200 border-gray-300'}`}>
@@ -571,6 +682,92 @@ function Profile() {
                   </button>
                 </div>
               )}
+            </div>
+            
+            {/* Change Password Section */}
+            <div className={`p-4 border-2 rounded ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-400'}`}>
+              <h3 className={`text-base font-bold mb-3 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                Change Password
+              </h3>
+              
+              <div className="space-y-3">
+                {/* Current Password */}
+                <div>
+                  <label className={`block text-xs font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Current Password
+                  </label>
+                  <input
+                    type="password"
+                    value={passwordForm.currentPassword}
+                    onChange={(e) => handlePasswordChange('currentPassword', e.target.value)}
+                    placeholder="Enter current password"
+                    className={`w-full px-2 py-1 rounded border text-sm ${
+                      isDarkMode 
+                        ? 'bg-gray-600 border-gray-500 text-gray-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500' 
+                        : 'bg-white border-gray-300 text-gray-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
+                    }`}
+                  />
+                </div>
+                
+                {/* New Password */}
+                <div>
+                  <label className={`block text-xs font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    New Password
+                  </label>
+                  <input
+                    type="password"
+                    value={passwordForm.newPassword}
+                    onChange={(e) => handlePasswordChange('newPassword', e.target.value)}
+                    placeholder="Enter new password"
+                    className={`w-full px-2 py-1 rounded border text-sm ${
+                      isDarkMode 
+                        ? 'bg-gray-600 border-gray-500 text-gray-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500' 
+                        : 'bg-white border-gray-300 text-gray-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
+                    }`}
+                  />
+                  <p className={`mt-1 text-[10px] ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    Min 8 characters, must contain letter and number
+                  </p>
+                </div>
+                
+                {/* Confirm New Password */}
+                <div>
+                  <label className={`block text-xs font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Confirm New Password
+                  </label>
+                  <input
+                    type="password"
+                    value={passwordForm.confirmPassword}
+                    onChange={(e) => handlePasswordChange('confirmPassword', e.target.value)}
+                    placeholder="Confirm new password"
+                    className={`w-full px-2 py-1 rounded border text-sm ${
+                      isDarkMode 
+                        ? 'bg-gray-600 border-gray-500 text-gray-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500' 
+                        : 'bg-white border-gray-300 text-gray-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
+                    }`}
+                  />
+                </div>
+                
+                {/* Error Message */}
+                {passwordError && (
+                  <div className={`text-xs px-2 py-1 rounded ${isDarkMode ? 'bg-red-900 text-red-200' : 'bg-red-100 text-red-700'}`}>
+                    {passwordError}
+                  </div>
+                )}
+                
+                {/* Change Password Button */}
+                <button
+                  onClick={handleChangePassword}
+                  disabled={changingPassword}
+                  className={`w-full py-2 px-3 rounded text-sm font-medium transition-colors ${
+                    changingPassword
+                      ? 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-50'
+                      : 'bg-blue-600 text-white shadow-md hover:bg-blue-700 active:bg-blue-800'
+                  }`}
+                >
+                  {changingPassword ? 'Changing...' : 'Change Password'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

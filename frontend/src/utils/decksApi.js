@@ -1,6 +1,57 @@
 // Decks API utility functions for server-side deck management
 
-import { authenticatedFetch } from './auth.js';
+import { authenticatedFetch, getToken } from './auth.js';
+
+// Determine API base URL dynamically
+function getApiBaseUrl() {
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  
+  // In production, use relative paths so nginx can proxy /api/* requests
+  const isProduction = import.meta.env.PROD || 
+                       import.meta.env.MODE === 'production' ||
+                       import.meta.env.VITE_ENVIRONMENT === 'prod';
+  
+  if (isProduction) {
+    // Return empty string to use relative paths (nginx will proxy /api/*)
+    return '';
+  }
+  
+  // In development, use localhost:3000
+  const protocol = window.location.protocol;
+  const hostname = window.location.hostname;
+  const port = '3000';
+  return `${protocol}//${hostname}:${port}`;
+}
+
+const API_BASE_URL = getApiBaseUrl();
+
+/**
+ * Make a fetch request with optional authentication
+ * Includes auth token if available, but doesn't fail if not authenticated
+ * @param {string} endpoint - API endpoint
+ * @param {Object} options - Fetch options
+ * @returns {Promise<Response>}
+ */
+async function optionalAuthFetch(endpoint, options = {}) {
+  const token = getToken();
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers
+  };
+  
+  // Include auth token if available
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  return fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
+    credentials: 'include',
+    headers
+  });
+}
 
 /**
  * Get all decks for the current user
@@ -25,13 +76,13 @@ export async function getDecks() {
 }
 
 /**
- * Get a single deck by ID
+ * Get a single deck by ID (supports public access for shared decks)
  * @param {string} deckId - Deck UUID
  * @returns {Promise<Object>} Deck object
  */
 export async function getDeck(deckId) {
   console.log('[DecksAPI] Fetching deck:', deckId);
-  const response = await authenticatedFetch(`/api/decks/${deckId}`);
+  const response = await optionalAuthFetch(`/api/decks/${deckId}`);
   
   if (!response.ok) {
     const result = await response.json();
@@ -42,7 +93,8 @@ export async function getDeck(deckId) {
   const deck = await response.json();
   console.log('[DecksAPI] Successfully fetched deck:', {
     id: deck.id,
-    name: deck.name
+    name: deck.name,
+    shared: deck.shared
   });
   return deck;
 }
@@ -172,5 +224,59 @@ export async function batchImportDecks(legacyDecks) {
     errors: result.results.errors.length
   });
   return result;
+}
+
+/**
+ * Toggle sharing status of a deck
+ * @param {string} deckId - Deck UUID
+ * @param {boolean} shared - Whether the deck should be shared
+ * @returns {Promise<Object>} Updated deck object
+ */
+export async function toggleDeckSharing(deckId, shared) {
+  console.log('[DecksAPI] Toggling deck sharing:', deckId, shared);
+  const response = await authenticatedFetch(`/api/decks/${deckId}/sharing`, {
+    method: 'PATCH',
+    body: JSON.stringify({ shared })
+  });
+  
+  if (!response.ok) {
+    const result = await response.json();
+    console.error('[DecksAPI] Failed to toggle sharing:', result);
+    throw new Error(result.message || result.error || 'Failed to toggle sharing');
+  }
+
+  const deck = await response.json();
+  console.log('[DecksAPI] Successfully toggled sharing:', {
+    id: deck.id,
+    shared: deck.shared
+  });
+  return deck;
+}
+
+/**
+ * Clone a public deck to the authenticated user's account
+ * @param {string} deckId - Deck UUID to clone
+ * @param {string} name - Optional name for the cloned deck
+ * @returns {Promise<Object>} Cloned deck object
+ */
+export async function cloneDeck(deckId, name = null) {
+  console.log('[DecksAPI] Cloning deck:', deckId, name);
+  const response = await authenticatedFetch(`/api/decks/${deckId}/clone`, {
+    method: 'POST',
+    body: JSON.stringify({ name })
+  });
+  
+  if (!response.ok) {
+    const result = await response.json();
+    console.error('[DecksAPI] Failed to clone deck:', result);
+    throw new Error(result.message || result.error || 'Failed to clone deck');
+  }
+
+  const deck = await response.json();
+  console.log('[DecksAPI] Successfully cloned deck:', {
+    id: deck.id,
+    name: deck.name
+  });
+  return deck;
 }
 

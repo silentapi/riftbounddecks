@@ -48,6 +48,8 @@ riftbounddecks/
 
 - [PLAN.md](./PLAN.md) - Full project specifications
 - [AGENTS.md](./AGENTS.md) - Development guidelines and workflows
+- [SETUP.md](./SETUP.md) - Initial server setup guide (one-time)
+- [DEPLOYMENT.md](./DEPLOYMENT.md) - Deployment guide for VPS
 
 ## ✨ Features
 
@@ -56,6 +58,23 @@ riftbounddecks/
 - Build decks in a visual grid-based editor
 - Save, export, import, and randomize decks
 - Manage leaders, battlefields, runes, and side decks
+
+## 🚢 Deployment
+
+Deploy both frontend and backend to the VPS:
+
+```bash
+# Full deployment (frontend + backend)
+./scripts/deploy.sh
+
+# Backend only
+./scripts/deploy-backend.sh
+
+# Frontend only
+cd frontend && npm run deploy
+```
+
+See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.
 
 ---
 

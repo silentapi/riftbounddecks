@@ -8,8 +8,18 @@ function getApiBaseUrl() {
     return import.meta.env.VITE_API_BASE_URL;
   }
   
-  // Use current hostname with port 3000 (backend port)
-  // This works for both localhost and IP addresses
+  // In production, use relative paths so nginx can proxy /api/* requests
+  // Check for production mode or production environment
+  const isProduction = import.meta.env.PROD || 
+                       import.meta.env.MODE === 'production' ||
+                       import.meta.env.VITE_ENVIRONMENT === 'prod';
+  
+  if (isProduction) {
+    // Return empty string to use relative paths (nginx will proxy /api/*)
+    return '';
+  }
+  
+  // In development, use localhost:3000
   const protocol = window.location.protocol;
   const hostname = window.location.hostname;
   const port = '3000'; // Backend port
@@ -363,6 +373,30 @@ export async function getCurrentUser() {
   const user = await response.json();
   setUser(user); // Update stored user
   return user;
+}
+
+/**
+ * Change user password
+ * @param {Object} data - Password change data
+ * @param {string} data.currentPassword - Current password
+ * @param {string} data.newPassword - New password
+ * @returns {Promise<Object>} - Response with success message
+ */
+export async function changePassword(data) {
+  const response = await authenticatedFetch('/api/auth/change-password', {
+    method: 'POST',
+    body: JSON.stringify({
+      currentPassword: data.currentPassword,
+      newPassword: data.newPassword
+    })
+  });
+
+  if (!response.ok) {
+    const result = await response.json();
+    throw new Error(result.message || result.error || 'Failed to change password');
+  }
+
+  return await response.json();
 }
 
 /**

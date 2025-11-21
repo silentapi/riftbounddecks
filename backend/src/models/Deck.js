@@ -95,6 +95,11 @@ const deckSchema = new mongoose.Schema({
     default: null,
     index: true,
     sparse: true // Only index documents that have this field
+  },
+  shared: {
+    type: Boolean,
+    default: false,
+    index: true
   }
 }, {
   timestamps: false, // We're managing timestamps manually

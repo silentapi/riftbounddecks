@@ -107,3 +107,81 @@ export const authenticate = async (req, res, next) => {
   }
 };
 
+/**
+ * Optional authentication middleware
+ * Attempts to authenticate but allows requests to proceed even if no token is provided
+ * Sets req.userId if authentication succeeds, otherwise leaves it undefined
+ */
+export const optionalAuthenticate = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      // No token provided - allow request to proceed
+      logger.debug('Optional auth: No token provided', {
+        path: req.path,
+        method: req.method
+      });
+      return next();
+    }
+
+    const token = authHeader.substring(7);
+
+    if (!token) {
+      // Empty token - allow request to proceed
+      logger.debug('Optional auth: Empty token', {
+        path: req.path,
+        method: req.method
+      });
+      return next();
+    }
+
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // Find user and attach to request
+    const user = await User.findById(decoded.userId).select('-password_hash');
+    
+    if (user) {
+      req.user = user;
+      req.userId = user._id.toString();
+      logger.debug('Optional auth: Authentication successful', {
+        userId: req.userId,
+        username: user.username,
+        path: req.path,
+        method: req.method
+      });
+    } else {
+      logger.debug('Optional auth: User not found', {
+        userId: decoded.userId,
+        path: req.path,
+        method: req.method
+      });
+    }
+
+    next();
+  } catch (error) {
+    // For optional auth, we ignore token errors and allow request to proceed
+    // This allows unauthenticated access to public resources
+    if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
+      logger.debug('Optional auth: Token invalid or expired, proceeding without auth', {
+        error: error.message,
+        path: req.path,
+        method: req.method
+      });
+      return next();
+    }
+
+    // Only log unexpected errors
+    logger.error('Optional auth error:', {
+      error: error.message,
+      stack: error.stack,
+      path: req.path,
+      method: req.method
+    });
+    
+    // For unexpected errors, still allow request to proceed
+    next();
+  }
+};
+

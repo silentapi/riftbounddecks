@@ -4,14 +4,30 @@ import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import connectDB from './config/database.js';
 import logger from './config/logger.js';
+import { getMasterRegistrationKey } from './config/masterKey.js';
 import { requestLogger } from './middleware/requestLogger.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/user.js';
 import deckRoutes from './routes/decks.js';
+import cardRoutes from './routes/cards.js';
 
 // Load environment variables
 dotenv.config();
+
+// Validate required environment variables
+const requiredEnvVars = ['JWT_SECRET', 'MONGODB_URI'];
+const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingVars.length > 0) {
+  console.error('❌ ERROR: Missing required environment variables:');
+  missingVars.forEach(varName => {
+    console.error(`   - ${varName}`);
+  });
+  console.error('\nPlease ensure these are set in your .env file or environment.');
+  console.error('For JWT_SECRET, generate a secure value with: openssl rand -hex 32');
+  process.exit(1);
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -26,13 +42,42 @@ const corsOptions = {
       return callback(null, true);
     }
     
-    logger.info('CORS: Checking origin', { origin });
+    logger.info('CORS: Checking origin', { origin, FRONTEND_URL: process.env.FRONTEND_URL });
     
-    // If FRONTEND_URL is set, use it
+    // If FRONTEND_URL is set, use it (normalize by removing trailing slash and converting to lowercase)
     if (process.env.FRONTEND_URL) {
-      if (origin === process.env.FRONTEND_URL) {
-        logger.info('CORS: Allowed by FRONTEND_URL', { origin });
+      const frontendUrl = process.env.FRONTEND_URL.trim().replace(/\/$/, '').toLowerCase();
+      const originNormalized = origin.trim().replace(/\/$/, '').toLowerCase();
+      
+      logger.info('CORS: Comparing URLs', { 
+        originNormalized, 
+        frontendUrl, 
+        match: originNormalized === frontendUrl,
+        originLength: origin.length,
+        frontendUrlLength: frontendUrl.length
+      });
+      
+      if (originNormalized === frontendUrl) {
+        logger.info('CORS: Allowed by FRONTEND_URL', { origin, frontendUrl });
         return callback(null, true);
+      }
+      
+      // Also allow http version if FRONTEND_URL is https (for development/testing)
+      if (frontendUrl.startsWith('https://')) {
+        const httpVariant = frontendUrl.replace('https://', 'http://');
+        if (originNormalized === httpVariant) {
+          logger.info('CORS: Allowed by FRONTEND_URL (http variant)', { origin, frontendUrl, httpVariant });
+          return callback(null, true);
+        }
+      }
+      
+      // Also allow https version if FRONTEND_URL is http (for production)
+      if (frontendUrl.startsWith('http://') && !frontendUrl.startsWith('https://')) {
+        const httpsVariant = frontendUrl.replace('http://', 'https://');
+        if (originNormalized === httpsVariant) {
+          logger.info('CORS: Allowed by FRONTEND_URL (https variant)', { origin, frontendUrl, httpsVariant });
+          return callback(null, true);
+        }
       }
     }
     
@@ -51,7 +96,11 @@ const corsOptions = {
     }
     
     // Log blocked origins for debugging
-    logger.warn('CORS blocked origin:', { origin });
+    logger.warn('CORS blocked origin:', { 
+      origin, 
+      FRONTEND_URL: process.env.FRONTEND_URL,
+      NODE_ENV: process.env.NODE_ENV 
+    });
     callback(new Error(`Not allowed by CORS: ${origin}`));
   },
   credentials: true,
@@ -61,6 +110,10 @@ const corsOptions = {
   preflightContinue: false,
   optionsSuccessStatus: 204
 };
+
+// Trust proxy - required when behind nginx reverse proxy
+// This allows req.ip, req.protocol, etc. to work correctly
+app.set('trust proxy', 1);
 
 app.use(cors(corsOptions));
 
@@ -84,12 +137,14 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/decks', deckRoutes);
+app.use('/api/cards', cardRoutes);
 
 // 404 handler (must be after all routes)
 app.use(notFoundHandler);
 
 // Error handler (must be last)
 app.use(errorHandler);
+
 
 // Start server
 const startServer = async () => {
@@ -105,6 +160,21 @@ const startServer = async () => {
         environment: process.env.NODE_ENV || 'development',
         nodeVersion: process.version,
         accessibleAt: `http://localhost:${PORT} and http://<your-ip>:${PORT}`
+      });
+      
+      // Log master registration key to console
+      const masterKey = getMasterRegistrationKey();
+      console.log('\n' + '='.repeat(60));
+      console.log('🔑 MASTER REGISTRATION KEY (Generated on boot)');
+      console.log('='.repeat(60));
+      console.log(`Key: ${masterKey}`);
+      console.log('Note: This key is valid for unlimited registrations');
+      console.log('      It will change on the next server restart');
+      console.log('='.repeat(60) + '\n');
+      
+      logger.info('Master registration key generated', {
+        key: masterKey,
+        note: 'Key is in-memory only and will change on restart'
       });
     });
   } catch (error) {

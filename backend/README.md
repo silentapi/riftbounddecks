@@ -9,7 +9,6 @@ Node.js Express backend server for the Riftbound TCG Deckbuilder application.
 - **Invite System**: Each user receives 3 claimable invite codes upon registration
 - **MongoDB Integration**: Document-based database for users, preferences, and registration keys
 - **Verbose Logging**: Rolling log files in `logs/` directory with daily rotation
-- **Colyseus-Ready**: Designed with future game server integration in mind
 
 ## Tech Stack
 
@@ -120,11 +119,6 @@ Logs are kept for 14 days (30 days for errors) and rotated when they exceed 20MB
 3. Users can view their invite code and see who registered using it
 4. Master keys (admin-created) have unlimited uses
 
-## Future Integration with Colyseus
-
-The backend is structured to easily integrate Colyseus game server:
-
-- Authentication tokens can be validated by Colyseus
 - User data is accessible via MongoDB
 - Separate game server can run alongside Express API
 - Shared database allows seamless data access

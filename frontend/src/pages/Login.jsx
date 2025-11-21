@@ -224,6 +224,11 @@ function Login() {
                     placeholder="Enter your password"
                     autoComplete={isRegisterMode ? "new-password" : "current-password"}
                   />
+                  {isRegisterMode && (
+                    <p className={`mt-1 text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                      Min 8 characters, must contain letter and number
+                    </p>
+                  )}
                 </div>
                 
                 {/* Email Field (Register only) */}

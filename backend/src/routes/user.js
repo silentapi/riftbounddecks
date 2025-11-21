@@ -4,6 +4,7 @@ import User from '../models/User.js';
 import UserPreferences from '../models/UserPreferences.js';
 import { authenticate } from '../middleware/auth.js';
 import logger from '../config/logger.js';
+import { sanitizeForLogging } from '../utils/sanitize.js';
 
 const router = express.Router();
 
@@ -234,7 +235,7 @@ router.post('/change-password', [
     if (!errors.isEmpty()) {
       logger.warn('Change password validation failed', {
         userId: req.userId,
-        errors: errors.array()
+        errors: sanitizeForLogging(errors.array())
       });
       return res.status(400).json({
         error: 'Validation Error',

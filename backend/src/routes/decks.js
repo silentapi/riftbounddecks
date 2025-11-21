@@ -2,7 +2,7 @@ import express from 'express';
 import { body, validationResult, param } from 'express-validator';
 import Deck from '../models/Deck.js';
 import UserPreferences from '../models/UserPreferences.js';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, optionalAuthenticate } from '../middleware/auth.js';
 import logger from '../config/logger.js';
 import { randomUUID } from 'crypto';
 
@@ -30,9 +30,12 @@ router.get('/', authenticate, async (req, res, next) => {
 /**
  * GET /api/decks/:id
  * Get a single deck by ID (UUID)
+ * - If user is authenticated and owns the deck: returns deck
+ * - If deck is shared: returns deck (even for unauthenticated users)
+ * - If deck is not shared and user doesn't own it: returns 404
  */
 router.get('/:id', [
-  authenticate,
+  optionalAuthenticate,
   param('id').trim().notEmpty().withMessage('Deck ID is required')
 ], async (req, res, next) => {
   try {
@@ -45,17 +48,19 @@ router.get('/:id', [
     }
 
     const { id } = req.params;
+    const userId = req.userId; // May be undefined if not authenticated
 
     logger.debug('Get deck', {
-      userId: req.userId,
+      userId: userId || 'anonymous',
       deckId: id
     });
 
-    const deck = await Deck.findOne({ id, userId: req.userId });
+    // Find deck by ID
+    const deck = await Deck.findOne({ id });
 
     if (!deck) {
       logger.warn('Deck not found', {
-        userId: req.userId,
+        userId: userId || 'anonymous',
         deckId: id
       });
       return res.status(404).json({
@@ -63,6 +68,29 @@ router.get('/:id', [
         message: 'Deck not found'
       });
     }
+
+    // Check access: user owns deck OR deck is shared
+    const isOwner = userId && deck.userId.toString() === userId;
+    const isShared = deck.shared === true;
+
+    if (!isOwner && !isShared) {
+      logger.warn('Deck access denied: Not shared and user is not owner', {
+        userId: userId || 'anonymous',
+        deckId: id,
+        deckOwner: deck.userId.toString()
+      });
+      return res.status(404).json({
+        error: 'Not Found',
+        message: 'Deck is not public'
+      });
+    }
+
+    logger.debug('Deck access granted', {
+      userId: userId || 'anonymous',
+      deckId: id,
+      isOwner,
+      isShared
+    });
 
     res.json(deck);
   } catch (error) {
@@ -694,6 +722,205 @@ router.post('/batchimport', [
       error: error.message,
       stack: error.stack
     });
+    next(error);
+  }
+});
+
+/**
+ * PATCH /api/decks/:id/sharing
+ * Toggle sharing status of a deck (owner only)
+ */
+router.patch('/:id/sharing', [
+  authenticate,
+  param('id').trim().notEmpty().withMessage('Deck ID is required'),
+  body('shared')
+    .isBoolean()
+    .withMessage('Shared must be a boolean value')
+], async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      logger.warn('Toggle sharing validation failed', {
+        userId: req.userId,
+        deckId: req.params.id,
+        errors: errors.array()
+      });
+      return res.status(400).json({
+        error: 'Validation Error',
+        message: errors.array().map(e => e.msg).join(', ')
+      });
+    }
+
+    const { id } = req.params;
+    const { shared } = req.body;
+
+    logger.info('Toggle deck sharing', {
+      userId: req.userId,
+      deckId: id,
+      shared
+    });
+
+    // Find deck and verify ownership
+    const deck = await Deck.findOne({ id, userId: req.userId });
+
+    if (!deck) {
+      logger.warn('Toggle sharing failed: Deck not found', {
+        userId: req.userId,
+        deckId: id
+      });
+      return res.status(404).json({
+        error: 'Not Found',
+        message: 'Deck not found'
+      });
+    }
+
+    deck.shared = shared;
+    deck.updatedAt = new Date();
+    await deck.save();
+
+    logger.info('Deck sharing toggled', {
+      userId: req.userId,
+      deckId: deck.id,
+      shared: deck.shared
+    });
+
+    res.json(deck);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * POST /api/decks/:id/clone
+ * Clone a public deck to the authenticated user's account
+ */
+router.post('/:id/clone', [
+  authenticate,
+  param('id').trim().notEmpty().withMessage('Deck ID is required'),
+  body('name')
+    .optional()
+    .trim()
+    .isLength({ min: 1, max: 64 })
+    .withMessage('Deck name must be between 1 and 64 characters')
+], async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      logger.warn('Clone deck validation failed', {
+        userId: req.userId,
+        deckId: req.params.id,
+        errors: errors.array()
+      });
+      return res.status(400).json({
+        error: 'Validation Error',
+        message: errors.array().map(e => e.msg).join(', ')
+      });
+    }
+
+    const { id } = req.params;
+    const { name } = req.body;
+
+    logger.info('Clone deck', {
+      userId: req.userId,
+      deckId: id,
+      requestedName: name
+    });
+
+    // Find the source deck (must be shared or owned by user)
+    const sourceDeck = await Deck.findOne({ id });
+
+    if (!sourceDeck) {
+      logger.warn('Clone deck failed: Source deck not found', {
+        userId: req.userId,
+        deckId: id
+      });
+      return res.status(404).json({
+        error: 'Not Found',
+        message: 'Deck not found'
+      });
+    }
+
+    // Check if deck is accessible (shared or owned by user)
+    const isOwner = sourceDeck.userId.toString() === req.userId;
+    const isShared = sourceDeck.shared === true;
+
+    if (!isOwner && !isShared) {
+      logger.warn('Clone deck failed: Deck is not public', {
+        userId: req.userId,
+        deckId: id
+      });
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'Deck is not public'
+      });
+    }
+
+    // Determine the new deck name
+    let newDeckName = name || `Copy of ${sourceDeck.name}`;
+    
+    // Check for duplicate name (case-insensitive) for this user
+    const existingDeck = await Deck.findOne({
+      userId: req.userId,
+      name: { $regex: new RegExp(`^${newDeckName.trim()}$`, 'i') }
+    });
+
+    if (existingDeck) {
+      // If name already exists, append a number
+      let counter = 1;
+      let finalName = `${newDeckName.trim()} (${counter})`;
+      while (await Deck.findOne({
+        userId: req.userId,
+        name: { $regex: new RegExp(`^${finalName}$`, 'i') }
+      })) {
+        counter++;
+        finalName = `${newDeckName.trim()} (${counter})`;
+      }
+      newDeckName = finalName;
+    } else {
+      newDeckName = newDeckName.trim();
+    }
+
+    // Generate new UUID for the cloned deck
+    const newDeckId = randomUUID();
+
+    // Create cloned deck
+    const clonedDeck = new Deck({
+      id: newDeckId,
+      userId: req.userId,
+      name: newDeckName,
+      cards: {
+        mainDeck: [...sourceDeck.cards.mainDeck],
+        chosenChampion: sourceDeck.cards.chosenChampion,
+        sideDeck: [...sourceDeck.cards.sideDeck],
+        battlefields: [...sourceDeck.cards.battlefields],
+        runeACount: sourceDeck.cards.runeACount,
+        runeBCount: sourceDeck.cards.runeBCount,
+        runeAVariantIndex: sourceDeck.cards.runeAVariantIndex,
+        runeBVariantIndex: sourceDeck.cards.runeBVariantIndex,
+        legendCard: sourceDeck.cards.legendCard
+      },
+      shared: false, // Cloned decks are private by default
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+
+    await clonedDeck.save();
+
+    logger.info('Deck cloned', {
+      userId: req.userId,
+      sourceDeckId: id,
+      newDeckId: clonedDeck.id,
+      newDeckName: clonedDeck.name
+    });
+
+    res.status(201).json(clonedDeck);
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({
+        error: 'Conflict',
+        message: 'A deck with this name already exists'
+      });
+    }
     next(error);
   }
 });

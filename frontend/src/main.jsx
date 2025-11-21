@@ -44,7 +44,8 @@ function Router() {
         return;
       }
       // If not logged in, stay on /login
-    } else if (currentPath === '/deck' || currentPath.startsWith('/deck/')) {
+    } else if (currentPath === '/deck') {
+      // /deck without a code requires login
       if (!loggedIn) {
         // Not logged in, redirect to login (via /)
         console.log('[Router] Not logged in, redirecting from /deck to /');
@@ -52,6 +53,9 @@ function Router() {
         setPath('/');
         return;
       }
+    } else if (currentPath.startsWith('/deck/')) {
+      // /deck/<code> allows viewing without login (for shared decks)
+      // No redirect needed - allow access
     } else if (currentPath === '/profile') {
       if (!loggedIn) {
         // Not logged in, redirect to login (via /)
@@ -77,12 +81,14 @@ function Router() {
     return <Login />;
   }
   
-  // App.jsx handles /deck and /deck/<code> routes - requires authentication
+  // App.jsx handles /deck and /deck/<code> routes
+  // /deck requires authentication, /deck/<code> allows viewing without login
   if (path === '/deck' || path.startsWith('/deck/')) {
-    if (!isLoggedIn()) {
-      // Not logged in, will redirect in useEffect
+    if (path === '/deck' && !isLoggedIn()) {
+      // /deck without code requires login, will redirect in useEffect
       return null;
     }
+    // /deck/<code> is allowed without login for viewing shared decks
     return <App />;
   }
   

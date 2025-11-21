@@ -1,18 +1,19 @@
 import logger from '../config/logger.js';
+import { sanitizeRequestBody } from '../utils/sanitize.js';
 
 /**
  * Global error handling middleware
  * Catches all errors and returns appropriate JSON responses
  */
 export const errorHandler = (err, req, res, next) => {
-  // Log the error
+  // Log the error (sanitize body to remove passwords)
   logger.error('Request error:', {
     error: err.message,
     stack: err.stack,
     path: req.path,
     method: req.method,
     userId: req.userId || 'anonymous',
-    body: req.body,
+    body: sanitizeRequestBody(req.body),
     query: req.query
   });
 

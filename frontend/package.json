@@ -6,9 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:prod": "VITE_ENVIRONMENT=prod vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "deploy": "rm -rf dist/ && npm run build && cd dist && zip -r html.zip . && scp html.zip root@rift.basedboats.com:/var/www/html/ && ssh root@rift.basedboats.com \"cd /var/www/html && find . -mindepth 1 ! -name 'html.zip' -exec rm -rf {} + && unzip -o html.zip && rm html.zip\" && cd .."
+    "deploy": "rm -rf dist/ && npm run build:prod && cd dist && zip -r html.zip . && scp html.zip root@rift.basedboats.com:/var/www/html/ && ssh root@rift.basedboats.com \"cd /var/www/html && find . -mindepth 1 ! -name 'html.zip' -exec rm -rf {} + && unzip -o html.zip && rm html.zip\" && cd .. && rm -f dist/html.zip",
+    "deploy:frontend": "npm run deploy"
   },
   "dependencies": {
     "html2canvas": "^1.4.1",

@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import LayoutContainer from './components/LayoutContainer';
-import cardsData from './data/cards.json';
 import { domToPng } from 'modern-screenshot';
 import {
   findDeckByNameCI,
@@ -19,9 +18,11 @@ import {
   setDefaultDeckId
 } from './utils/deckStorage';
 import { validateDeck as validateDeckRules } from './utils/deckValidation';
-import { getDecks, ensureOneDeck, updateDeck, createDeck as createDeckApi, getDeck, deleteDeck as deleteDeckApi } from './utils/decksApi';
+import { getDecks, ensureOneDeck, updateDeck, createDeck as createDeckApi, getDeck, deleteDeck as deleteDeckApi, toggleDeckSharing, cloneDeck } from './utils/decksApi';
 import { getPreferences, updatePreferences } from './utils/preferencesApi';
 import { migrateLegacyDecks } from './utils/legacyMigration';
+import { isLoggedIn } from './utils/auth';
+import { getCards } from './utils/cardsApi';
 
 function App() {
   // Helper function to parse card ID with variant index
@@ -57,7 +58,7 @@ function App() {
   
   // Function to get card details by variant number (handles both "OGN-249" and "OGN-249-1" formats)
   const getCardDetails = (cardId) => {
-    if (!cardId) return null;
+    if (!cardId || !cardsData || cardsData.length === 0) return null;
     const { baseId } = parseCardId(cardId);
     return cardsData.find(card => card.variantNumber === baseId);
   };
@@ -65,6 +66,11 @@ function App() {
   // Function to get card image URL - uses variantImages array based on variant index
   const getCardImageUrl = (cardId) => {
     if (!cardId) return 'https://cdn.piltoverarchive.com/Cardback.webp';
+    
+    if (!cardsData || cardsData.length === 0) {
+      // Fallback if cards haven't loaded yet
+      return `https://cdn.piltoverarchive.com/cards/${cardId}.webp`;
+    }
     
     const { baseId, variantIndex } = parseCardId(cardId);
     const card = cardsData.find(c => c.variantNumber === baseId);
@@ -198,6 +204,19 @@ function App() {
   const [loadingDecks, setLoadingDecks] = useState(true);
   const hasMigratedRef = useRef(false);
   
+  // Cards data state - loaded from backend API
+  const [cardsData, setCardsData] = useState([]);
+  const [cardsLoading, setCardsLoading] = useState(true);
+  
+  // Read-only mode state (when viewing someone else's deck)
+  const [isReadOnly, setIsReadOnly] = useState(false);
+  const [currentDeckMetadata, setCurrentDeckMetadata] = useState({
+    isOwner: true,
+    isShared: false,
+    deckId: null,
+    deckName: null // Store deck name for shared decks
+  });
+  
   // Name input modal state
   const [nameModal, setNameModal] = useState({
     isOpen: false,
@@ -269,7 +288,10 @@ function App() {
   const [exportModal, setExportModal] = useState({
     isOpen: false,
     deckCode: '',
-    runLengthCode: ''
+    runLengthCode: '',
+    deckId: null,
+    isShared: false,
+    isOwner: true
   });
   
   // Variant selection modal state
@@ -418,6 +440,27 @@ function App() {
     };
   }, []);
   
+  // Load cards from backend API on mount
+  useEffect(() => {
+    const loadCards = async () => {
+      try {
+        console.log('[App] Loading cards from API...');
+        setCardsLoading(true);
+        const cards = await getCards();
+        setCardsData(cards);
+        console.log('[App] Loaded cards:', cards.length, 'cards');
+      } catch (error) {
+        console.error('[App] Error loading cards:', error);
+        // Set empty array on error to prevent crashes
+        setCardsData([]);
+      } finally {
+        setCardsLoading(false);
+      }
+    };
+    
+    loadCards();
+  }, []);
+  
   const [containerScale, setContainerScale] = useState(1);
   
   // Toggle dark mode with persistence
@@ -534,6 +577,63 @@ function App() {
     }
     
       try {
+        const loggedIn = isLoggedIn();
+        const path = window.location.pathname;
+        const deckMatch = path.match(/^\/deck\/(.+)$/);
+        
+        // If not logged in and we have a deck URL, try to load it directly
+        if (!loggedIn && deckMatch) {
+          console.log('[DeckBuilder] Not logged in, loading deck from URL directly...');
+          const encodedCode = deckMatch[1];
+          hasLoadedFromUrlRef.current = true;
+          const decodedCode = decodeURIComponent(encodedCode);
+          
+          // Set default theme (dark mode)
+          setIsDarkMode(true);
+          setThemeLocal('dark');
+          document.documentElement.classList.add('dark');
+          setLoadingDecks(false);
+          
+          // Only support UUID - must be a valid deck UUID
+          if (!isValidUUID(decodedCode)) {
+            console.error('[DeckBuilder] Invalid UUID format in URL:', decodedCode);
+            await showNotification('Invalid Deck URL', 'The deck URL must be a valid deck UUID.');
+            setLoadingDecks(false);
+            window.location.href = '/';
+            return;
+          }
+          
+          try {
+            const deck = await getDeck(decodedCode);
+            console.log('[DeckBuilder] Loaded public deck from API:', deck.name, deck.id, 'shared:', deck.shared);
+            setCurrentDeckId(null); // Set to null for shared decks
+            loadDeckCards(deck.cards);
+            setSelectedCard(deck.cards.legendCard || null);
+            setIsReadOnly(true);
+            setCurrentDeckMetadata({
+              isOwner: false,
+              isShared: deck.shared || false,
+              deckId: deck.id,
+              deckName: deck.name
+            });
+            return; // Exit early
+          } catch (apiError) {
+            console.error('[DeckBuilder] Failed to load deck:', apiError);
+            await showNotification('Deck Not Public', 'This deck is not shared and cannot be viewed.');
+            setLoadingDecks(false);
+            // Redirect to home screen
+            window.location.href = '/';
+            return;
+          }
+        }
+        
+        // If logged in, proceed with normal initialization
+        if (!loggedIn) {
+          console.log('[DeckBuilder] Not logged in and no deck URL, cannot initialize');
+          setLoadingDecks(false);
+          return;
+        }
+        
         console.log('[DeckBuilder] Initializing decks and preferences from API...');
         
         // Step 1: Migrate legacy decks if needed (only once)
@@ -575,9 +675,6 @@ function App() {
         setLoadingDecks(false);
         
         // Step 5: Check if we're loading a deck from URL
-        const path = window.location.pathname;
-        const deckMatch = path.match(/^\/deck\/(.+)$/);
-        
         if (deckMatch) {
           // If it's a deck URL, load the deck from URL and skip normal initialization
           const encodedCode = deckMatch[1];
@@ -611,49 +708,98 @@ function App() {
           
           if (deckById) {
             console.log('[DeckBuilder] Found deck by UUID:', deckById.name, deckById.id);
-            // It's a valid UUID that exists in decks - load it normally
+            // It's a valid UUID that exists in decks - load it normally (editable)
             setCurrentDeckId(deckById.id);
             loadDeckCards(deckById.cards);
-            // Set selected card to the legend of the loaded deck (or null if empty)
             setSelectedCard(deckById.cards.legendCard || null);
-              return; // Exit early
+            setIsReadOnly(false);
+            setCurrentDeckMetadata({
+              isOwner: true,
+              isShared: deckById.shared || false,
+              deckId: deckById.id
+            });
+            return; // Exit early
           } else {
-              console.log('[DeckBuilder] UUID not found in decks, trying to load from API...');
-              try {
-                // Try to load the deck from API (might be a deck we don't have locally yet)
-                const deck = await getDeck(decodedCode);
-                console.log('[DeckBuilder] Loaded deck from API:', deck.name, deck.id);
-                setCurrentDeckId(deck.id);
-                loadDeckCards(deck.cards);
-                setSelectedCard(deck.cards.legendCard || null);
-                // Reload decks list to include this deck
-                const updatedDecks = await getDecks();
-                setDecks(updatedDecks);
-                return; // Exit early
-              } catch (apiError) {
-                console.log('[DeckBuilder] Deck not found in API, treating as deck code');
+            console.log('[DeckBuilder] UUID not found in decks, trying to load from API...');
+            try {
+              // Try to load the deck from API (might be a shared deck or deck we don't own)
+              const deck = await getDeck(decodedCode);
+              console.log('[DeckBuilder] Loaded deck from API:', deck.name, deck.id, 'shared:', deck.shared);
+              
+              // Check if user owns this deck
+              const isOwner = initialDecks.some(d => d.id === deck.id);
+              
+              // If not owner, check if it's in the updated decks list
+              let updatedDecks = initialDecks;
+              if (!isOwner) {
+                try {
+                  updatedDecks = await getDecks();
+                  setDecks(updatedDecks);
+                  const stillNotOwner = !updatedDecks.some(d => d.id === deck.id);
+                  
+                  if (stillNotOwner) {
+                    // This is someone else's deck - read-only mode
+                    console.log('[DeckBuilder] Loading deck in read-only mode (not owned)');
+                    setCurrentDeckId(null); // Set to null for shared decks
+                    loadDeckCards(deck.cards);
+                    setSelectedCard(deck.cards.legendCard || null);
+                    setIsReadOnly(true);
+                    setCurrentDeckMetadata({
+                      isOwner: false,
+                      isShared: deck.shared || false,
+                      deckId: deck.id,
+                      deckName: deck.name
+                    });
+                    return; // Exit early
+                  }
+                } catch (err) {
+                  console.error('[DeckBuilder] Error fetching decks:', err);
+                  // If we can't fetch decks, assume read-only if deck is shared
+                  if (deck.shared) {
+                    setCurrentDeckId(null); // Set to null for shared decks
+                    loadDeckCards(deck.cards);
+                    setSelectedCard(deck.cards.legendCard || null);
+                    setIsReadOnly(true);
+                    setCurrentDeckMetadata({
+                      isOwner: false,
+                      isShared: true,
+                      deckId: deck.id,
+                      deckName: deck.name
+                    });
+                    return;
+                  }
+                }
               }
+              
+              // User owns the deck - load normally
+              setCurrentDeckId(deck.id);
+              loadDeckCards(deck.cards);
+              setSelectedCard(deck.cards.legendCard || null);
+              setIsReadOnly(false);
+              setCurrentDeckMetadata({
+                isOwner: true,
+                isShared: deck.shared || false,
+                deckId: deck.id,
+                deckName: deck.name
+              });
+              return; // Exit early
+            } catch (apiError) {
+              console.log('[DeckBuilder] Deck not found in API:', apiError.message);
+              // Show error message and redirect to home
+              await showNotification('Deck Not Public', 'This deck is not shared and cannot be viewed.');
+              // Redirect to home screen
+              window.location.href = '/';
+              return;
+            }
           }
-        }
-        
-        // Not a UUID or UUID doesn't exist - treat as deck code and parse it
-        const result = parseAndLoadDeckCode(decodedCode, false);
-        
-        if (!result.success) {
-          console.error('[Deck Load] Failed to load deck from URL:', result.error);
-          hasLoadedFromUrlRef.current = false; // Reset ref on failure
+        } else {
+          // Not a valid UUID - show error and redirect
+          console.error('[DeckBuilder] Invalid UUID format in URL:', decodedCode);
+          await showNotification('Invalid Deck URL', 'The deck URL must be a valid deck UUID.');
+          window.location.href = '/';
           return;
         }
-        
-        // Set current deck to null (no deck selected)
-        // This ensures no deck is selected when loading from URL code
-        setCurrentDeckId(null);
-        
-        // Set selected card to the legend (just like normal deck loading)
-        setSelectedCard(result.legendCard || null);
-        
-        return; // Exit early - do NOT load default deck
-      }
+        }
       
         // Normal initialization: Load default deck from preferences
         const defaultId = preferences?.defaultDeckId || null;
@@ -791,6 +937,14 @@ function App() {
       loadDeckCards(deck.cards);
       // Set selected card to the legend of the newly loaded deck (or null if empty)
       setSelectedCard(deck.cards.legendCard || null);
+      // Clear read-only mode when selecting an owned deck
+      setIsReadOnly(false);
+      setCurrentDeckMetadata({
+        isOwner: true,
+        isShared: deck.shared || false,
+        deckId: deck.id,
+        deckName: deck.name
+      });
     }
   };
   
@@ -877,11 +1031,19 @@ function App() {
       console.log('[DeckBuilder] Created deck:', newDeck);
       // Reload decks from API
       const updatedDecks = await getDecks();
-    setDecks(updatedDecks);
-    setCurrentDeckId(newDeck.id);
-    loadDeckCards(newDeck.cards);
-    // Set selected card to null for empty deck
-    setSelectedCard(null);
+      setDecks(updatedDecks);
+      setCurrentDeckId(newDeck.id);
+      loadDeckCards(newDeck.cards);
+      // Set selected card to null for empty deck
+      setSelectedCard(null);
+      // Clear read-only mode when creating new deck
+      setIsReadOnly(false);
+      setCurrentDeckMetadata({
+        isOwner: true,
+        isShared: false,
+        deckId: newDeck.id,
+        deckName: newDeck.name
+      });
       await showNotification('Deck Created', `Deck "${name}" has been created.`);
     } catch (error) {
       console.error('[DeckBuilder] Error creating deck:', error);
@@ -916,7 +1078,31 @@ function App() {
   // Save As handler
   const handleSaveAs = async (name) => {
     try {
-    // Save As works even when no deck is selected (saves current editor state)
+      // If in read-only mode with a shared deck, clone it instead
+      if (isReadOnly && currentDeckMetadata.deckId && !currentDeckMetadata.isOwner) {
+        console.log('[DeckBuilder] Cloning shared deck:', currentDeckMetadata.deckId);
+        const clonedDeck = await cloneDeck(currentDeckMetadata.deckId, name);
+        console.log('[DeckBuilder] Deck cloned:', clonedDeck);
+        
+        // Reload decks from API
+        const updatedDecks = await getDecks();
+        setDecks(updatedDecks);
+        setCurrentDeckId(clonedDeck.id);
+        loadDeckCards(clonedDeck.cards);
+        setSelectedCard(clonedDeck.cards.legendCard || null);
+        // Clear read-only mode and update metadata
+        setIsReadOnly(false);
+        setCurrentDeckMetadata({
+          isOwner: true,
+          isShared: false,
+          deckId: clonedDeck.id,
+          deckName: clonedDeck.name
+        });
+        await showNotification('Deck Cloned', `"${name}" has been saved to your account.`);
+        return;
+      }
+      
+      // Save As works even when no deck is selected (saves current editor state)
       console.log('[DeckBuilder] Saving deck as:', name);
       const currentCards = getCurrentDeckCards();
       const newDeck = await createDeckApi({
@@ -927,10 +1113,19 @@ function App() {
       
       // Reload decks from API
       const updatedDecks = await getDecks();
-    setDecks(updatedDecks);
-    setCurrentDeckId(newDeck.id);
-    // Set selected card to the legend of the newly saved deck (or null if empty)
-    setSelectedCard(newDeck.cards.legendCard || null);
+      setDecks(updatedDecks);
+      setCurrentDeckId(newDeck.id);
+      loadDeckCards(newDeck.cards);
+      // Set selected card to the legend of the newly saved deck (or null if empty)
+      setSelectedCard(newDeck.cards.legendCard || null);
+      // Clear read-only mode if it was set
+      setIsReadOnly(false);
+      setCurrentDeckMetadata({
+        isOwner: true,
+        isShared: false,
+        deckId: newDeck.id,
+        deckName: newDeck.name
+      });
       await showNotification('Deck Saved As', `Deck saved as "${name}".`);
     } catch (error) {
       console.error('[DeckBuilder] Error saving deck as:', error);
@@ -1024,6 +1219,7 @@ function App() {
   
   // Handle mouse down from champion slot
   const handleChampionMouseDown = (e) => {
+    if (isReadOnly) return; // Prevent dragging in read-only mode
     if (e.button === 0 && chosenChampion) {
       e.preventDefault();
       setMousePosition({ x: e.clientX, y: e.clientY });
@@ -1040,6 +1236,7 @@ function App() {
   
   // Handle mouse down from legend slot
   const handleLegendMouseDown = (e) => {
+    if (isReadOnly) return; // Prevent dragging in read-only mode
     if (e.button === 0 && legendCard) {
       e.preventDefault();
       setMousePosition({ x: e.clientX, y: e.clientY });
@@ -1056,6 +1253,7 @@ function App() {
   
   // Handle mouse down: start dragging from main deck
   const handleMouseDown = (e, index) => {
+    if (isReadOnly) return; // Prevent dragging in read-only mode
     if (e.button === 0 && mainDeck[index]) { // Left mouse button
       if (e.shiftKey) {
         // Shift + left-click: Move to side deck if there's room
@@ -1107,6 +1305,7 @@ function App() {
   
   // Handle mouse down: start dragging from side deck
   const handleSideDeckMouseDown = (e, index) => {
+    if (isReadOnly) return; // Prevent dragging in read-only mode
     if (e.button === 0 && sideDeck[index]) { // Left mouse button
       if (e.shiftKey) {
         // Shift + left-click: Move to main deck if there's room
@@ -1159,6 +1358,7 @@ function App() {
   
   // Handle mouse down: start dragging from battlefields
   const handleBattlefieldMouseDown = (e, index) => {
+    if (isReadOnly) return; // Prevent dragging in read-only mode
     if (e.button === 0 && battlefields[index]) { // Left mouse button
       e.preventDefault(); // Prevent text selection and default drag behavior
       
@@ -1181,7 +1381,8 @@ function App() {
   // Handle mouse down: start dragging from search results
   const handleSearchResultMouseDown = (e, cardId) => {
     if (e.button === 0 && cardId) { // Left mouse button
-      e.preventDefault();
+      e.preventDefault(); // Always prevent default drag behavior
+      if (isReadOnly) return; // Skip modification in read-only mode
       
       setMousePosition({ 
         x: e.clientX, 
@@ -1201,8 +1402,9 @@ function App() {
   
   // Handle search result context menu (right-click)
   const handleSearchResultContext = (e, cardId) => {
-    e.preventDefault();
+    e.preventDefault(); // Always prevent context menu
     e.stopPropagation();
+    if (isReadOnly) return; // Skip modification in read-only mode
     
     const cardData = getCardDetails(cardId);
     const cardType = cardData?.type;
@@ -1309,6 +1511,10 @@ function App() {
   // Handle search function
   const handleSearch = () => {
     // Filter cards based on search criteria
+    if (!cardsData || cardsData.length === 0) {
+      setSearchResults([]);
+      return;
+    }
     const filtered = cardsData.filter(card => {
       // Exclude Rune cards from all search results
       if (card.type === 'Rune') {
@@ -1634,6 +1840,7 @@ function App() {
   const handleDoubleTap = (cardId, source) => {
     // Only work on mobile
     if (!isMobile) return;
+    if (isReadOnly) return; // Skip modification in read-only mode
     
     // Don't allow Legends or Battlefields to go to side deck
     const cardDetails = getCardDetails(cardId);
@@ -1781,6 +1988,43 @@ function App() {
   
   // Handle mouse up: drop the card
   const handleMouseUp = (e) => {
+    if (isReadOnly) {
+      // In read-only mode, just clear drag state without making changes
+      if (isDragging) {
+        // Restore card to original location if it was being dragged
+        if (isDraggingFromLegend && draggedCard) {
+          setLegendCard(draggedCard);
+        } else if (isDraggingFromChampion && draggedCard) {
+          setChosenChampion(draggedCard);
+        } else if (isDraggingFromSideDeck && draggedCard && dragIndex !== null) {
+          setSideDeck(prev => {
+            const newSideDeck = [...prev];
+            newSideDeck.splice(dragIndex, 0, draggedCard);
+            return compactSideDeck(newSideDeck);
+          });
+        } else if (isDraggingFromBattlefield && draggedCard && dragIndex !== null) {
+          setBattlefields(prev => {
+            const newBattlefields = [...prev];
+            newBattlefields.splice(dragIndex, 0, draggedCard);
+            return newBattlefields;
+          });
+        } else if (draggedCard && dragIndex !== null && dragIndex >= 0) {
+          const newMainDeck = [...mainDeck];
+          newMainDeck.splice(dragIndex, 0, draggedCard);
+          setMainDeck(newMainDeck);
+        }
+        // Clear drag state
+        setIsDragging(false);
+        setDraggedCard(null);
+        setDragIndex(null);
+        setIsDraggingFromChampion(false);
+        setIsDraggingFromLegend(false);
+        setIsDraggingFromSideDeck(false);
+        setIsDraggingFromBattlefield(false);
+        setIsDraggingFromSearch(false);
+      }
+      return;
+    }
     if (isDragging && draggedCard !== null) {
       e.preventDefault();
       
@@ -2499,8 +2743,9 @@ function App() {
   
   // Handle right-click: remove card or add card (with Shift)
   const handleCardContext = (e, index) => {
-    e.preventDefault();
+    e.preventDefault(); // Always prevent context menu
     e.stopPropagation();
+    if (isReadOnly) return; // Skip modification in read-only mode
     
     if (e.shiftKey) {
       // Shift + right-click: Add a copy of the card at this position
@@ -2527,8 +2772,9 @@ function App() {
   
   // Handle right-click: remove card or add card (with Shift) for side deck
   const handleSideDeckContext = (e, index) => {
-    e.preventDefault();
+    e.preventDefault(); // Always prevent context menu
     e.stopPropagation();
+    if (isReadOnly) return; // Skip modification in read-only mode
     
     if (e.shiftKey) {
       // Shift + right-click: Add a copy of the card at this position
@@ -2555,7 +2801,8 @@ function App() {
   
   // Handle champion context menu (right-click)
   const handleChampionContext = (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Always prevent context menu
+    if (isReadOnly) return; // Skip modification in read-only mode
     if (chosenChampion) {
       if (e.shiftKey) {
         // Shift + right-click: Add a copy to the main deck
@@ -2612,6 +2859,7 @@ function App() {
   // Handle triple-click detection for mobile
   const handleTripleClick = (cardId, source, sourceIndex = null) => {
     if (!cardId) return;
+    if (isReadOnly) return; // Skip modification in read-only mode
     
     const key = `${source}-${sourceIndex !== null ? sourceIndex : 'none'}`;
     const now = Date.now();
@@ -2641,6 +2889,12 @@ function App() {
     const isMiddleClick = e.button === 1;
     const isCtrlClick = (e.ctrlKey || e.metaKey) && e.button === 0;
     
+    if ((isMiddleClick || isCtrlClick) && cardId) {
+      e.preventDefault(); // Always prevent default behavior
+      e.stopPropagation();
+      if (isReadOnly) return; // Skip modification in read-only mode
+    }
+    
     console.log('[Variant Modal] handleMiddleClick called:', {
       cardId,
       source,
@@ -2656,9 +2910,7 @@ function App() {
       willTrigger: (isMiddleClick || isCtrlClick) && cardId
     });
     
-    if ((isMiddleClick || isCtrlClick) && cardId) {
-      e.preventDefault();
-      e.stopPropagation();
+    if ((isMiddleClick || isCtrlClick) && cardId && !isReadOnly) {
       console.log('[Variant Modal] Opening variant modal for:', { cardId, source, sourceIndex });
       openVariantModal(cardId, source, sourceIndex);
     } else {
@@ -2735,7 +2987,8 @@ function App() {
   
   // Handle legend context menu (right-click)
   const handleLegendContext = (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Always prevent context menu
+    if (isReadOnly) return; // Skip modification in read-only mode
     if (legendCard) {
       // Remove legend from slot - just clear it, don't add to deck
       setLegendCard(null);
@@ -2744,7 +2997,8 @@ function App() {
   
   // Handle battlefield context menu (right-click)
   const handleBattlefieldContext = (e, index) => {
-    e.preventDefault();
+    e.preventDefault(); // Always prevent context menu
+    if (isReadOnly) return; // Skip modification in read-only mode
     if (battlefields[index]) {
       // Remove the card
       const newBattlefields = battlefields.filter((_, i) => i !== index);
@@ -2754,6 +3008,7 @@ function App() {
   
   // Handle sort A-Z: sort by card name, then by ID if same name
   const handleSortAZ = () => {
+    if (isReadOnly) return; // Prevent modification in read-only mode
     const sortCompare = (a, b) => {
       const cardA = getCardDetails(a);
       const cardB = getCardDetails(b);
@@ -2785,6 +3040,7 @@ function App() {
   
   // Handle sort by cost: sort by energy cost, then A-Z if same cost
   const handleSortByCost = () => {
+    if (isReadOnly) return; // Prevent modification in read-only mode
     const sortCompare = (a, b) => {
       const cardA = getCardDetails(a);
       const cardB = getCardDetails(b);
@@ -2816,6 +3072,7 @@ function App() {
   
   // Handle randomize: shuffle the array
   const handleRandomize = () => {
+    if (isReadOnly) return; // Prevent modification in read-only mode
     const shuffled = [...mainDeck];
     
     // Fisher-Yates shuffle algorithm
@@ -3127,6 +3384,7 @@ function App() {
   
   // Handle rune clicks - clicking a rune takes 1 from the other and adds to itself
   const handleRuneClick = (runeType) => {
+    if (isReadOnly) return; // Prevent modification in read-only mode
     if (runeType === 'A') {
       // Clicking rune A: take 1 from B, add 1 to A
       if (runeBCount > 0 && runeACount < 12) {
@@ -3313,7 +3571,7 @@ function App() {
   };
   
   // Handle export deck
-  const handleExportDeck = () => {
+  const handleExportDeck = async () => {
     const deckCodeParts = [];
     
     // 1. Legend first (if exists)
@@ -3353,21 +3611,81 @@ function App() {
     // Create run-length encoded version for URL
     const runLengthCode = encodeRunLength(deckCodeParts);
     
+    // Fetch the latest deck data from the database to get current shared status
+    let isShared = currentDeckMetadata.isShared;
+    let isOwner = currentDeckMetadata.isOwner;
+    
+    if (currentDeckId) {
+      try {
+        const deck = await getDeck(currentDeckId);
+        isShared = deck.shared || false;
+        // Update currentDeckMetadata with latest shared status
+        setCurrentDeckMetadata({
+          ...currentDeckMetadata,
+          isShared: isShared
+        });
+      } catch (error) {
+        console.error('[Export] Error fetching deck for shared status:', error);
+        // Fall back to currentDeckMetadata if fetch fails
+      }
+    }
+    
     setExportModal({
       isOpen: true,
       deckCode,
-      runLengthCode // Store run-length encoded version for URL
+      runLengthCode, // Store run-length encoded version for URL
+      deckId: currentDeckId,
+      isShared: isShared,
+      isOwner: isOwner
     });
+  };
+  
+  // Helper function to copy text to clipboard with fallback for Chrome/Edge compatibility
+  const copyToClipboard = async (text) => {
+    // Try modern clipboard API first (works in Chrome, Edge, and other modern browsers)
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (error) {
+        console.warn('Clipboard API failed, trying fallback:', error);
+        // Fall through to fallback method
+      }
+    }
+    
+    // Fallback: Create a temporary textarea element (works in all browsers including older Chrome/Edge)
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-999999px';
+    textarea.style.top = '-999999px';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    
+    try {
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textarea);
+      
+      if (successful) {
+        return true;
+      } else {
+        throw new Error('execCommand copy failed');
+      }
+    } catch (err) {
+      document.body.removeChild(textarea);
+      throw err;
+    }
   };
   
   // Handle copy deck code
   const handleCopyDeckCode = async () => {
     const deckCode = exportModal.deckCode;
     // Close export modal first
-    setExportModal({ isOpen: false, deckCode: '', runLengthCode: '' });
+    setExportModal({ ...exportModal, isOpen: false });
     
     try {
-      await navigator.clipboard.writeText(deckCode);
+      await copyToClipboard(deckCode);
       await showNotification('Copied', 'Deck code copied to clipboard!');
     } catch (error) {
       console.error('Error copying to clipboard:', error);
@@ -3375,24 +3693,99 @@ function App() {
     }
   };
   
-  // Handle copy deck URL
-  const handleCopyDeckUrl = async () => {
-    // Use run-length encoded code for URL to make it shorter
-    const urlCode = exportModal.runLengthCode || exportModal.deckCode;
-    // Close export modal first
-    setExportModal({ isOpen: false, deckCode: '', runLengthCode: '' });
+  // Handle clone deck (Save As for public decks)
+  const handleCloneDeck = async () => {
+    if (!exportModal.deckId || !currentDeckMetadata.isShared) {
+      return;
+    }
     
     try {
-      // URL encode the compact deck code (no base64, keeps length roughly the same)
-      // Our format only uses numbers, commas, and 'x' which are all URL-safe
-      const encodedDeckCode = encodeURIComponent(urlCode);
-      // Create the URL: base URL + /deck/<encoded>
-      const deckUrl = `${window.location.origin}/deck/${encodedDeckCode}`;
-      await navigator.clipboard.writeText(deckUrl);
+      const clonedDeck = await cloneDeck(exportModal.deckId);
+      
+      // Reload decks list
+      const updatedDecks = await getDecks();
+      setDecks(updatedDecks);
+      
+      // Load the cloned deck
+      setCurrentDeckId(clonedDeck.id);
+      loadDeckCards(clonedDeck.cards);
+      setSelectedCard(clonedDeck.cards.legendCard || null);
+      setIsReadOnly(false);
+      setCurrentDeckMetadata({
+        isOwner: true,
+        isShared: false,
+        deckId: clonedDeck.id
+      });
+      
+      // Close export modal
+      setExportModal({ ...exportModal, isOpen: false });
+      
+      await showNotification('Deck Cloned', `"${clonedDeck.name}" has been saved to your account`);
+    } catch (error) {
+      console.error('Error cloning deck:', error);
+      await showNotification('Error', error.message || 'Failed to clone deck');
+    }
+  };
+  
+  // Handle copy deck URL
+  const handleCopyDeckUrl = async () => {
+    if (!exportModal.deckId) {
+      await showNotification('Error', 'No deck ID available');
+      return;
+    }
+    
+    // Close export modal first
+    setExportModal({ ...exportModal, isOpen: false });
+    
+    try {
+      // Use UUID for the URL
+      const deckUrl = `${window.location.origin}/deck/${exportModal.deckId}`;
+      await copyToClipboard(deckUrl);
       await showNotification('Copied', 'Deck URL copied to clipboard!');
     } catch (error) {
       console.error('Error copying URL to clipboard:', error);
       await showNotification('Copy Failed', 'Failed to copy deck URL to clipboard.');
+    }
+  };
+  
+  // Handle toggle sharing
+  const handleToggleSharing = async () => {
+    if (!exportModal.deckId || !exportModal.isOwner) {
+      return;
+    }
+    
+    try {
+      const newSharedStatus = !exportModal.isShared;
+      const updatedDeck = await toggleDeckSharing(exportModal.deckId, newSharedStatus);
+      
+      // Update modal state
+      setExportModal({
+        ...exportModal,
+        isShared: updatedDeck.shared
+      });
+      
+      // Update current deck metadata
+      setCurrentDeckMetadata({
+        ...currentDeckMetadata,
+        isShared: updatedDeck.shared
+      });
+      
+      // Update decks list if deck is in it
+      setDecks(prevDecks => 
+        prevDecks.map(d => 
+          d.id === exportModal.deckId 
+            ? { ...d, shared: updatedDeck.shared }
+            : d
+        )
+      );
+      
+      await showNotification(
+        'Sharing Updated',
+        updatedDeck.shared ? 'Deck is now public' : 'Deck is now private'
+      );
+    } catch (error) {
+      console.error('Error toggling sharing:', error);
+      await showNotification('Error', error.message || 'Failed to update sharing status');
     }
   };
   
@@ -3721,8 +4114,9 @@ function App() {
   };
   
   // Load deck from URL
-  const loadDeckFromUrl = (encodedCode) => {
+  const loadDeckFromUrl = async (encodedCode) => {
     try {
+      const loggedIn = isLoggedIn();
       // Decode URL-encoded code
       const decodedCode = decodeURIComponent(encodedCode);
       
@@ -3743,43 +4137,80 @@ function App() {
           console.log('[DeckBuilder] loadDeckFromUrl - Cleared editingDeckUUID');
         }
         
-        // Check if this UUID exists in the user's decks
-        const deckById = decks.find(d => d.id === decodedCode);
+        // If logged in, check if this UUID exists in the user's decks
+        if (loggedIn) {
+          const deckById = decks.find(d => d.id === decodedCode);
+          
+          if (deckById) {
+            console.log('[DeckBuilder] loadDeckFromUrl - Found deck:', deckById.name, deckById.id);
+            // It's a valid UUID that exists in decks - load it normally
+            setCurrentDeckId(deckById.id);
+            loadDeckCards(deckById.cards);
+            // Set selected card to the legend of the loaded deck (or null if empty)
+            setSelectedCard(deckById.cards.legendCard || null);
+            // Mark that we've loaded from URL to prevent re-initialization
+            hasLoadedFromUrlRef.current = true;
+            return;
+          }
+        }
         
-        if (deckById) {
-          console.log('[DeckBuilder] loadDeckFromUrl - Found deck:', deckById.name, deckById.id);
-          // It's a valid UUID that exists in decks - load it normally
-          setCurrentDeckId(deckById.id);
-          loadDeckCards(deckById.cards);
-          // Set selected card to the legend of the loaded deck (or null if empty)
-          setSelectedCard(deckById.cards.legendCard || null);
-          // Mark that we've loaded from URL to prevent re-initialization
+        // Not in user's decks (or not logged in) - try to load from API as public deck
+        console.log('[DeckBuilder] loadDeckFromUrl - UUID not found in decks, trying to load from API...');
+        try {
+          const deck = await getDeck(decodedCode);
+          console.log('[DeckBuilder] loadDeckFromUrl - Loaded deck from API:', deck.name, deck.id, 'shared:', deck.shared);
+          
+          if (loggedIn) {
+            // Check if user owns this deck
+            const isOwner = decks.some(d => d.id === deck.id);
+            setCurrentDeckId(isOwner ? deck.id : null);
+            setIsReadOnly(!isOwner);
+            setCurrentDeckMetadata({
+              isOwner: isOwner,
+              isShared: deck.shared || false,
+              deckId: deck.id,
+              deckName: deck.name
+            });
+          } else {
+            // Not logged in - always read-only
+            setCurrentDeckId(null);
+            setIsReadOnly(true);
+            setCurrentDeckMetadata({
+              isOwner: false,
+              isShared: deck.shared || false,
+              deckId: deck.id,
+              deckName: deck.name
+            });
+          }
+          
+          loadDeckCards(deck.cards);
+          setSelectedCard(deck.cards.legendCard || null);
           hasLoadedFromUrlRef.current = true;
           return;
-        } else {
-          console.log('[DeckBuilder] loadDeckFromUrl - UUID not found in decks');
+        } catch (apiError) {
+          console.error('[DeckBuilder] loadDeckFromUrl - Failed to load deck from API:', apiError);
+          await showNotification('Deck Not Public', 'This deck is not shared and cannot be viewed.');
+          // Redirect to home screen
+          window.location.href = '/';
+          return;
         }
-      }
-      
-      // Not a UUID or UUID doesn't exist - treat as deck code and parse it
-      const result = parseAndLoadDeckCode(decodedCode, false);
-      
-      if (!result.success) {
-        console.error('[Deck Load] Failed to load deck from URL:', result.error);
+      } else {
+        // Not a valid UUID - show error and redirect
+        console.error('[DeckBuilder] loadDeckFromUrl - Invalid UUID format in URL:', decodedCode);
+        await showNotification('Invalid Deck URL', 'The deck URL must be a valid deck UUID.');
+        window.location.href = '/';
         return;
       }
       
-      // Set current deck to null (no deck selected)
-      setCurrentDeckId(null);
-      
-      // Set selected card to the legend (just like normal deck loading)
-      setSelectedCard(result.legendCard || null);
-      
-      // Mark that we've loaded from URL to prevent re-initialization
-      hasLoadedFromUrlRef.current = true;
-      
     } catch (error) {
       console.error('[Deck Load] Error loading deck from URL:', error);
+      // If it's a UUID and we failed, show error and redirect
+      const decodedCode = decodeURIComponent(encodedCode);
+      if (isValidUUID(decodedCode)) {
+        showNotification('Deck Not Public', 'This deck is not shared and cannot be viewed.').then(() => {
+          window.location.href = '/';
+        });
+      }
     }
   };
   
@@ -3805,8 +4236,30 @@ function App() {
   // Handle import deck from clipboard
   const handleImportDeck = async () => {
     try {
-      // Read from clipboard
-      let clipboardText = await navigator.clipboard.readText();
+      // Read from clipboard - use Clipboard API (works in Chrome, Edge, and modern browsers)
+      let clipboardText = '';
+      
+      // Check if Clipboard API is available
+      if (!navigator.clipboard || typeof navigator.clipboard.readText !== 'function') {
+        await showNotification(
+          'Import Failed', 
+          'Clipboard API is not available. This may require HTTPS or a secure context. Please paste the deck code manually or use a modern browser like Chrome or Edge.'
+        );
+        return;
+      }
+      
+      try {
+        clipboardText = await navigator.clipboard.readText();
+      } catch (clipboardError) {
+        // Handle specific clipboard errors (permissions, etc.)
+        console.error('[Import] Clipboard read error:', clipboardError);
+        await showNotification(
+          'Import Failed', 
+          'Could not read from clipboard. This may require clipboard permissions. Please ensure you grant clipboard access when prompted, or paste the deck code manually.'
+        );
+        return;
+      }
+      
       console.log('[Import] Clipboard text read:', clipboardText);
       console.log('[Import] Clipboard text type:', typeof clipboardText);
       console.log('[Import] Clipboard text trimmed:', clipboardText?.trim());
@@ -3931,27 +4384,28 @@ function App() {
                 {/* Row 1 */}
                 <button 
                   onClick={handleImportDeck}
-                  disabled={!currentDeckId}
-                  className={`py-1 px-2 rounded text-[11px] font-medium bg-blue-600 text-white shadow-md hover:bg-blue-700 active:bg-blue-800 transition-colors ${!currentDeckId ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                  disabled={!currentDeckId || isReadOnly}
+                  className={`py-1 px-2 rounded text-[11px] font-medium bg-blue-600 text-white shadow-md hover:bg-blue-700 active:bg-blue-800 transition-colors ${(!currentDeckId || isReadOnly) ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   Import Deck
                 </button>
                 <button 
                   onClick={handleExportDeck}
-                  className="py-1 px-2 rounded text-[11px] font-medium bg-blue-600 text-white shadow-md hover:bg-blue-700 active:bg-blue-800 transition-colors">
+                  disabled={isReadOnly}
+                  className={`py-1 px-2 rounded text-[11px] font-medium bg-blue-600 text-white shadow-md hover:bg-blue-700 active:bg-blue-800 transition-colors ${isReadOnly ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   Export Deck
                 </button>
 
                 {/* Row 2 */}
                 <button 
                   onClick={handleDeleteDeck}
-                  disabled={isSaving || !currentDeckId}
-                  className={`py-1 px-2 rounded text-[11px] font-medium bg-red-600 text-white shadow-md hover:bg-red-700 active:bg-red-800 transition-colors ${(isSaving || !currentDeckId) ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                  disabled={isSaving || !currentDeckId || isReadOnly}
+                  className={`py-1 px-2 rounded text-[11px] font-medium bg-red-600 text-white shadow-md hover:bg-red-700 active:bg-red-800 transition-colors ${(isSaving || !currentDeckId || isReadOnly) ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   Delete Deck
                 </button>
                 <button 
                   onClick={handleClearDeck}
-                  disabled={!currentDeckId}
-                  className={`py-1 px-2 rounded text-[11px] font-medium bg-red-600 text-white shadow-md hover:bg-red-700 active:bg-red-800 transition-colors ${!currentDeckId ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                  disabled={!currentDeckId || isReadOnly}
+                  className={`py-1 px-2 rounded text-[11px] font-medium bg-red-600 text-white shadow-md hover:bg-red-700 active:bg-red-800 transition-colors ${(!currentDeckId || isReadOnly) ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   Clear Deck
                 </button>
 
@@ -3963,7 +4417,12 @@ function App() {
                       handleSelectDeck(e.target.value);
                     }
                   }}
-                  className={`col-span-2 py-1 px-2 rounded text-[11px] font-medium border shadow-sm cursor-pointer transition-colors ${
+                  disabled={!isLoggedIn()}
+                  className={`col-span-2 py-1 px-2 rounded text-[11px] font-medium border shadow-sm transition-colors ${
+                    !isLoggedIn()
+                      ? 'opacity-50 cursor-not-allowed bg-gray-400'
+                      : 'cursor-pointer'
+                  } ${
                     isDarkMode 
                       ? 'bg-gray-600 border-gray-500 text-gray-100 hover:bg-gray-500' 
                       : 'bg-gray-100 border-gray-300 text-gray-800 hover:bg-gray-200'
@@ -3983,7 +4442,8 @@ function App() {
                 {/* Row 3 */}
                 <button 
                   onClick={() => openNameModal('new')}
-                  className="py-1 px-2 rounded text-[11px] font-medium bg-blue-600 text-white shadow-md hover:bg-blue-700 active:bg-blue-800 transition-colors">
+                  disabled={!isLoggedIn()}
+                  className={`py-1 px-2 rounded text-[11px] font-medium bg-blue-600 text-white shadow-md hover:bg-blue-700 active:bg-blue-800 transition-colors ${!isLoggedIn() ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   New Deck
                 </button>
                 <button 
@@ -3993,15 +4453,18 @@ function App() {
                       openNameModal('rename', currentDeck.name);
                     }
                   }}
-                  disabled={!currentDeckId}
-                  className={`py-1 px-2 rounded text-[11px] font-medium bg-blue-600 text-white shadow-md hover:bg-blue-700 active:bg-blue-800 transition-colors ${!currentDeckId ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                  disabled={!currentDeckId || isReadOnly}
+                  className={`py-1 px-2 rounded text-[11px] font-medium bg-blue-600 text-white shadow-md hover:bg-blue-700 active:bg-blue-800 transition-colors ${(!currentDeckId || isReadOnly) ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   Rename Deck
                 </button>
 
                 {/* Row 4 */}
                 <button 
                   onClick={() => {
-                    if (currentDeckId) {
+                    if (isReadOnly && currentDeckMetadata.deckName) {
+                      // For shared decks, use the shared deck name
+                      openNameModal('saveAs', `Copy of ${currentDeckMetadata.deckName}`);
+                    } else if (currentDeckId) {
                       const currentDeck = decks.find(d => d.id === currentDeckId);
                       if (currentDeck) {
                         openNameModal('saveAs', `Copy of ${currentDeck.name}`);
@@ -4010,13 +4473,14 @@ function App() {
                       openNameModal('saveAs', 'New Deck');
                     }
                   }}
-                  className="py-1 px-2 rounded text-[11px] font-medium bg-green-600 text-white shadow-md hover:bg-green-700 active:bg-green-800 transition-colors">
+                  disabled={!isLoggedIn()}
+                  className={`py-1 px-2 rounded text-[11px] font-medium bg-green-600 text-white shadow-md hover:bg-green-700 active:bg-green-800 transition-colors ${!isLoggedIn() ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   Save As
                 </button>
                 <button 
                   onClick={handleSaveDeck}
-                  disabled={isSaving || !currentDeckId}
-                  className={`py-1 px-2 rounded text-[11px] font-medium bg-green-600 text-white shadow-md hover:bg-green-700 active:bg-green-800 transition-colors ${(isSaving || !currentDeckId) ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                  disabled={isSaving || !currentDeckId || isReadOnly || !isLoggedIn()}
+                  className={`py-1 px-2 rounded text-[11px] font-medium bg-green-600 text-white shadow-md hover:bg-green-700 active:bg-green-800 transition-colors ${(isSaving || !currentDeckId || isReadOnly || !isLoggedIn()) ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   Save Deck
                 </button>
 
@@ -4044,8 +4508,8 @@ function App() {
                 </button>
                 <button 
                   onClick={handleSetAsDefault}
-                  disabled={!currentDeckId}
-                  className={`py-1 px-2 rounded text-[11px] font-medium bg-blue-600 text-white shadow-md hover:bg-blue-700 active:bg-blue-800 transition-colors ${!currentDeckId ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                  disabled={!currentDeckId || isReadOnly}
+                  className={`py-1 px-2 rounded text-[11px] font-medium bg-blue-600 text-white shadow-md hover:bg-blue-700 active:bg-blue-800 transition-colors ${(!currentDeckId || isReadOnly) ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   Set as Default
                 </button>
               </div>
@@ -4085,28 +4549,32 @@ function App() {
               {/* Deck Name - Centered */}
               <div className="absolute left-1/2 transform -translate-x-1/2">
                 <span className={`text-[14px] font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-700'}`}>
-                  {decks.find(d => d.id === currentDeckId)?.name || 'No Deck Selected'}
+                  {decks.find(d => d.id === currentDeckId)?.name || currentDeckMetadata.deckName || 'No Deck Selected'}
                 </span>
               </div>
               <div className="flex items-center gap-2" data-deck-controls>
-                <button 
-                  onClick={handleSortAZ}
-                  className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-medium rounded shadow-md transition-colors"
-                >
-                  Sort A-Z
-                </button>
-                <button 
-                  onClick={handleSortByCost}
-                  className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-medium rounded shadow-md transition-colors"
-                >
-                  Sort by Cost
-                </button>
-                <button 
-                  onClick={handleRandomize}
-                  className="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-[11px] font-medium rounded shadow-md transition-colors"
-                >
-                  Randomize
-                </button>
+                {!isReadOnly && (
+                  <>
+                    <button 
+                      onClick={handleSortAZ}
+                      className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-medium rounded shadow-md transition-colors"
+                    >
+                      Sort A-Z
+                    </button>
+                    <button 
+                      onClick={handleSortByCost}
+                      className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-medium rounded shadow-md transition-colors"
+                    >
+                      Sort by Cost
+                    </button>
+                    <button 
+                      onClick={handleRandomize}
+                      className="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-[11px] font-medium rounded shadow-md transition-colors"
+                    >
+                      Randomize
+                    </button>
+                  </>
+                )}
                 <button 
                   onClick={toggleDarkMode}
                   className={`px-3 py-1 text-[11px] font-medium rounded shadow-md transition-colors ${
@@ -4457,6 +4925,7 @@ function App() {
                         className={`rounded border flex items-center justify-center overflow-hidden w-full max-w-[80px] cursor-pointer transition-colors select-none ${isDarkMode ? 'bg-gray-700 border-gray-600 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`} 
                         style={{ aspectRatio: '515/719' }}
                         onClick={(e) => {
+                          if (isReadOnly) return; // Prevent modification in read-only mode
                           // Check for triple-click first (mobile) - this will only trigger modal after 3 clicks
                           const { runeABaseId } = getRuneCards();
                           if (runeABaseId) {
@@ -4466,6 +4935,10 @@ function App() {
                           handleRuneClick('A');
                         }}
                         onMouseDown={(e) => {
+                          if (isReadOnly) {
+                            e.preventDefault();
+                            return; // Prevent modification in read-only mode
+                          }
                           console.log('[Rune A] onMouseDown:', {
                             button: e.button,
                             ctrlKey: e.ctrlKey,
@@ -4521,6 +4994,7 @@ function App() {
                         className={`rounded border flex items-center justify-center overflow-hidden w-full max-w-[80px] cursor-pointer transition-colors select-none ${isDarkMode ? 'bg-gray-700 border-gray-600 hover:border-blue-400' : 'bg-gray-200 border-gray-300 hover:border-blue-500'}`} 
                         style={{ aspectRatio: '515/719' }}
                         onClick={(e) => {
+                          if (isReadOnly) return; // Prevent modification in read-only mode
                           // Check for triple-click first (mobile) - this will only trigger modal after 3 clicks
                           const { runeBBaseId } = getRuneCards();
                           if (runeBBaseId) {
@@ -4817,7 +5291,8 @@ function App() {
                   <select
                     value={sortOrder}
                     onChange={(e) => setSortOrder(e.target.value)}
-                    className={`flex-1 px-2 py-1 text-[11px] rounded border ${isDarkMode ? 'bg-gray-600 border-gray-500 text-gray-100' : 'bg-white border-gray-300 text-gray-800'}`}
+                    disabled={isReadOnly}
+                    className={`flex-1 px-2 py-1 text-[11px] rounded border ${isReadOnly ? 'opacity-50 cursor-not-allowed' : ''} ${isDarkMode ? 'bg-gray-600 border-gray-500 text-gray-100' : 'bg-white border-gray-300 text-gray-800'}`}
                   >
                     <option value="A-Z">A-Z</option>
                     <option value="Energy">Energy</option>
@@ -4832,7 +5307,8 @@ function App() {
                       id="sortDesc"
                       checked={sortDescending}
                       onChange={(e) => setSortDescending(e.target.checked)}
-                      className={`w-4 h-4 ${isDarkMode ? 'accent-blue-500' : 'accent-blue-600'}`}
+                      disabled={isReadOnly}
+                      className={`w-4 h-4 ${isReadOnly ? 'opacity-50 cursor-not-allowed' : ''} ${isDarkMode ? 'accent-blue-500' : 'accent-blue-600'}`}
                     />
                   </div>
                 </div>
@@ -5075,7 +5551,7 @@ function App() {
           className="fixed inset-0 z-[9999] flex items-center justify-center"
           onClick={(e) => {
             if (e.target === e.currentTarget) {
-              setExportModal({ isOpen: false, deckCode: '', runLengthCode: '' });
+              setExportModal({ ...exportModal, isOpen: false });
             }
           }}
         >
@@ -5097,6 +5573,16 @@ function App() {
             
             {/* Body */}
             <div className={`px-6 py-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              {/* Sharing Status Indicator */}
+              {exportModal.deckId && (
+                <div className="mb-3 flex items-center justify-center gap-2">
+                  <div className={`w-3 h-3 rounded-full ${exportModal.isShared ? 'bg-green-500' : 'bg-red-500'}`} />
+                  <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                    {exportModal.isShared ? 'Public Deck' : 'Private Deck'}
+                  </span>
+                </div>
+              )}
+              
               <textarea
                 readOnly
                 value={exportModal.deckCode}
@@ -5106,29 +5592,57 @@ function App() {
             </div>
             
             {/* Footer */}
-            <div className={`px-6 py-4 border-t flex gap-3 justify-center ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`}>
-              <button
-                onClick={() => setExportModal({ isOpen: false, deckCode: '', runLengthCode: '' })}
-                className={`px-4 py-2 rounded font-medium transition-colors ${
-                  isDarkMode 
-                    ? 'bg-gray-600 text-gray-200 hover:bg-gray-500' 
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                }`}
-              >
-                Close
-              </button>
-              <button
-                onClick={handleCopyDeckCode}
-                className="px-4 py-2 rounded font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-              >
-                Copy
-              </button>
-              <button
-                onClick={handleCopyDeckUrl}
-                className="px-4 py-2 rounded font-medium bg-green-600 text-white hover:bg-green-700 transition-colors"
-              >
-                Copy URL
-              </button>
+            <div className={`px-6 py-4 border-t ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`}>
+              {/* All buttons in one row */}
+              <div className="flex gap-3 justify-center flex-wrap">
+                <button
+                  onClick={() => setExportModal({ ...exportModal, isOpen: false })}
+                  className={`px-4 py-2 rounded font-medium transition-colors ${
+                    isDarkMode 
+                      ? 'bg-gray-600 text-gray-200 hover:bg-gray-500' 
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  Close
+                </button>
+                <button
+                  onClick={handleCopyDeckCode}
+                  className="px-4 py-2 rounded font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                >
+                  Copy Code
+                </button>
+                <button
+                  onClick={handleCopyDeckUrl}
+                  disabled={!exportModal.isShared || !exportModal.deckId}
+                  className={`px-4 py-2 rounded font-medium transition-colors ${
+                    (!exportModal.isShared || !exportModal.deckId)
+                      ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                      : 'bg-yellow-600 text-white hover:bg-yellow-700'
+                  }`}
+                >
+                  Copy URL
+                </button>
+                {exportModal.isOwner && exportModal.deckId && (
+                  <button
+                    onClick={handleToggleSharing}
+                    className={`px-4 py-2 rounded font-medium transition-colors ${
+                      exportModal.isShared
+                        ? 'bg-red-600 text-white hover:bg-red-700'
+                        : 'bg-green-600 text-white hover:bg-green-700'
+                    }`}
+                  >
+                    {exportModal.isShared ? 'Make Private' : 'Make Public'}
+                  </button>
+                )}
+                {isReadOnly && exportModal.isShared && (
+                  <button
+                    onClick={handleCloneDeck}
+                    className="px-4 py-2 rounded font-medium bg-purple-600 text-white hover:bg-purple-700 transition-colors"
+                  >
+                    Save As
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

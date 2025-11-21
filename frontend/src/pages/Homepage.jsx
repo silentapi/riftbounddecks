@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import LayoutContainer from '../components/LayoutContainer';
-import cardsData from '../data/cards.json';
 import { 
   getTheme, 
   setTheme as setThemeLocal,
@@ -15,8 +14,13 @@ import { getDecks, ensureOneDeck } from '../utils/decksApi';
 import { getPreferences, updatePreferences } from '../utils/preferencesApi';
 import { migrateLegacyDecks } from '../utils/legacyMigration';
 import { getProfilePictureUrl } from '../utils/profilePicture';
+import { getCards } from '../utils/cardsApi';
 
 function Homepage() {
+  // Check if we're in production environment (defaults to 'test' if not set)
+  const environment = import.meta.env.VITE_ENVIRONMENT || 'test';
+  const isProduction = environment === 'prod';
+  
   // Dark mode state - initialize from localStorage (will be updated from API)
   const [isDarkMode, setIsDarkMode] = useState(() => getTheme() === 'dark');
   const [screenshotMode, setScreenshotModeState] = useState(() => getScreenshotMode());
@@ -40,6 +44,10 @@ function Homepage() {
   // Display name state
   const [displayName, setDisplayName] = useState(null);
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+  
+  // Cards data state - loaded from backend API
+  const [cardsData, setCardsData] = useState([]);
+  const [cardsLoading, setCardsLoading] = useState(true);
   
   // Toast notifications state
   const [toasts, setToasts] = useState([]);
@@ -223,6 +231,27 @@ function Homepage() {
       return [];
     }
   };
+  
+  // Load cards from backend API on mount
+  useEffect(() => {
+    const loadCards = async () => {
+      try {
+        console.log('[Homepage] Loading cards from API...');
+        setCardsLoading(true);
+        const cards = await getCards();
+        setCardsData(cards);
+        console.log('[Homepage] Loaded cards:', cards.length, 'cards');
+      } catch (error) {
+        console.error('[Homepage] Error loading cards:', error);
+        // Set empty array on error to prevent crashes
+        setCardsData([]);
+      } finally {
+        setCardsLoading(false);
+      }
+    };
+    
+    loadCards();
+  }, []);
   
   // Load preferences and decks on mount
   useEffect(() => {
@@ -858,7 +887,7 @@ function Homepage() {
   
   // Function to get card details by variant number (handles both "OGN-249" and "OGN-249-1" formats)
   const getCardDetails = (cardId) => {
-    if (!cardId) return null;
+    if (!cardId || !cardsData || cardsData.length === 0) return null;
     const { baseId } = parseCardId(cardId);
     return cardsData.find(card => card.variantNumber === baseId);
   };
@@ -866,6 +895,11 @@ function Homepage() {
   // Function to get card image URL - uses variantImages array based on variant index
   const getCardImageUrl = (cardId) => {
     if (!cardId) return 'https://cdn.piltoverarchive.com/Cardback.webp';
+    
+    if (!cardsData || cardsData.length === 0) {
+      // Fallback if cards haven't loaded yet
+      return `https://cdn.piltoverarchive.com/cards/${cardId}.webp`;
+    }
     
     const { baseId, variantIndex } = parseCardId(cardId);
     const card = cardsData.find(c => c.variantNumber === baseId);
@@ -1000,7 +1034,7 @@ function Homepage() {
                   className="h-6 w-auto"
                 />
                 <h2 className={`text-xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-                  Riftbound Decks
+                  Riftbound Decks{!isProduction && ' [T]'}
                 </h2>
               </div>
               <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
@@ -1154,7 +1188,12 @@ function Homepage() {
                     // TODO: Implement history functionality
                     console.log('History clicked');
                   }}
-                  className={`py-2 px-3 rounded text-sm font-medium bg-gray-600 text-white shadow-md hover:bg-gray-700 active:bg-gray-800 transition-colors`}
+                  disabled={isProduction}
+                  className={`py-2 px-3 rounded text-sm font-medium transition-colors ${
+                    isProduction
+                      ? 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-50'
+                      : 'bg-gray-600 text-white shadow-md hover:bg-gray-700 active:bg-gray-800'
+                  }`}
                 >
                   History
                 </button>
@@ -1727,6 +1766,25 @@ function Homepage() {
             </div>
           </div>
         </div>
+        
+        {/* Under Construction Overlay - covers middle section and right sidebar - only shown in production environment */}
+        {isProduction && (
+          <div 
+            className="absolute left-[384px] right-0 top-0 bottom-0 z-40 flex items-center justify-center pointer-events-auto"
+            style={{ 
+              backgroundColor: isDarkMode ? 'rgba(17, 24, 39, 0.85)' : 'rgba(255, 255, 255, 0.85)'
+            }}
+          >
+            <div className="text-center">
+              <div className={`text-6xl font-bold mb-4 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                Under Construction
+              </div>
+              <div className={`text-xl ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                This section is currently being developed
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       
       {/* Password Modal */}

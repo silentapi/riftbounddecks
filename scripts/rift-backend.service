@@ -1,0 +1,32 @@
+[Unit]
+Description=Riftbound Deckbuilder Backend API Service
+After=network.target mongod.service
+Wants=network-online.target
+Requires=mongod.service
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/opt/riftbounddecks/backend
+Environment=NODE_ENV=production
+EnvironmentFile=-/opt/riftbounddecks/backend/.env
+# Note: If node is installed via nvm, create a symlink: ln -s /root/.nvm/versions/node/vXX.X.X/bin/node /usr/bin/node
+ExecStart=/usr/bin/node src/index.js
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=rift-backend
+
+# Security settings (optional, can be adjusted)
+# NoNewPrivileges=true
+# PrivateTmp=true
+
+# Resource limits (optional, adjust as needed)
+# LimitNOFILE=65536
+# LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target
+
