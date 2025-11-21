@@ -91,7 +91,8 @@ function Homepage() {
       format: 'Current',
       matchType: 'Best of 3',
       privacy: 'Unlocked',
-      password: null
+      password: null,
+      profilePictureCardId: 'OGN-155'
     },
     {
       id: '550e8400-e29b-41d4-a716-446655440002',
@@ -100,7 +101,8 @@ function Homepage() {
       format: 'Future',
       matchType: 'Single',
       privacy: 'Locked',
-      password: 'test123'
+      password: 'test123',
+      profilePictureCardId: 'OGN-157'
     },
     {
       id: '550e8400-e29b-41d4-a716-446655440003',
@@ -109,7 +111,8 @@ function Homepage() {
       format: 'Current',
       matchType: 'Best of 3',
       privacy: 'Unlocked',
-      password: null
+      password: null,
+      profilePictureCardId: 'OGN-159'
     },
     {
       id: '550e8400-e29b-41d4-a716-446655440004',
@@ -118,7 +121,8 @@ function Homepage() {
       format: 'Future',
       matchType: 'Single',
       privacy: 'Unlocked',
-      password: null
+      password: null,
+      profilePictureCardId: 'OGN-161'
     }
   ];
   
@@ -170,6 +174,9 @@ function Homepage() {
   const [lobbies, setLobbies] = useState([]);
   const [games, setGames] = useState([]);
   
+  // Profile picture URLs for each lobby (keyed by lobby id)
+  const [lobbyProfilePictures, setLobbyProfilePictures] = useState({});
+  
   // Hosting state
   const [hostedLobbyId, setHostedLobbyId] = useState(null); // UUID of the lobby we're hosting
   const [applicants, setApplicants] = useState([]); // Array of users who want to join our lobby
@@ -209,6 +216,28 @@ function Homepage() {
       // Return empty array on error
       return [];
     }
+  };
+  
+  // Load profile pictures for lobbies
+  const loadLobbyProfilePictures = async (lobbiesToLoad) => {
+    const picturePromises = lobbiesToLoad.map(async (lobby) => {
+      const cardId = lobby.profilePictureCardId || 'OGN-155';
+      try {
+        const url = await getProfilePictureUrl(cardId);
+        return { lobbyId: lobby.id, url };
+      } catch (error) {
+        console.error(`[Homepage] Error loading profile picture for lobby ${lobby.id}:`, error);
+        return { lobbyId: lobby.id, url: null };
+      }
+    });
+    
+    const results = await Promise.all(picturePromises);
+    const pictureMap = {};
+    results.forEach(({ lobbyId, url }) => {
+      pictureMap[lobbyId] = url;
+    });
+    
+    setLobbyProfilePictures(prev => ({ ...prev, ...pictureMap }));
   };
   
   // Load games from API (currently returns placeholder data)
@@ -325,6 +354,8 @@ function Homepage() {
         const loadedGames = await loadGames();
         setLobbies(loadedLobbies);
         setGames(loadedGames);
+        // Load profile pictures for lobbies
+        await loadLobbyProfilePictures(loadedLobbies);
         console.log('[Homepage] Lobbies and games loaded successfully');
     
         // Step 9: Check if we have an editing deck UUID set
@@ -854,6 +885,8 @@ function Homepage() {
     try {
       const loadedLobbies = await loadLobbies();
       setLobbies(loadedLobbies);
+      // Load profile pictures for lobbies
+      await loadLobbyProfilePictures(loadedLobbies);
       console.log('[Homepage] Lobbies refreshed successfully:', loadedLobbies.length, 'lobbies');
     } catch (error) {
       console.error('[Homepage] Error refreshing lobbies:', error);
@@ -1313,16 +1346,39 @@ function Homepage() {
                               }`
                         }`}
                       >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className={`text-lg font-bold mb-1 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-                              {lobby.username}
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1 flex items-center gap-3">
+                            {/* Profile Picture */}
+                            <div className="flex-shrink-0">
+                              {lobbyProfilePictures[lobby.id] ? (
+                                <img
+                                  src={lobbyProfilePictures[lobby.id]}
+                                  alt={`${lobby.username}'s profile`}
+                                  className="w-12 h-12 rounded-full border-2 object-cover"
+                                  style={{ borderColor: isDarkMode ? '#4B5563' : '#D1D5DB' }}
+                                  onError={(e) => {
+                                    console.warn('Profile picture failed to load for lobby:', lobby.id);
+                                  }}
+                                />
+                              ) : (
+                                <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-200 border-gray-300'}`}>
+                                  <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                    ...
+                                  </div>
+                                </div>
+                              )}
                             </div>
-                            {lobby.description && (
-                              <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                                {lobby.description}
+                            {/* Username and Description */}
+                            <div className="flex-1">
+                              <div className={`text-lg font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                                {lobby.username}
                               </div>
-                            )}
+                              {lobby.description && (
+                                <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                  {lobby.description}
+                                </div>
+                              )}
+                            </div>
                           </div>
                           <div className="flex flex-col items-end">
                             <div className={`text-xs px-2 py-1 rounded mb-2 ${lobby.privacy === 'Locked' ? (isDarkMode ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-800') : 'invisible'}`}>
