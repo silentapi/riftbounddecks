@@ -5,6 +5,7 @@ import App from './App.jsx'
 import Login from './pages/Login.jsx'
 import Homepage from './pages/Homepage.jsx'
 import Profile from './pages/Profile.jsx'
+import Game from './pages/Game.jsx'
 import { isLoggedIn } from './utils/auth'
 
 // Simple routing based on pathname
@@ -56,6 +57,9 @@ function Router() {
     } else if (currentPath.startsWith('/deck/')) {
       // /deck/<code> allows viewing without login (for shared decks)
       // No redirect needed - allow access
+    } else if (currentPath.startsWith('/game/')) {
+      // /game/<gameid> allows viewing without login (for game spectators)
+      // No redirect needed - allow access
     } else if (currentPath === '/profile') {
       if (!loggedIn) {
         // Not logged in, redirect to login (via /)
@@ -99,6 +103,11 @@ function Router() {
       return null;
     }
     return <Profile />;
+  }
+  
+  // Game route - allows viewing without login (for game spectators)
+  if (path.startsWith('/game/')) {
+    return <Game />;
   }
   
   // Register link route - redirects to login with code parameter

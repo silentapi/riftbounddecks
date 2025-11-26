@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import LayoutContainer from './components/LayoutContainer';
 import { domToPng } from 'modern-screenshot';
 import {
@@ -164,6 +164,12 @@ function App() {
   // State for the currently hovered/selected card
   const [selectedCard, setSelectedCard] = useState(null);
   
+  // Loading state for deck images and runes
+  const [isDeckLoading, setIsDeckLoading] = useState(false);
+  const [loadingProgress, setLoadingProgress] = useState({ loaded: 0, expected: 0 });
+  const loadedImagesRef = useRef(new Set());
+  const expectedImagesRef = useRef(new Set());
+  
   // Ref to store timeout ID for debounced card selection
   const hoverTimeoutRef = useRef(null);
   
@@ -238,7 +244,7 @@ function App() {
   const [screenshotMode, setScreenshotModeState] = useState(() => getScreenshotMode());
   
   // Search Panel state
-  const [searchFilters, setSearchFilters] = useState({
+  const DEFAULT_SEARCH_FILTERS = {
     cardName: '',
     cardText: '',
     cardType: '',
@@ -249,7 +255,8 @@ function App() {
     powerMax: '',
     mightMin: '',
     mightMax: ''
-  });
+  };
+  const [searchFilters, setSearchFilters] = useState(() => ({ ...DEFAULT_SEARCH_FILTERS }));
   const [searchResults, setSearchResults] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -497,71 +504,181 @@ function App() {
   
   // Load deck cards into editor state
   const loadDeckCards = (cards) => {
+    console.log('[loadDeckCards] START - Loading deck cards', {
+      timestamp: new Date().toISOString(),
+      receivedData: {
+        runeAVariantIndex: cards.runeAVariantIndex,
+        runeBVariantIndex: cards.runeBVariantIndex,
+        legendCard: cards.legendCard,
+        runeACount: cards.runeACount,
+        runeBCount: cards.runeBCount
+      }
+    });
+    
+    // Reset loading state and start tracking
+    setIsDeckLoading(true);
+    loadedImagesRef.current.clear();
+    expectedImagesRef.current.clear();
+    setLoadingProgress({ loaded: 0, expected: 0 });
+    
+    // Calculate all expected images
+    const expected = new Set();
+    
+    // Main deck cards
+    (cards.mainDeck || []).forEach(cardId => {
+      if (cardId) expected.add(cardId);
+    });
+    
+    // Champion
+    if (cards.chosenChampion) {
+      expected.add(cards.chosenChampion);
+    }
+    
+    // Side deck
+    (cards.sideDeck || []).forEach(cardId => {
+      if (cardId) expected.add(cardId);
+    });
+    
+    // Battlefields
+    (cards.battlefields || []).forEach(cardId => {
+      if (cardId) expected.add(cardId);
+    });
+    
+    // Legend
+    if (cards.legendCard) {
+      expected.add(cards.legendCard);
+    }
+    
+    // Runes will be added after legend card is set and colors are available
+    expectedImagesRef.current = expected;
+    setLoadingProgress({ loaded: 0, expected: expected.size });
+    
     setMainDeck(cards.mainDeck || []);
     setChosenChampion(cards.chosenChampion || null);
     setSideDeck(compactSideDeck(cards.sideDeck || []));
     setBattlefields(cards.battlefields || []);
-    setLegendCard(cards.legendCard || null);
     
     // Normalize rune counts: if they don't total 12, set to 6-6
     const runeA = cards.runeACount || 0;
     const runeB = cards.runeBCount || 0;
     if (runeA + runeB !== 12) {
+      console.log('[loadDeckCards] Setting rune counts to 6-6 (invalid total)');
       setRuneACount(6);
       setRuneBCount(6);
     } else {
+      console.log('[loadDeckCards] Setting rune counts:', { runeA, runeB });
       setRuneACount(runeA);
       setRuneBCount(runeB);
     }
     
     // Load rune variant indices (default to 0 if not present or invalid)
+    // IMPORTANT: Set variant indices BEFORE setting legendCard to prevent
+    // the useEffect from resetting them when legendCard changes
     const runeAVariant = cards.runeAVariantIndex ?? 0;
     const runeBVariant = cards.runeBVariantIndex ?? 0;
+    console.log('[loadDeckCards] Extracted variant indices from deck:', {
+      runeAVariant,
+      runeBVariant
+    });
     
-    // Get rune base IDs from legend card (need to do this after legend is set)
-    // We'll use a helper function to get rune base IDs directly
+    // Store variant indices to apply after legend card is set and colors are available
+    // This is necessary because getCardDetails might not have colors loaded yet
+    pendingRuneVariantsRef.current = {
+      runeAVariant: runeAVariant,
+      runeBVariant: runeBVariant,
+      legendCard: cards.legendCard
+    };
+    console.log('[loadDeckCards] Stored pending variant indices:', pendingRuneVariantsRef.current);
+    
+    // Set legend card first - this will trigger useEffect to apply variant indices
+    console.log('[loadDeckCards] Setting legendCard (this will trigger useEffect):', cards.legendCard);
+    setLegendCard(cards.legendCard || null);
+    
+    // Try to get rune base IDs immediately if colors are available
+    // If not, the useEffect will handle it after legend card is set
     let runeABaseId = null;
     let runeBBaseId = null;
     if (cards.legendCard) {
+      console.log('[loadDeckCards] Attempting to get card details for legend:', cards.legendCard);
       const legendCardData = getCardDetails(cards.legendCard);
+      console.log('[loadDeckCards] Card details result:', {
+        found: !!legendCardData,
+        hasColors: !!legendCardData?.colors,
+        colors: legendCardData?.colors,
+        colorsType: typeof legendCardData?.colors,
+        colorsIsArray: Array.isArray(legendCardData?.colors),
+        cardKeys: legendCardData ? Object.keys(legendCardData).slice(0, 10) : null
+      });
+      
       const colors = legendCardData?.colors || [];
       const color1 = colors[0] || null;
       const color2 = colors[1] || null;
       
-      const colorMap = {
-        "Mind": "OGN-089",
-        "Order": "OGN-214",
-        "Body": "OGN-126",
-        "Calm": "OGN-042",
-        "Chaos": "OGN-166",
-        "Fury": "OGN-007"
-      };
-      runeABaseId = color1 ? colorMap[color1] : null;
-      runeBBaseId = color2 ? colorMap[color2] : null;
+      console.log('[loadDeckCards] Legend card colors:', { color1, color2, legendCard: cards.legendCard, colorsArray: colors, colorsLength: colors.length });
+      
+      if (color1 && color2) {
+        // Colors are available, we can set variant indices now
+        const getRuneCardIdLocal = (color) => {
+          const colorMap = {
+            "Mind": "OGN-089",
+            "Order": "OGN-214",
+            "Body": "OGN-126",
+            "Calm": "OGN-042",
+            "Chaos": "OGN-166",
+            "Fury": "OGN-007"
+          };
+          return colorMap[color] || null;
+        };
+        
+        runeABaseId = getRuneCardIdLocal(color1);
+        runeBBaseId = getRuneCardIdLocal(color2);
+        console.log('[loadDeckCards] Colors available, mapped to rune base IDs:', { runeABaseId, runeBBaseId });
+        
+        // Set variant indices immediately since we have the colors
+        if (runeABaseId) {
+          const runeACard = getCardDetails(runeABaseId);
+          const maxVariantIndex = runeACard?.variants ? runeACard.variants.length - 1 : 0;
+          const finalVariantA = Math.min(Math.max(0, runeAVariant), maxVariantIndex);
+          console.log('[loadDeckCards] Setting runeAVariantIndex immediately:', {
+            requested: runeAVariant,
+            maxAllowed: maxVariantIndex,
+            finalValue: finalVariantA,
+            runeABaseId
+          });
+          setRuneAVariantIndex(finalVariantA);
+          pendingRuneVariantsRef.current.runeAVariant = null; // Clear pending since we set it
+        }
+        
+        if (runeBBaseId) {
+          const runeBCard = getCardDetails(runeBBaseId);
+          const maxVariantIndex = runeBCard?.variants ? runeBCard.variants.length - 1 : 0;
+          const finalVariantB = Math.min(Math.max(0, runeBVariant), maxVariantIndex);
+          console.log('[loadDeckCards] Setting runeBVariantIndex immediately:', {
+            requested: runeBVariant,
+            maxAllowed: maxVariantIndex,
+            finalValue: finalVariantB,
+            runeBBaseId
+          });
+          setRuneBVariantIndex(finalVariantB);
+          pendingRuneVariantsRef.current.runeBVariant = null; // Clear pending since we set it
+        }
+      } else {
+        console.log('[loadDeckCards] Colors not available yet, will be set by useEffect after legend card loads');
+      }
+    } else {
+      console.log('[loadDeckCards] No legend card in deck data');
+      pendingRuneVariantsRef.current = { runeAVariant: null, runeBVariant: null, legendCard: null };
     }
     
-    // Validate variant indices exist for the runes
-    if (runeABaseId) {
-      const runeACard = getCardDetails(runeABaseId);
-      const maxVariantIndex = runeACard?.variants ? runeACard.variants.length - 1 : 0;
-      setRuneAVariantIndex(Math.min(Math.max(0, runeAVariant), maxVariantIndex));
-    } else {
-      setRuneAVariantIndex(0);
-    }
-    
-    if (runeBBaseId) {
-      const runeBCard = getCardDetails(runeBBaseId);
-      const maxVariantIndex = runeBCard?.variants ? runeBCard.variants.length - 1 : 0;
-      setRuneBVariantIndex(Math.min(Math.max(0, runeBVariant), maxVariantIndex));
-    } else {
-      setRuneBVariantIndex(0);
-    }
+    console.log('[loadDeckCards] END - All state updates queued');
   };
   
   // Ref to track if we've loaded from URL to prevent re-initialization
   const hasLoadedFromUrlRef = useRef(false);
   // Ref to track if editingDeckUUID was set when we loaded the page
   const hadEditingDeckUUIDOnLoadRef = useRef(false);
+  // Ref to store pending rune variant indices that need to be set after legend card loads
+  const pendingRuneVariantsRef = useRef({ runeAVariant: null, runeBVariant: null });
   
   // Helper function to check if a string is a valid UUID
   const isValidUUID = (str) => {
@@ -886,31 +1003,145 @@ function App() {
   }, [decks]);
   
   // Validate rune variant indices when legend card changes
+  // Also applies pending variant indices from loadDeckCards if colors are now available
   useEffect(() => {
-    const { runeABaseId, runeBBaseId } = getRuneCards();
+    console.log('[useEffect:legendCard] START - Legend card changed', {
+      timestamp: new Date().toISOString(),
+      legendCard,
+      currentRuneAVariantIndex: runeAVariantIndex,
+      currentRuneBVariantIndex: runeBVariantIndex,
+      pendingVariants: pendingRuneVariantsRef.current
+    });
     
-    // Validate rune A variant index
+    // Only validate if legend card is actually set (not during initial load)
+    if (!legendCard) {
+      console.log('[useEffect:legendCard] No legend card, resetting variant indices to 0');
+      setRuneAVariantIndex(0);
+      setRuneBVariantIndex(0);
+      pendingRuneVariantsRef.current = { runeAVariant: null, runeBVariant: null, legendCard: null };
+      console.log('[useEffect:legendCard] END - Reset complete');
+      return;
+    }
+    
+    const { runeABaseId, runeBBaseId } = getRuneCards;
+    console.log('[useEffect:legendCard] Got rune base IDs:', { runeABaseId, runeBBaseId });
+    
+    // Check if we have pending variant indices to apply (from loadDeckCards)
+    const pending = pendingRuneVariantsRef.current;
+    const shouldApplyPending = pending.legendCard === legendCard && 
+                              (pending.runeAVariant !== null || pending.runeBVariant !== null);
+    
+    if (shouldApplyPending && runeABaseId && runeBBaseId) {
+      console.log('[useEffect:legendCard] Applying pending variant indices:', pending);
+      
+      // Apply pending rune A variant
+      if (pending.runeAVariant !== null && runeABaseId) {
+        const runeACard = getCardDetails(runeABaseId);
+        const maxVariantIndex = runeACard?.variants ? runeACard.variants.length - 1 : 0;
+        const finalVariantA = Math.min(Math.max(0, pending.runeAVariant), maxVariantIndex);
+        console.log('[useEffect:legendCard] Applying pending runeAVariantIndex:', {
+          pending: pending.runeAVariant,
+          maxAllowed: maxVariantIndex,
+          finalValue: finalVariantA
+        });
+        setRuneAVariantIndex(finalVariantA);
+        pending.runeAVariant = null; // Clear pending
+      }
+      
+      // Apply pending rune B variant
+      if (pending.runeBVariant !== null && runeBBaseId) {
+        const runeBCard = getCardDetails(runeBBaseId);
+        const maxVariantIndex = runeBCard?.variants ? runeBCard.variants.length - 1 : 0;
+        const finalVariantB = Math.min(Math.max(0, pending.runeBVariant), maxVariantIndex);
+        console.log('[useEffect:legendCard] Applying pending runeBVariantIndex:', {
+          pending: pending.runeBVariant,
+          maxAllowed: maxVariantIndex,
+          finalValue: finalVariantB
+        });
+        setRuneBVariantIndex(finalVariantB);
+        pending.runeBVariant = null; // Clear pending
+      }
+    } else if (shouldApplyPending) {
+      console.log('[useEffect:legendCard] Pending variants exist but rune base IDs not available yet, will retry on next render');
+    }
+    
+    // Validate rune A variant index - clamp to max instead of resetting to 0
     if (runeABaseId) {
       const runeACard = getCardDetails(runeABaseId);
       const maxVariantIndex = runeACard?.variants ? runeACard.variants.length - 1 : 0;
-      if (runeAVariantIndex > maxVariantIndex) {
-        setRuneAVariantIndex(0);
-      }
+      console.log('[useEffect:legendCard] Validating runeA:', {
+        runeABaseId,
+        maxVariantIndex,
+        currentValue: runeAVariantIndex
+      });
+      // Use functional update to get current value and only update if needed
+      setRuneAVariantIndex(current => {
+        console.log('[useEffect:legendCard] runeAVariantIndex functional update - current value:', current);
+        if (current > maxVariantIndex) {
+          const newValue = Math.max(0, maxVariantIndex);
+          console.log('[useEffect:legendCard] Clamping runeAVariantIndex:', {
+            from: current,
+            to: newValue,
+            reason: 'exceeds max'
+          });
+          return newValue;
+        }
+        console.log('[useEffect:legendCard] Keeping runeAVariantIndex:', current);
+        return current; // Keep current value if valid
+      });
     } else {
-      setRuneAVariantIndex(0);
+      console.log('[useEffect:legendCard] No runeABaseId, skipping runeA validation');
     }
+    // Don't reset to 0 if baseId is null but legendCard exists - might be loading
     
-    // Validate rune B variant index
+    // Validate rune B variant index - clamp to max instead of resetting to 0
     if (runeBBaseId) {
       const runeBCard = getCardDetails(runeBBaseId);
       const maxVariantIndex = runeBCard?.variants ? runeBCard.variants.length - 1 : 0;
-      if (runeBVariantIndex > maxVariantIndex) {
-        setRuneBVariantIndex(0);
-      }
+      console.log('[useEffect:legendCard] Validating runeB:', {
+        runeBBaseId,
+        maxVariantIndex,
+        currentValue: runeBVariantIndex
+      });
+      // Use functional update to get current value and only update if needed
+      setRuneBVariantIndex(current => {
+        console.log('[useEffect:legendCard] runeBVariantIndex functional update - current value:', current);
+        if (current > maxVariantIndex) {
+          const newValue = Math.max(0, maxVariantIndex);
+          console.log('[useEffect:legendCard] Clamping runeBVariantIndex:', {
+            from: current,
+            to: newValue,
+            reason: 'exceeds max'
+          });
+          return newValue;
+        }
+        console.log('[useEffect:legendCard] Keeping runeBVariantIndex:', current);
+        return current; // Keep current value if valid
+      });
     } else {
-      setRuneBVariantIndex(0);
+      console.log('[useEffect:legendCard] No runeBBaseId, skipping runeB validation');
     }
-  }, [legendCard]); // Re-validate when legend card changes
+    // Don't reset to 0 if baseId is null but legendCard exists - might be loading
+    
+    console.log('[useEffect:legendCard] END - Validation complete');
+  }, [legendCard]); // Re-validate only when legend card changes
+  
+  // Track when rune variant indices actually change in state
+  useEffect(() => {
+    console.log('[useEffect:runeAVariantIndex] State changed:', {
+      timestamp: new Date().toISOString(),
+      newValue: runeAVariantIndex,
+      legendCard
+    });
+  }, [runeAVariantIndex]);
+  
+  useEffect(() => {
+    console.log('[useEffect:runeBVariantIndex] State changed:', {
+      timestamp: new Date().toISOString(),
+      newValue: runeBVariantIndex,
+      legendCard
+    });
+  }, [runeBVariantIndex]);
   
   // Apply theme on mount
   useEffect(() => {
@@ -935,8 +1166,25 @@ function App() {
   
   // Select a deck
   const handleSelectDeck = (deckId) => {
+    console.log('[handleSelectDeck] START - Selecting deck', {
+      timestamp: new Date().toISOString(),
+      deckId,
+      currentRuneAVariantIndex: runeAVariantIndex,
+      currentRuneBVariantIndex: runeBVariantIndex,
+      currentLegendCard: legendCard
+    });
+    
     const deck = decks.find(d => d.id === deckId);
     if (deck) {
+      console.log('[handleSelectDeck] Found deck, calling loadDeckCards', {
+        deckName: deck.name,
+        deckCards: {
+          runeAVariantIndex: deck.cards.runeAVariantIndex,
+          runeBVariantIndex: deck.cards.runeBVariantIndex,
+          legendCard: deck.cards.legendCard
+        }
+      });
+      
       setCurrentDeckId(deckId);
       loadDeckCards(deck.cards);
       // Set selected card to the legend of the newly loaded deck (or null if empty)
@@ -949,6 +1197,10 @@ function App() {
         deckId: deck.id,
         deckName: deck.name
       });
+      
+      console.log('[handleSelectDeck] END - Deck selection complete');
+    } else {
+      console.warn('[handleSelectDeck] Deck not found:', deckId);
     }
   };
   
@@ -1513,12 +1765,27 @@ function App() {
   };
 
   // Handle search function
-  const handleSearch = () => {
+  const handleSearch = (options = {}) => {
     // Filter cards based on search criteria
     if (!cardsData || cardsData.length === 0) {
       setSearchResults([]);
       return;
     }
+    const filtersToUse = options.filters || searchFilters;
+    const {
+      cardName,
+      cardText,
+      cardType,
+      cardColor,
+      energyMin,
+      energyMax,
+      powerMin,
+      powerMax,
+      mightMin,
+      mightMax
+    } = filtersToUse;
+    const appliedSortOrder = options.sortOrder || sortOrder;
+    const appliedSortDescending = options.sortDescending ?? sortDescending;
     const filtered = cardsData.filter(card => {
       // Exclude Rune cards from all search results
       if (card.type === 'Rune') {
@@ -1531,56 +1798,56 @@ function App() {
       }
       
       // Exclude Legends and Battlefields if Energy or Power filters have values
-      if ((searchFilters.energyMin || searchFilters.energyMax || searchFilters.powerMin || searchFilters.powerMax) && 
+      if ((energyMin || energyMax || powerMin || powerMax) && 
           (card.type === 'Legend' || card.type === 'Battlefield')) {
         return false;
       }
       
-      // Exclude Legends, Battlefields, Gears, and Spells if Might filters have values
-      if ((searchFilters.mightMin || searchFilters.mightMax) && 
-          (card.type === 'Legend' || card.type === 'Battlefield' || card.type === 'Gear' || card.type === 'Spell')) {
+      // Exclude Legends, Battlefields, and Spells if Might filters have values (equipment/gear support might now)
+      if ((mightMin || mightMax) && 
+          (card.type === 'Legend' || card.type === 'Battlefield' || card.type === 'Spell')) {
         return false;
       }
       
       // Card Name filter with wildcard support
-      if (searchFilters.cardName) {
-        const namePattern = wildcardToRegex(searchFilters.cardName);
+      if (cardName) {
+        const namePattern = wildcardToRegex(cardName);
         if (!namePattern.test(card.name || '')) {
           return false;
         }
       }
       
       // Card Text filter (description) with wildcard support
-      if (searchFilters.cardText) {
-        const textPattern = wildcardToRegex(searchFilters.cardText);
+      if (cardText) {
+        const textPattern = wildcardToRegex(cardText);
         if (!textPattern.test(card.description || '')) {
           return false;
         }
       }
       
       // Card Type filter
-      if (searchFilters.cardType) {
-        if (searchFilters.cardType === 'Champion') {
+      if (cardType) {
+        if (cardType === 'Champion') {
           // Champion filter: must be Unit type with super === "Champion"
           if (card.type !== 'Unit' || card.super !== 'Champion') {
             return false;
           }
-        } else if (searchFilters.cardType === 'Equipment') {
+        } else if (cardType === 'Equipment') {
           // Equipment filter: must have "Equipment" in tags
           if (!(card.tags && card.tags.includes('Equipment'))) {
             return false;
           }
         } else {
           // Other types: match type exactly
-          if (card.type !== searchFilters.cardType) {
+          if (card.type !== cardType) {
             return false;
           }
         }
       }
       
       // Card Color filter (skip if Battlefield)
-      if (searchFilters.cardColor && searchFilters.cardType !== 'Battlefield') {
-        if (searchFilters.cardColor === "Legend Colors") {
+      if (cardColor && cardType !== 'Battlefield') {
+        if (cardColor === "Legend Colors") {
           // Get legend colors from current legend in deck
           const legendData = getCardDetails(legendCard);
           const legendColors = legendData?.colors || [];
@@ -1595,41 +1862,41 @@ function App() {
           }
         } else {
           // Regular color filter
-          if (!card.colors || !card.colors.includes(searchFilters.cardColor)) {
+          if (!card.colors || !card.colors.includes(cardColor)) {
             return false;
           }
         }
       }
       
       // Energy range filter (skip if Legend or Battlefield)
-      if (searchFilters.cardType !== 'Legend' && searchFilters.cardType !== 'Battlefield') {
+      if (cardType !== 'Legend' && cardType !== 'Battlefield') {
         const energy = card.energy || 0;
-        if (searchFilters.energyMin && energy < parseInt(searchFilters.energyMin)) {
+        if (energyMin && energy < parseInt(energyMin)) {
           return false;
         }
-        if (searchFilters.energyMax && energy > parseInt(searchFilters.energyMax)) {
+        if (energyMax && energy > parseInt(energyMax)) {
           return false;
         }
       }
       
       // Power range filter (skip if Legend or Battlefield)
-      if (searchFilters.cardType !== 'Legend' && searchFilters.cardType !== 'Battlefield') {
+      if (cardType !== 'Legend' && cardType !== 'Battlefield') {
         const power = card.power || 0;
-        if (searchFilters.powerMin && power < parseInt(searchFilters.powerMin)) {
+        if (powerMin && power < parseInt(powerMin)) {
           return false;
         }
-        if (searchFilters.powerMax && power > parseInt(searchFilters.powerMax)) {
+        if (powerMax && power > parseInt(powerMax)) {
           return false;
         }
       }
       
       // Might range filter (skip if Gear, Equipment, Spell, Legend, or Battlefield)
-      if (searchFilters.cardType !== 'Gear' && searchFilters.cardType !== 'Equipment' && searchFilters.cardType !== 'Spell' && searchFilters.cardType !== 'Legend' && searchFilters.cardType !== 'Battlefield') {
+      if (cardType !== 'Gear' && cardType !== 'Spell' && cardType !== 'Legend' && cardType !== 'Battlefield') {
         const might = card.might || 0;
-        if (searchFilters.mightMin && might < parseInt(searchFilters.mightMin)) {
+        if (mightMin && might < parseInt(mightMin)) {
           return false;
         }
-        if (searchFilters.mightMax && might > parseInt(searchFilters.mightMax)) {
+        if (mightMax && might > parseInt(mightMax)) {
           return false;
         }
       }
@@ -1649,7 +1916,7 @@ function App() {
       
       // Primary sort: based on selected sort order
       let primaryDiff = 0;
-      switch (sortOrder) {
+      switch (appliedSortOrder) {
         case 'Energy':
           primaryDiff = (a.energy || 0) - (b.energy || 0);
           break;
@@ -1669,18 +1936,18 @@ function App() {
           primaryDiff = 0;
       }
       
-      if (primaryDiff !== 0) return sortDescending ? -primaryDiff : primaryDiff;
+      if (primaryDiff !== 0) return appliedSortDescending ? -primaryDiff : primaryDiff;
       
       // Secondary sort: Energy -> Power -> Alphabetical
       const energyDiff = (a.energy || 0) - (b.energy || 0);
-      if (energyDiff !== 0) return sortDescending ? -energyDiff : energyDiff;
+      if (energyDiff !== 0) return appliedSortDescending ? -energyDiff : energyDiff;
       
       const powerDiff = (a.power || 0) - (b.power || 0);
-      if (powerDiff !== 0) return sortDescending ? -powerDiff : powerDiff;
+      if (powerDiff !== 0) return appliedSortDescending ? -powerDiff : powerDiff;
       
       // Tertiary sort: Alphabetical
       const nameDiff = (a.name || '').localeCompare(b.name || '');
-      return sortDescending ? -nameDiff : nameDiff;
+      return appliedSortDescending ? -nameDiff : nameDiff;
     });
     
     // Expand cards into variants: each card becomes multiple results (base + all variants)
@@ -2674,8 +2941,8 @@ function App() {
   }, [searchFilters.cardType]);
 
   useEffect(() => {
-    if (searchFilters.cardType === 'Gear' || searchFilters.cardType === 'Equipment' || searchFilters.cardType === 'Spell' || searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield') {
-      // Disable and reset Might filter for Gear/Equipment/Spell/Legend/Battlefield
+    if (searchFilters.cardType === 'Gear' || searchFilters.cardType === 'Spell' || searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield') {
+      // Disable and reset Might filter for Gear/Spell/Legend/Battlefield
       setSearchFilters(prev => ({
         ...prev,
         mightMin: '',
@@ -3366,8 +3633,11 @@ function App() {
   };
   
   // Helper function to get rune cards from legend (with variant indices)
-  const getRuneCards = () => {
-    if (!legendCard) return { runeA: null, runeB: null };
+  // Memoized to prevent infinite re-renders - only recalculates when dependencies change
+  const getRuneCards = useMemo(() => {
+    if (!legendCard) {
+      return { runeA: null, runeB: null, runeABaseId: null, runeBBaseId: null };
+    }
     
     const cardData = getCardDetails(legendCard);
     const colors = cardData?.colors || [];
@@ -3377,14 +3647,102 @@ function App() {
     const runeABaseId = color1 ? getRuneCardId(color1) : null;
     const runeBBaseId = color2 ? getRuneCardId(color2) : null;
     
-    // Return variant-aware card IDs
-    return {
+    const result = {
       runeA: runeABaseId ? formatCardId(runeABaseId, runeAVariantIndex) : null,
       runeB: runeBBaseId ? formatCardId(runeBBaseId, runeBVariantIndex) : null,
       runeABaseId: runeABaseId,
       runeBBaseId: runeBBaseId
     };
-  };
+    
+    // Add rune images to expected images if loading (using ref to avoid re-renders)
+    if (isDeckLoading && result.runeA && result.runeB) {
+      expectedImagesRef.current.add(result.runeA);
+      expectedImagesRef.current.add(result.runeB);
+    }
+    
+    return result;
+  }, [legendCard, runeAVariantIndex, runeBVariantIndex, isDeckLoading]);
+  
+  
+  // Handle image load - only update if not already loaded to prevent infinite loops
+  const handleImageLoad = useCallback((cardId) => {
+    if (!cardId || !isDeckLoading) return;
+    
+    // Only process if not already loaded
+    if (loadedImagesRef.current.has(cardId)) return;
+    
+    loadedImagesRef.current.add(cardId);
+    
+    // Update progress display
+    setLoadingProgress({
+      loaded: loadedImagesRef.current.size,
+      expected: expectedImagesRef.current.size
+    });
+    
+    // Check if all images are loaded
+    const allLoaded = Array.from(expectedImagesRef.current).every(id => loadedImagesRef.current.has(id));
+    const { runeA, runeB } = getRuneCards;
+    
+    // Check if runes are loaded (either no legend card, or both rune images loaded)
+    const runesLoaded = !legendCard || 
+                       (runeA && runeB && 
+                        runeAVariantIndex !== undefined && runeBVariantIndex !== undefined &&
+                        loadedImagesRef.current.has(runeA) && loadedImagesRef.current.has(runeB));
+    
+    if (allLoaded && runesLoaded) {
+      console.log('[Loading] All images and runes loaded, hiding loading modal');
+      setIsDeckLoading(false);
+    }
+  }, [isDeckLoading, legendCard, runeAVariantIndex, runeBVariantIndex, getRuneCards]);
+  
+  // Check completion periodically (using interval to avoid infinite loops)
+  useEffect(() => {
+    if (!isDeckLoading) return;
+    
+    const checkCompletion = () => {
+      // Update progress display
+      setLoadingProgress({
+        loaded: loadedImagesRef.current.size,
+        expected: expectedImagesRef.current.size
+      });
+      
+      // If no expected images, check if we need to wait for runes
+      if (expectedImagesRef.current.size === 0) {
+          // No images to load, just check runes
+          const runesAreLoaded = !legendCard || 
+                                (runeAVariantIndex !== undefined && runeBVariantIndex !== undefined);
+          if (runesAreLoaded) {
+            console.log('[Loading] No images expected, runes loaded, hiding loading modal');
+            setIsDeckLoading(false);
+          }
+          return;
+        }
+        
+        const allImagesLoaded = Array.from(expectedImagesRef.current).every(id => loadedImagesRef.current.has(id));
+        const { runeA, runeB } = getRuneCards;
+        
+        // Runes are loaded when:
+        // 1. No legend card (no runes needed), OR
+        // 2. Legend card exists and both rune variant indices are set AND rune images are loaded
+        const runesAreLoaded = !legendCard || 
+                              (runeA && runeB && 
+                               runeAVariantIndex !== undefined && runeBVariantIndex !== undefined &&
+                               loadedImagesRef.current.has(runeA) && loadedImagesRef.current.has(runeB));
+        
+        if (allImagesLoaded && runesAreLoaded) {
+          console.log('[Loading] All images and runes loaded, hiding loading modal');
+          setIsDeckLoading(false);
+        }
+    };
+    
+    // Check immediately
+    checkCompletion();
+    
+    // Check periodically (every 100ms) to catch cached images
+    const interval = setInterval(checkCompletion, 100);
+    
+    return () => clearInterval(interval);
+  }, [isDeckLoading, legendCard, runeAVariantIndex, runeBVariantIndex, getRuneCards]);
   
   // Handle rune clicks - clicking a rune takes 1 from the other and adds to itself
   const handleRuneClick = (runeType) => {
@@ -3595,7 +3953,7 @@ function App() {
     deckCodeParts.push(...battlefieldCards);
     
     // 4. Runes (based on runeACount and runeBCount)
-    const { runeA, runeB } = getRuneCards();
+    const { runeA, runeB } = getRuneCards;
     if (runeA) {
       for (let i = 0; i < runeACount; i++) {
         deckCodeParts.push(runeA);
@@ -4524,7 +4882,24 @@ function App() {
         </div>
 
         {/* Middle Panel - 60% (1152px) */}
-        <div className={`flex-1 h-full px-4 py-2 pb-4 flex flex-col gap-2 ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`} data-deck-panel>
+        <div className={`flex-1 h-full px-4 py-2 pb-4 flex flex-col gap-2 relative ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`} data-deck-panel>
+          {/* Loading Modal Overlay - Solid overlay covering entire middle section */}
+          {isDeckLoading && (
+            <div className={`absolute inset-0 z-[100] flex items-center justify-center ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`} style={{ margin: 0, padding: 0 }}>
+              <div className="flex flex-col items-center gap-4">
+                <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent"></div>
+                <div className={`text-xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>
+                  Loading Deck...
+                </div>
+                <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  Loading images and runes...
+                </div>
+                <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  {loadingProgress.loaded} / {loadingProgress.expected} images loaded
+                </div>
+              </div>
+            </div>
+          )}
           {/* Main Deck - 60% height */}
           <div className={`flex-[0.6] border-2 rounded p-4 min-h-0 flex flex-col ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-blue-100 border-gray-400'}`}>
             {/* Header row with stats and controls */}
@@ -4667,6 +5042,17 @@ function App() {
                       alt={`Chosen Champion ${chosenChampion}`}
                       className="w-[92%] object-contain pointer-events-none"
                       style={{ aspectRatio: '515/719' }}
+                      data-card-id={chosenChampion}
+                      ref={(img) => {
+                        if (img && img.complete && img.naturalHeight !== 0 && !loadedImagesRef.current.has(chosenChampion)) {
+                          // Use setTimeout to defer state update and break render cycle
+                          setTimeout(() => {
+                            handleImageLoad(chosenChampion);
+                          }, 0);
+                        }
+                      }}
+                      onLoad={() => handleImageLoad(chosenChampion)}
+                      onError={() => handleImageLoad(chosenChampion)}
                     />
                     {isFutureRelease(getCardDetails(chosenChampion)?.releaseDate) && (
                       <div className="absolute top-1 right-1 bg-black/50 border-4 border-red-500 text-white text-[10px] font-bold px-1 py-0.5 rounded-full shadow-md z-10">
@@ -4732,6 +5118,17 @@ function App() {
                           alt={`Card ${cardId} slot ${index + 1}`}
                           className="w-[92%] object-contain pointer-events-none"
                           style={{ aspectRatio: '515/719' }}
+                          data-card-id={cardId}
+                          ref={(img) => {
+                            if (img && img.complete && img.naturalHeight !== 0 && !loadedImagesRef.current.has(cardId)) {
+                              // Use setTimeout to defer state update and break render cycle
+                              setTimeout(() => {
+                                handleImageLoad(cardId);
+                              }, 0);
+                            }
+                          }}
+                          onLoad={() => handleImageLoad(cardId)}
+                          onError={() => handleImageLoad(cardId)}
                         />
                         {isFutureRelease(getCardDetails(cardId)?.releaseDate) && (
                           <div className="absolute top-1 right-1 bg-black/50 border-4 border-red-500 text-white text-[10px] font-bold px-1 py-0.5 rounded-full shadow-md z-10">
@@ -4796,6 +5193,17 @@ function App() {
                       src={getCardImageUrl(legendCard)}
                       alt={`Legend ${legendCard}`}
                       className="w-full h-full object-contain pointer-events-none"
+                      data-card-id={legendCard}
+                      ref={(img) => {
+                        if (img && img.complete && img.naturalHeight !== 0 && !loadedImagesRef.current.has(legendCard)) {
+                          // Use setTimeout to defer state update and break render cycle
+                          setTimeout(() => {
+                            handleImageLoad(legendCard);
+                          }, 0);
+                        }
+                      }}
+                      onLoad={() => handleImageLoad(legendCard)}
+                      onError={() => handleImageLoad(legendCard)}
                     />
                     {isFutureRelease(getCardDetails(legendCard)?.releaseDate) && (
                       <div className="absolute top-2 right-2 bg-black/50 border-4 border-red-500 text-white text-[13px] font-bold px-1.5 py-1 rounded-full shadow-md z-10">
@@ -4914,8 +5322,18 @@ function App() {
                               <img
                                 src={getCardImageUrl(cardId)}
                                 alt={`Battlefield ${cardId}`}
-                                className="w-[116%] h-[116%] object-contain pointer-events-none"
-                                style={{ transform: 'rotate(90deg)' }}
+                                className="w-[92%] h-[92%] object-contain pointer-events-none"
+                                data-card-id={cardId}
+                                ref={(img) => {
+                                  if (img && img.complete && img.naturalHeight !== 0 && !loadedImagesRef.current.has(cardId)) {
+                                    // Use setTimeout to defer state update and break render cycle
+                                    setTimeout(() => {
+                                      handleImageLoad(cardId);
+                                    }, 0);
+                                  }
+                                }}
+                                onLoad={() => handleImageLoad(cardId)}
+                                onError={() => handleImageLoad(cardId)}
                               />
                               {isFutureRelease(getCardDetails(cardId)?.releaseDate) && (
                                 <div className="absolute top-1 right-1 bg-black/50 border-4 border-red-500 text-white text-[10px] font-bold px-1 py-0.5 rounded-full shadow-md z-10">
@@ -4944,7 +5362,7 @@ function App() {
                         onClick={(e) => {
                           if (isReadOnly) return; // Prevent modification in read-only mode
                           // Check for triple-click first (mobile) - this will only trigger modal after 3 clicks
-                          const { runeABaseId } = getRuneCards();
+                          const { runeABaseId } = getRuneCards;
                           if (runeABaseId) {
                             handleTripleClick(formatCardId(runeABaseId, runeAVariantIndex), 'runeA');
                           }
@@ -4970,7 +5388,7 @@ function App() {
                           const isCtrlClick = (e.ctrlKey || e.metaKey) && e.button === 0;
                           
                           if (isMiddleClick || isCtrlClick) {
-                            const { runeABaseId } = getRuneCards();
+                            const { runeABaseId } = getRuneCards;
                             if (runeABaseId) {
                               handleMiddleClick(e, formatCardId(runeABaseId, runeAVariantIndex), 'runeA');
                             }
@@ -4980,18 +5398,29 @@ function App() {
                           }
                         }}
                         onMouseEnter={() => {
-                          const { runeA } = getRuneCards();
+                          const { runeA } = getRuneCards;
                           if (runeA) setSelectedCard(runeA);
                         }}
                       >
                         {(() => {
-                          const { runeA } = getRuneCards();
+                          const { runeA } = getRuneCards;
                           return runeA ? (
                             <img
                               src={getCardImageUrl(runeA)}
                               alt="Rune A"
                               className="w-[92%] object-contain pointer-events-none"
                               style={{ aspectRatio: '515/719', outline: '1px solid black', outlineOffset: '0px' }}
+                              data-card-id={runeA}
+                              ref={(img) => {
+                                if (img && img.complete && img.naturalHeight !== 0 && !loadedImagesRef.current.has(runeA)) {
+                                  // Use setTimeout to defer state update and break render cycle
+                                  setTimeout(() => {
+                                    handleImageLoad(runeA);
+                                  }, 0);
+                                }
+                              }}
+                              onLoad={() => handleImageLoad(runeA)}
+                              onError={() => handleImageLoad(runeA)}
                             />
                           ) : (
                             <div className={`${isDarkMode ? 'text-gray-500' : 'text-gray-400'} text-[8px] text-center`}>Rune A</div>
@@ -5013,7 +5442,7 @@ function App() {
                         onClick={(e) => {
                           if (isReadOnly) return; // Prevent modification in read-only mode
                           // Check for triple-click first (mobile) - this will only trigger modal after 3 clicks
-                          const { runeBBaseId } = getRuneCards();
+                          const { runeBBaseId } = getRuneCards;
                           if (runeBBaseId) {
                             handleTripleClick(formatCardId(runeBBaseId, runeBVariantIndex), 'runeB');
                           }
@@ -5035,7 +5464,7 @@ function App() {
                           const isCtrlClick = (e.ctrlKey || e.metaKey) && e.button === 0;
                           
                           if (isMiddleClick || isCtrlClick) {
-                            const { runeBBaseId } = getRuneCards();
+                            const { runeBBaseId } = getRuneCards;
                             if (runeBBaseId) {
                               handleMiddleClick(e, formatCardId(runeBBaseId, runeBVariantIndex), 'runeB');
                             }
@@ -5045,18 +5474,29 @@ function App() {
                           }
                         }}
                         onMouseEnter={() => {
-                          const { runeB } = getRuneCards();
+                          const { runeB } = getRuneCards;
                           if (runeB) setSelectedCard(runeB);
                         }}
                       >
                         {(() => {
-                          const { runeB } = getRuneCards();
+                          const { runeB } = getRuneCards;
                           return runeB ? (
                             <img
                               src={getCardImageUrl(runeB)}
                               alt="Rune B"
                               className="w-[92%] object-contain pointer-events-none"
                               style={{ aspectRatio: '515/719', outline: '1px solid black', outlineOffset: '0px' }}
+                              data-card-id={runeB}
+                              ref={(img) => {
+                                if (img && img.complete && img.naturalHeight !== 0 && !loadedImagesRef.current.has(runeB)) {
+                                  // Use setTimeout to defer state update and break render cycle
+                                  setTimeout(() => {
+                                    handleImageLoad(runeB);
+                                  }, 0);
+                                }
+                              }}
+                              onLoad={() => handleImageLoad(runeB)}
+                              onError={() => handleImageLoad(runeB)}
                             />
                           ) : (
                             <div className={`${isDarkMode ? 'text-gray-500' : 'text-gray-400'} text-[8px] text-center`}>Rune B</div>
@@ -5125,6 +5565,21 @@ function App() {
                               alt={`Side Deck Card ${cardId} slot ${index + 1}`}
                               className="w-[92%] object-contain pointer-events-none"
                               style={{ aspectRatio: '515/685' }}
+                              data-card-id={cardId}
+                              ref={(img) => {
+                                if (img && img.complete && img.naturalHeight !== 0) {
+                                  handleImageLoad(cardId);
+                                }
+                              }}
+                              onLoad={() => handleImageLoad(cardId)}
+                              onError={() => handleImageLoad(cardId)}
+                              ref={(img) => {
+                                if (img && img.complete && img.naturalHeight !== 0) {
+                                  handleImageLoad(cardId);
+                                }
+                              }}
+                              onLoad={() => handleImageLoad(cardId)}
+                              onError={() => handleImageLoad(cardId)}
                             />
                             {isFutureRelease(getCardDetails(cardId)?.releaseDate) && (
                               <div className="absolute top-1 right-1 bg-black/50 border-4 border-red-500 text-white text-[10px] font-bold px-1 py-0.5 rounded-full shadow-md z-10">
@@ -5231,6 +5686,11 @@ function App() {
                     type="number"
                     value={searchFilters.energyMin}
                     onChange={(e) => setSearchFilters({...searchFilters, energyMin: e.target.value})}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleSearch();
+                      }
+                    }}
                     disabled={searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield'}
                     className={`w-12 px-1 py-1 text-[10px] rounded border ${isDarkMode ? 'bg-gray-600 border-gray-500 text-gray-100' : 'bg-white border-gray-300 text-gray-800'} ${(searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield') ? 'opacity-50 cursor-not-allowed' : ''}`}
                     placeholder="Min"
@@ -5242,6 +5702,11 @@ function App() {
                     type="number"
                     value={searchFilters.energyMax}
                     onChange={(e) => setSearchFilters({...searchFilters, energyMax: e.target.value})}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleSearch();
+                      }
+                    }}
                     disabled={searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield'}
                     className={`w-12 px-1 py-1 text-[10px] rounded border ${isDarkMode ? 'bg-gray-600 border-gray-500 text-gray-100' : 'bg-white border-gray-300 text-gray-800'} ${(searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield') ? 'opacity-50 cursor-not-allowed' : ''}`}
                     placeholder="Max"
@@ -5257,6 +5722,11 @@ function App() {
                     type="number"
                     value={searchFilters.powerMin}
                     onChange={(e) => setSearchFilters({...searchFilters, powerMin: e.target.value})}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleSearch();
+                      }
+                    }}
                     disabled={searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield'}
                     className={`w-12 px-1 py-1 text-[10px] rounded border ${isDarkMode ? 'bg-gray-600 border-gray-500 text-gray-100' : 'bg-white border-gray-300 text-gray-800'} ${(searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield') ? 'opacity-50 cursor-not-allowed' : ''}`}
                     placeholder="Min"
@@ -5268,6 +5738,11 @@ function App() {
                     type="number"
                     value={searchFilters.powerMax}
                     onChange={(e) => setSearchFilters({...searchFilters, powerMax: e.target.value})}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleSearch();
+                      }
+                    }}
                     disabled={searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield'}
                     className={`w-12 px-1 py-1 text-[10px] rounded border ${isDarkMode ? 'bg-gray-600 border-gray-500 text-gray-100' : 'bg-white border-gray-300 text-gray-800'} ${(searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield') ? 'opacity-50 cursor-not-allowed' : ''}`}
                     placeholder="Max"
@@ -5277,7 +5752,7 @@ function App() {
             </div>
             
             {/* Might range and Sort Order - Same line */}
-            <div className="flex items-end gap-2">
+            <div className="grid grid-cols-2 gap-2">
               <div className="flex flex-col">
                 <label className={`text-[11px] font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Might</label>
                 <div className="flex items-center gap-1">
@@ -5285,8 +5760,13 @@ function App() {
                     type="number"
                     value={searchFilters.mightMin}
                     onChange={(e) => setSearchFilters({...searchFilters, mightMin: e.target.value})}
-                    disabled={searchFilters.cardType === 'Gear' || searchFilters.cardType === 'Equipment' || searchFilters.cardType === 'Spell' || searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield'}
-                    className={`w-12 px-1 py-1 text-[10px] rounded border ${isDarkMode ? 'bg-gray-600 border-gray-500 text-gray-100' : 'bg-white border-gray-300 text-gray-800'} ${(searchFilters.cardType === 'Gear' || searchFilters.cardType === 'Equipment' || searchFilters.cardType === 'Spell' || searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield') ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleSearch();
+                      }
+                    }}
+                    disabled={searchFilters.cardType === 'Gear' || searchFilters.cardType === 'Spell' || searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield'}
+                    className={`w-12 px-1 py-1 text-[10px] rounded border ${isDarkMode ? 'bg-gray-600 border-gray-500 text-gray-100' : 'bg-white border-gray-300 text-gray-800'} ${(searchFilters.cardType === 'Gear' || searchFilters.cardType === 'Spell' || searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield') ? 'opacity-50 cursor-not-allowed' : ''}`}
                     placeholder="Min"
                   />
                   <span className={`text-[10px] ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>≤</span>
@@ -5296,20 +5776,25 @@ function App() {
                     type="number"
                     value={searchFilters.mightMax}
                     onChange={(e) => setSearchFilters({...searchFilters, mightMax: e.target.value})}
-                    disabled={searchFilters.cardType === 'Gear' || searchFilters.cardType === 'Equipment' || searchFilters.cardType === 'Spell' || searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield'}
-                    className={`w-12 px-1 py-1 text-[10px] rounded border ${isDarkMode ? 'bg-gray-600 border-gray-500 text-gray-100' : 'bg-white border-gray-300 text-gray-800'} ${(searchFilters.cardType === 'Gear' || searchFilters.cardType === 'Equipment' || searchFilters.cardType === 'Spell' || searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield') ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleSearch();
+                      }
+                    }}
+                    disabled={searchFilters.cardType === 'Gear' || searchFilters.cardType === 'Spell' || searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield'}
+                    className={`w-12 px-1 py-1 text-[10px] rounded border ${isDarkMode ? 'bg-gray-600 border-gray-500 text-gray-100' : 'bg-white border-gray-300 text-gray-800'} ${(searchFilters.cardType === 'Gear' || searchFilters.cardType === 'Spell' || searchFilters.cardType === 'Legend' || searchFilters.cardType === 'Battlefield') ? 'opacity-50 cursor-not-allowed' : ''}`}
                     placeholder="Max"
                   />
                 </div>
               </div>
-              <div className="flex flex-col flex-1">
+              <div className="flex flex-col">
                 <label className={`text-[11px] font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>Sort Order</label>
                 <div className="flex items-center gap-2">
                   <select
                     value={sortOrder}
                     onChange={(e) => setSortOrder(e.target.value)}
                     disabled={isReadOnly}
-                    className={`flex-1 px-2 py-1 text-[11px] rounded border ${isReadOnly ? 'opacity-50 cursor-not-allowed' : ''} ${isDarkMode ? 'bg-gray-600 border-gray-500 text-gray-100' : 'bg-white border-gray-300 text-gray-800'}`}
+                    className={`w-full px-2 py-1 text-[11px] rounded border ${isReadOnly ? 'opacity-50 cursor-not-allowed' : ''} ${isDarkMode ? 'bg-gray-600 border-gray-500 text-gray-100' : 'bg-white border-gray-300 text-gray-800'}`}
                   >
                     <option value="A-Z">A-Z</option>
                     <option value="Energy">Energy</option>
@@ -5333,14 +5818,30 @@ function App() {
             </div>
             
             {/* Search button - Full width row */}
-            <div className="w-full">
-              <button
-                onClick={handleSearch}
-                className={`w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-medium rounded shadow-md transition-colors ${isDarkMode ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
-              >
-                Search
-              </button>
-            </div>
+    <div className="w-full grid grid-cols-2 gap-2">
+      <button
+        onClick={handleSearch}
+        className={`w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-medium rounded shadow-md transition-colors ${isDarkMode ? 'bg-blue-600 hover:bg-blue-700' : ''}`}
+      >
+        Search
+      </button>
+      <button
+        onClick={() => {
+          const newFilters = { ...DEFAULT_SEARCH_FILTERS };
+          setSearchFilters(newFilters);
+          setSortOrder('A-Z');
+          setSortDescending(false);
+          handleSearch({
+            filters: newFilters,
+            sortOrder: 'A-Z',
+            sortDescending: false
+          });
+        }}
+        className={`w-full px-4 py-2 bg-red-600 text-white text-[11px] font-medium rounded shadow-md hover:bg-red-700 active:bg-red-800 transition-colors`}
+      >
+        Reset
+      </button>
+    </div>
           </div>
           
           {/* Results Box */}
@@ -5464,7 +5965,7 @@ function App() {
       {isDragging && draggedCard && (() => {
         const cardDetails = getCardDetails(draggedCard);
         const isBattlefieldCard = isDraggingFromBattlefield || cardDetails?.type === "Battlefield";
-        const rotation = isBattlefieldCard ? 'rotate(90deg)' : 'rotate(0deg)';
+        const rotation = 'rotate(0deg)';
         const size = isBattlefieldCard ? { width: '142px', height: 'auto', aspectRatio: '719/515' } : { width: '106px', height: 'auto', aspectRatio: '515/719' };
         
         return (

@@ -2,16 +2,89 @@
  * Utility functions for generating profile pictures from card images
  */
 
+// Cache for cards data to avoid repeated API calls
+let cardsDataCache = null;
+let cardsDataPromise = null;
+
+/**
+ * Load cards data (cached)
+ * @returns {Promise<Array>} - The cards data array
+ */
+async function loadCardsData() {
+  if (cardsDataCache) {
+    return cardsDataCache;
+  }
+  
+  if (cardsDataPromise) {
+    return cardsDataPromise;
+  }
+  
+  cardsDataPromise = (async () => {
+    try {
+      // Dynamically import to avoid circular dependencies
+      const { getCards } = await import('./cardsApi');
+      const cards = await getCards();
+      cardsDataCache = cards;
+      return cards;
+    } catch (error) {
+      console.error('Error loading cards data for profile picture:', error);
+      return [];
+    } finally {
+      cardsDataPromise = null;
+    }
+  })();
+  
+  return cardsDataPromise;
+}
+
+/**
+ * Parse card ID with variant index
+ * @param {string} cardId - The card ID (e.g., "OGN-155" or "OGN-155-1")
+ * @returns {Object} - { baseId, variantIndex }
+ */
+function parseCardId(cardId) {
+  if (!cardId) return { baseId: null, variantIndex: 0 };
+  const match = cardId.match(/^([A-Z]+-\d+)(?:-(\d+))?$/);
+  if (match) {
+    return {
+      baseId: match[1],
+      variantIndex: match[2] ? parseInt(match[2], 10) - 1 : 0
+    };
+  }
+  return { baseId: cardId, variantIndex: 0 };
+}
+
 /**
  * Get the card image URL for a given card ID
- * @param {string} cardId - The card ID (e.g., "OGN-155")
- * @returns {string} - The image URL
+ * Handles variants by using cards data when available
+ * @param {string} cardId - The card ID (e.g., "OGN-155" or "OGS-010-1")
+ * @returns {Promise<string>} - The image URL
  */
-function getCardImageUrl(cardId) {
+async function getCardImageUrl(cardId) {
   if (!cardId) return 'https://cdn.piltoverarchive.com/Cardback.webp';
   
-  // For now, use the standard CDN URL format
-  // In the future, this could use the same logic as getCardImageUrl in other components
+  // Try to load cards data to get variant images
+  const cardsData = await loadCardsData();
+  
+  if (cardsData && cardsData.length > 0) {
+    const { baseId, variantIndex } = parseCardId(cardId);
+    const card = cardsData.find(c => c.variantNumber === baseId);
+    
+    if (card) {
+      // Use variantImages array if available
+      if (card.variantImages && card.variantImages.length > variantIndex) {
+        const imageUrl = card.variantImages[variantIndex];
+        if (imageUrl) {
+          return imageUrl;
+        }
+      }
+      
+      // Fallback: construct URL from variantNumber
+      return `https://cdn.piltoverarchive.com/cards/${card.variantNumber}.webp`;
+    }
+  }
+  
+  // Fallback: use the cardId directly
   return `https://cdn.piltoverarchive.com/cards/${cardId}.webp`;
 }
 
@@ -22,8 +95,10 @@ function getCardImageUrl(cardId) {
  * @returns {Promise<string>} - A data URL of the cropped profile picture
  */
 export async function generateProfilePicture(cardId) {
+  // Get the image URL (async now)
+  const imageUrl = await getCardImageUrl(cardId);
+  
   return new Promise((resolve, reject) => {
-    const imageUrl = getCardImageUrl(cardId);
     const img = new Image();
     
     // Set crossOrigin to allow canvas manipulation of external images
