@@ -76,7 +76,7 @@ jobs:
           username: ${{ vars.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd /opt/summonersbase-test/
+            cd /opt/summonersbase-test
             mv infra/docker-compose.test.yml docker-compose.yml 2>/dev/null || true
 
             export BACKEND_TAG=${{ needs.build-and-push-images.outputs.tag }}
