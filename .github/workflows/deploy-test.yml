@@ -63,8 +63,8 @@ jobs:
       - name: Copy docker-compose to test server
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
+          host: ${{ vars.SSH_HOST }}
+          username: ${{ vars.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           source: "infra/docker-compose.test.yml"
           target: "/opt/summonersbase-test/"
@@ -72,8 +72,8 @@ jobs:
       - name: Deploy to test droplet
         uses: appleboy/ssh-action@v1.2.0
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
+          host: ${{ vars.SSH_HOST }}
+          username: ${{ vars.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd /opt/summonersbase-
