@@ -1,4 +1,4 @@
-name: Build and Deploy (Test)
+name: Build and Deploy ()
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   build-and-push-images:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-la
     outputs:
       tag: ${{ steps.meta.outputs.tag }}
     steps:
@@ -52,10 +52,10 @@ jobs:
           docker push ghcr.io/${{ github.repository_owner }}/summonersbase-frontend:${{ steps.meta.outputs.tag }}
           docker push ghcr.io/${{ github.repository_owner }}/summonersbase-worker:${{ steps.meta.outputs.tag }}
 
-  deploy-test:
+  deploy-:
     needs: build-and-push-images
-    runs-on: ubuntu-latest
-    environment: test
+    runs-on: ubuntu-la
+    environment: test.summonersbase.com
     steps:
       - name: Checkout code (for compose file)
         uses: actions/checkout@v4
@@ -76,8 +76,8 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd /opt/summonersbase-test
-            mv docker-compose.test.yml docker-compose.yml 2>/dev/null || true
+            cd /opt/summonersbase-
+            mv docker-compose..yml docker-compose.yml 2>/dev/null || true
 
             export BACKEND_TAG=${{ needs.build-and-push-images.outputs.tag }}
             export FRONTEND_TAG=${{ needs.build-and-push-images.outputs.tag }}
