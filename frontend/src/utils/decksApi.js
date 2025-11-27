@@ -4,20 +4,26 @@ import { authenticatedFetch, getToken } from './auth.js';
 
 // Determine API base URL dynamically
 function getApiBaseUrl() {
-  if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL;
+  const envUrl =
+    import.meta.env.VITE_API_BASE_URL ?? import.meta.env.REACT_APP_API_BASE_URL;
+  if (envUrl) {
+    return envUrl;
   }
-  
+
   // In production, use relative paths so nginx can proxy /api/* requests
-  const isProduction = import.meta.env.PROD || 
-                       import.meta.env.MODE === 'production' ||
-                       import.meta.env.VITE_ENVIRONMENT === 'prod';
-  
+  const runtimeEnv =
+    import.meta.env.VITE_ENVIRONMENT ?? import.meta.env.REACT_APP_ENV;
+  const isProduction =
+    import.meta.env.PROD ||
+    import.meta.env.MODE === 'production' ||
+    runtimeEnv === 'prod' ||
+    runtimeEnv === 'production';
+
   if (isProduction) {
     // Return empty string to use relative paths (nginx will proxy /api/*)
     return '';
   }
-  
+
   // In development, use localhost:3000
   const protocol = window.location.protocol;
   const hostname = window.location.hostname;

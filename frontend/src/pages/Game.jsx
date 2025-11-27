@@ -7,6 +7,7 @@ import { getPreferences } from '../utils/preferencesApi';
 import { getProfilePictureUrl } from '../utils/profilePicture';
 import { getDecks, getDeck } from '../utils/decksApi';
 import { getCards } from '../utils/cardsApi';
+import { getCardBackImageUrl, getCardImageUrl, parseCardId } from '../utils/cardImageUtils';
 
 function Game() {
   // Dark mode state - initialize from localStorage
@@ -75,7 +76,7 @@ function Game() {
   const [opponentChosenChampionLoading, setOpponentChosenChampionLoading] = useState(false);
   
   // Card back image URL
-  const CARD_BACK_URL = 'https://cdn.piltoverarchive.com/Cardback.webp';
+  const CARD_BACK_URL = getCardBackImageUrl();
   
   // State for the currently hovered/selected card
   const [selectedCard, setSelectedCard] = useState(null);
@@ -89,19 +90,6 @@ function Game() {
   
   // State to track recently animated card to keep z-index high briefly (prevents flicker)
   const [recentlyAnimatedCardId, setRecentlyAnimatedCardId] = useState(null);
-  
-  // Helper function to parse card ID with variant index
-  const parseCardId = useCallback((cardId) => {
-    if (!cardId) return { baseId: null, variantIndex: 0 };
-    const match = cardId.match(/^([A-Z]+-\d+)(?:-(\d+))?$/);
-    if (match) {
-      return {
-        baseId: match[1],
-        variantIndex: match[2] ? parseInt(match[2], 10) - 1 : 0
-      };
-    }
-    return { baseId: cardId, variantIndex: 0 };
-  }, []);
   
   // Helper function to format card ID with variant index
   const formatCardId = useCallback((baseId, variantIndex = 0) => {
@@ -128,7 +116,7 @@ function Game() {
     const { baseId } = parseCardId(runeId);
     const card = cardsData.find(c => c.variantNumber === baseId);
     return card?.colors?.[0] || null;
-  }, [cardsData, parseCardId]);
+  }, [cardsData]);
   
   // Helper function to get CSS color for rune color name
   const getRuneColorCSS = useCallback((colorName) => {
@@ -190,7 +178,7 @@ function Game() {
     if (!cardId || !cardsData || cardsData.length === 0) return null;
     const { baseId } = parseCardId(cardId);
     return cardsData.find(card => card.variantNumber === baseId);
-  }, [cardsData, parseCardId]);
+  }, [cardsData]);
   
   // Debounced function to set selected card (delays selection to prevent accidental changes on quick mouse movements)
   const handleCardHover = useCallback((cardId) => {
@@ -346,7 +334,6 @@ function Game() {
     preferredDeck?.cards?.runeAVariantIndex,
     preferredDeck?.cards?.runeBVariantIndex,
     cardsData,
-    parseCardId,
     getCardDetails,
     getRuneCardId,
     formatCardId
@@ -423,56 +410,27 @@ function Game() {
     loadCardsData();
   }, []);
   
-  // Get card image URL from card ID - memoized to prevent unnecessary recalculations
-  const getCardImageUrl = useCallback((cardId) => {
-    if (!cardId) return 'https://cdn.piltoverarchive.com/Cardback.webp';
-    
-    if (!cardsData || cardsData.length === 0) {
-      // Fallback if cards haven't loaded yet
-      return `https://cdn.piltoverarchive.com/cards/${cardId}.webp`;
-    }
-    
-    const { baseId, variantIndex } = parseCardId(cardId);
-    const card = cardsData.find(c => c.variantNumber === baseId);
-    
-    if (!card) {
-      // Fallback to original cardId if card not found
-      return `https://cdn.piltoverarchive.com/cards/${cardId}.webp`;
-    }
-    
-    // Use variantImages array if available
-    if (card.variantImages && card.variantImages.length > variantIndex) {
-      const imageUrl = card.variantImages[variantIndex];
-      if (imageUrl) {
-        return imageUrl;
-      }
-    }
-    
-    // Fallback: construct URL from variantNumber
-    return `https://cdn.piltoverarchive.com/cards/${card.variantNumber}.webp`;
-  }, [cardsData, parseCardId]);
-  
   // Memoize hand card image URLs to prevent recalculation on every render
   const handCardImageUrls = useMemo(() => {
     const urlMap = new Map();
     hand.forEach(cardId => {
       if (cardId && !urlMap.has(cardId)) {
-        urlMap.set(cardId, getCardImageUrl(cardId));
+        urlMap.set(cardId, getCardImageUrl(cardId, cardsData));
       }
     });
     return urlMap;
-  }, [hand, getCardImageUrl]);
-  
+  }, [hand, cardsData]);
+
   // Memoize discard pile card image URLs to prevent recalculation on every render
   const discardCardImageUrls = useMemo(() => {
     const urlMap = new Map();
     discardPile.forEach(cardId => {
       if (cardId && !urlMap.has(cardId)) {
-        urlMap.set(cardId, getCardImageUrl(cardId));
+        urlMap.set(cardId, getCardImageUrl(cardId, cardsData));
       }
     });
     return urlMap;
-  }, [discardPile, getCardImageUrl]);
+  }, [discardPile, cardsData]);
   
   // Load legend card image when preferred deck or cards data changes
   useEffect(() => {
@@ -489,20 +447,7 @@ function Game() {
       
       try {
         setLegendCardLoading(true);
-        // Get card image URL using cards data
-        const { baseId, variantIndex } = parseCardId(legendCardId);
-        const card = cardsData.find(c => c.variantNumber === baseId);
-        
-        let imageUrl;
-        if (card && card.variantImages && card.variantImages.length > variantIndex) {
-          imageUrl = card.variantImages[variantIndex];
-        }
-        
-        if (!imageUrl) {
-          // Fallback: construct URL from variantNumber or cardId
-          imageUrl = `https://cdn.piltoverarchive.com/cards/${card?.variantNumber || legendCardId}.webp`;
-        }
-        
+        const imageUrl = getCardImageUrl(legendCardId, cardsData);
         setLegendCardImageUrl(imageUrl);
       } catch (error) {
         console.error('[Game] Failed to load legend card image:', error);
@@ -530,20 +475,7 @@ function Game() {
       
       try {
         setChosenChampionLoading(true);
-        // Get card image URL using cards data
-        const { baseId, variantIndex } = parseCardId(chosenChampionId);
-        const card = cardsData.find(c => c.variantNumber === baseId);
-        
-        let imageUrl;
-        if (card && card.variantImages && card.variantImages.length > variantIndex) {
-          imageUrl = card.variantImages[variantIndex];
-        }
-        
-        if (!imageUrl) {
-          // Fallback: construct URL from variantNumber or cardId
-          imageUrl = `https://cdn.piltoverarchive.com/cards/${card?.variantNumber || chosenChampionId}.webp`;
-        }
-        
+        const imageUrl = getCardImageUrl(chosenChampionId, cardsData);
         setChosenChampionImageUrl(imageUrl);
       } catch (error) {
         console.error('[Game] Failed to load chosen champion image:', error);
@@ -571,20 +503,7 @@ function Game() {
       
       try {
         setOpponentLegendCardLoading(true);
-        // Get card image URL using cards data
-        const { baseId, variantIndex } = parseCardId(legendCardId);
-        const card = cardsData.find(c => c.variantNumber === baseId);
-        
-        let imageUrl;
-        if (card && card.variantImages && card.variantImages.length > variantIndex) {
-          imageUrl = card.variantImages[variantIndex];
-        }
-        
-        if (!imageUrl) {
-          // Fallback: construct URL from variantNumber or cardId
-          imageUrl = `https://cdn.piltoverarchive.com/cards/${card?.variantNumber || legendCardId}.webp`;
-        }
-        
+        const imageUrl = getCardImageUrl(legendCardId, cardsData);
         setOpponentLegendCardImageUrl(imageUrl);
       } catch (error) {
         console.error('[Game] Failed to load opponent legend card image:', error);
@@ -612,20 +531,7 @@ function Game() {
       
       try {
         setOpponentChosenChampionLoading(true);
-        // Get card image URL using cards data
-        const { baseId, variantIndex } = parseCardId(chosenChampionId);
-        const card = cardsData.find(c => c.variantNumber === baseId);
-        
-        let imageUrl;
-        if (card && card.variantImages && card.variantImages.length > variantIndex) {
-          imageUrl = card.variantImages[variantIndex];
-        }
-        
-        if (!imageUrl) {
-          // Fallback: construct URL from variantNumber or cardId
-          imageUrl = `https://cdn.piltoverarchive.com/cards/${card?.variantNumber || chosenChampionId}.webp`;
-        }
-        
+        const imageUrl = getCardImageUrl(chosenChampionId, cardsData);
         setOpponentChosenChampionImageUrl(imageUrl);
       } catch (error) {
         console.error('[Game] Failed to load opponent chosen champion image:', error);
@@ -1103,7 +1009,7 @@ function Game() {
             {/* Card Image - fixed size to prevent changes */}
             <div className="w-full flex-shrink-0 mb-2" style={{ aspectRatio: '515/719' }}>
               <img 
-                src={getCardImageUrl(selectedCard)}
+                src={getCardImageUrl(selectedCard, cardsData)}
                 alt={`Card ${selectedCard}`}
                 className="w-full h-full object-contain"
               />
@@ -1332,7 +1238,7 @@ function Game() {
                                   }}
                                 >
                                   <img
-                                    src={getCardImageUrl(runeId)}
+                                    src={getCardImageUrl(runeId, cardsData)}
                                     alt={`Rune ${runeId}`}
                                     className="object-cover w-full h-full"
                                     style={{ 
@@ -1460,7 +1366,7 @@ function Game() {
             {animatingRuneId && (() => {
               const runeId = animatingRuneId.runeId;
               const fieldIndex = animatingRuneId.fieldIndex;
-              const runeImageUrl = getCardImageUrl(runeId);
+              const runeImageUrl = getCardImageUrl(runeId, cardsData);
               const runeWidth = 37.5;
               const runeHeight = runeWidth * (719 / 515);
               
@@ -1592,7 +1498,7 @@ function Game() {
             {animatingRuneToDeck && (() => {
               const runeId = animatingRuneToDeck.runeId;
               const fieldIndex = animatingRuneToDeck.fieldIndex;
-              const runeImageUrl = getCardImageUrl(runeId);
+              const runeImageUrl = getCardImageUrl(runeId, cardsData);
               const runeWidth = 37.5;
               const runeHeight = runeWidth * (719 / 515);
               
@@ -1778,7 +1684,7 @@ function Game() {
                   
                   return hand.map((cardId, index) => {
                     // Use cached image URL to prevent recalculation
-                    const cardImageUrl = handCardImageUrls.get(cardId) || getCardImageUrl(cardId);
+                    const cardImageUrl = handCardImageUrls.get(cardId) || getCardImageUrl(cardId, cardsData);
                     const offset = index * (cardWidth - overlap);
                     // Only consider hovered if index is valid
                     const isHovered = hoveredHandCardIndex !== null && hoveredHandCardIndex === index && hoveredHandCardIndex < hand.length;
@@ -2015,7 +1921,7 @@ function Game() {
             {/* Animating Card (to deck) - Rendered separately since it's removed from hand array */}
             {animatingToDeck && (() => {
               const cardId = animatingToDeck.cardId;
-              const cardImageUrl = handCardImageUrls.get(cardId) || getCardImageUrl(cardId);
+              const cardImageUrl = handCardImageUrls.get(cardId) || getCardImageUrl(cardId, cardsData);
               const cardWidth = 140;
               const cardHeight = cardWidth * (719 / 515);
               const containerHeight = 209.375;
@@ -2176,7 +2082,7 @@ function Game() {
             {/* Animating Card (to discard) - Rendered separately since it's removed from hand array */}
             {animatingToDiscard && (() => {
               const cardId = animatingToDiscard.cardId;
-              const cardImageUrl = handCardImageUrls.get(cardId) || getCardImageUrl(cardId);
+              const cardImageUrl = handCardImageUrls.get(cardId) || getCardImageUrl(cardId, cardsData);
               const cardWidth = 140;
               const cardHeight = cardWidth * (719 / 515);
               const containerHeight = 209.375;
@@ -2646,7 +2552,7 @@ function Game() {
               // Only show previous card if there are at least 2 cards (so we have a previous card to show)
               const cardIndex = (animatingToDiscard && discardPile.length > 1) ? discardPile.length - 2 : discardPile.length - 1;
               const topCardId = discardPile[cardIndex]; // Card to display (previous during animation, current otherwise)
-              const topCardImageUrl = getCardImageUrl(topCardId);
+              const topCardImageUrl = getCardImageUrl(topCardId, cardsData);
               return (
                 <div 
                   className="absolute bottom-[315.375px] right-4 z-15 cursor-pointer" 
@@ -2982,7 +2888,7 @@ function Game() {
                     <div className="grid grid-cols-8 gap-3 justify-items-center" style={{ position: 'relative' }}>
                       {discardPile.map((cardId, index) => {
                         // Use cached image URL to prevent recalculation on every render
-                        const cardImageUrl = discardCardImageUrls.get(cardId) || getCardImageUrl(cardId);
+                        const cardImageUrl = discardCardImageUrls.get(cardId) || getCardImageUrl(cardId, cardsData);
                         return (
                           <div 
                             key={`${cardId}-${index}`} 

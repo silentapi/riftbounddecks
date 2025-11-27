@@ -23,28 +23,9 @@ import { getPreferences, updatePreferences } from './utils/preferencesApi';
 import { migrateLegacyDecks } from './utils/legacyMigration';
 import { isLoggedIn } from './utils/auth';
 import { getCards } from './utils/cardsApi';
+import { getCardImageUrl, parseCardId } from './utils/cardImageUtils';
 
 function App() {
-  // Helper function to parse card ID with variant index
-  // Format: "OGN-249" -> { baseId: "OGN-249", variantIndex: 0 } (base card, variants[0])
-  // Format: "OGN-249-1" -> { baseId: "OGN-249", variantIndex: 0 } (parsed number 1 - 1 = 0, variants[0])
-  // Format: "OGN-249-2" -> { baseId: "OGN-249", variantIndex: 1 } (parsed number 2 - 1 = 1, variants[1])
-  // Format: "OGN-249-3" -> { baseId: "OGN-249", variantIndex: 2 } (parsed number 3 - 1 = 2, variants[2])
-  // Formula: variantIndex = parsedNumber - 1 (general formula, not hardcoded)
-  const parseCardId = (cardId) => {
-    if (!cardId) return { baseId: null, variantIndex: 0 };
-    const match = cardId.match(/^([A-Z]+-\d+)(?:-(\d+))?$/);
-    if (match) {
-      // If no suffix, it's the base card (variants[0], index 0)
-      // Otherwise, subtract 1 from the parsed number to get the 0-based array index
-      return {
-        baseId: match[1],
-        variantIndex: match[2] ? parseInt(match[2], 10) - 1 : 0  // General formula: parsedNumber - 1
-      };
-    }
-    return { baseId: cardId, variantIndex: 0 };
-  };
-  
   // Helper function to format card ID with variant index
   // Format: { baseId: "OGN-249", variantIndex: 0 } -> "OGN-249-1" (index 0 + 1 = 1)
   // Format: { baseId: "OGN-249", variantIndex: 1 } -> "OGN-249-2" (index 1 + 1 = 2)
@@ -61,35 +42,6 @@ function App() {
     if (!cardId || !cardsData || cardsData.length === 0) return null;
     const { baseId } = parseCardId(cardId);
     return cardsData.find(card => card.variantNumber === baseId);
-  };
-  
-  // Function to get card image URL - uses variantImages array based on variant index
-  const getCardImageUrl = (cardId) => {
-    if (!cardId) return 'https://cdn.piltoverarchive.com/Cardback.webp';
-    
-    if (!cardsData || cardsData.length === 0) {
-      // Fallback if cards haven't loaded yet
-      return `https://cdn.piltoverarchive.com/cards/${cardId}.webp`;
-    }
-    
-    const { baseId, variantIndex } = parseCardId(cardId);
-    const card = cardsData.find(c => c.variantNumber === baseId);
-    
-    if (!card) {
-      // Fallback to original cardId if card not found
-      return `https://cdn.piltoverarchive.com/cards/${cardId}.webp`;
-    }
-    
-    // Use variantImages array if available - variantIndex directly indexes into the array
-    if (card.variantImages && card.variantImages.length > variantIndex) {
-      const imageUrl = card.variantImages[variantIndex];
-      if (imageUrl) {
-        return imageUrl;
-      }
-    }
-    
-    // Fallback: construct URL from variantNumber if variantImages not available or empty
-    return `https://cdn.piltoverarchive.com/cards/${card.variantNumber}.webp`;
   };
   
   // Function to check if a release date is in the future (comparing only dates, not time)
@@ -169,6 +121,8 @@ function App() {
   const [loadingProgress, setLoadingProgress] = useState({ loaded: 0, expected: 0 });
   const loadedImagesRef = useRef(new Set());
   const expectedImagesRef = useRef(new Set());
+  const pendingImageLogRef = useRef(0);
+  const PENDING_IMAGE_LOG_INTERVAL = 5000;
   
   // Ref to store timeout ID for debounced card selection
   const hoverTimeoutRef = useRef(null);
@@ -309,8 +263,7 @@ function App() {
     baseId: null,
     source: null, // 'mainDeck', 'legend', 'battlefield', 'sideDeck', 'champion'
     sourceIndex: null, // index in the source array (if applicable)
-    variants: [],
-    variantImages: []
+    variants: []
   });
   
   // Toast notifications state
@@ -1817,10 +1770,12 @@ function App() {
         }
       }
       
-      // Card Text filter (description) with wildcard support
+      // Card Text filter (description + tags) with wildcard support
       if (cardText) {
         const textPattern = wildcardToRegex(cardText);
-        if (!textPattern.test(card.description || '')) {
+        const descriptionMatches = textPattern.test(card.description || '');
+        const tagsMatch = (card.tags || []).some(tag => textPattern.test(tag));
+        if (!descriptionMatches && !tagsMatch) {
           return false;
         }
       }
@@ -3110,8 +3065,7 @@ function App() {
         baseId: baseId,
         source: source,
         sourceIndex: sourceIndex,
-        variants: card.variants || [],
-        variantImages: card.variantImages || []
+        variants: card.variants || []
       });
     } else {
       // Show toast notification for no variants
@@ -3238,8 +3192,7 @@ function App() {
       baseId: null,
       source: null,
       sourceIndex: null,
-      variants: [],
-      variantImages: []
+      variants: []
     });
   };
   
@@ -3251,8 +3204,7 @@ function App() {
       baseId: null,
       source: null,
       sourceIndex: null,
-      variants: [],
-      variantImages: []
+      variants: []
     });
   };
   
@@ -3662,9 +3614,53 @@ function App() {
     
     return result;
   }, [legendCard, runeAVariantIndex, runeBVariantIndex, isDeckLoading]);
+
+  const runeRefs = useRef({ runeA: null, runeB: null });
+
+  useEffect(() => {
+    const { runeA, runeB } = getRuneCards;
+    const prevRunes = runeRefs.current;
+    const newRunes = [runeA, runeB].filter(Boolean);
+    const prevSet = new Set([prevRunes.runeA, prevRunes.runeB].filter(Boolean));
+    const nextSet = new Set(newRunes);
+
+    // Remove expectations for runes that were replaced
+    prevSet.forEach((id) => {
+      if (!nextSet.has(id)) {
+        expectedImagesRef.current.delete(id);
+      }
+    });
+
+    // Ensure new rune ids are expected unless already loaded
+    newRunes.forEach((id) => {
+      if (id && !loadedImagesRef.current.has(id)) {
+        expectedImagesRef.current.add(id);
+      }
+    });
+
+    runeRefs.current = { runeA, runeB };
+  }, [getRuneCards]);
   
   
   // Handle image load - only update if not already loaded to prevent infinite loops
+  const logPendingImages = useCallback(() => {
+    if (!isDeckLoading) return;
+    const now = Date.now();
+    if (now - pendingImageLogRef.current < PENDING_IMAGE_LOG_INTERVAL) {
+      return;
+    }
+
+    const pendingIds = Array.from(expectedImagesRef.current).filter(
+      id => !loadedImagesRef.current.has(id)
+    );
+    if (!pendingIds.length) {
+      return;
+    }
+
+    pendingImageLogRef.current = now;
+    console.log('[Loading] still waiting for images', { pendingIds });
+  }, [isDeckLoading]);
+
   const handleImageLoad = useCallback((cardId) => {
     if (!cardId || !isDeckLoading) return;
     
@@ -3679,6 +3675,7 @@ function App() {
       expected: expectedImagesRef.current.size
     });
     
+    logPendingImages();
     // Check if all images are loaded
     const allLoaded = Array.from(expectedImagesRef.current).every(id => loadedImagesRef.current.has(id));
     const { runeA, runeB } = getRuneCards;
@@ -3732,6 +3729,8 @@ function App() {
         if (allImagesLoaded && runesAreLoaded) {
           console.log('[Loading] All images and runes loaded, hiding loading modal');
           setIsDeckLoading(false);
+        } else {
+          logPendingImages();
         }
     };
     
@@ -4689,7 +4688,7 @@ function App() {
           {/* Card Image - auto height */}
           <div className="w-full flex-shrink-0 mb-2">
             <img 
-              src={getCardImageUrl(selectedCard)}
+              src={getCardImageUrl(selectedCard, cardsData)}
               alt={`Card ${selectedCard}`}
               className="w-full object-contain"
               style={{ aspectRatio: '515/719' }}
@@ -4949,13 +4948,13 @@ function App() {
                   <>
                     <button 
                       onClick={handleSortAZ}
-                      className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-medium rounded shadow-md transition-colors"
+                      className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-medium rounded shadow-md transition-colors whitespace-nowrap"
                     >
                       Sort A-Z
                     </button>
                     <button 
                       onClick={handleSortByCost}
-                      className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-medium rounded shadow-md transition-colors"
+                      className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-medium rounded shadow-md transition-colors whitespace-nowrap"
                     >
                       Sort by Cost
                     </button>
@@ -5038,7 +5037,7 @@ function App() {
                 {chosenChampion ? (
                   <>
                     <img
-                      src={getCardImageUrl(chosenChampion)}
+                      src={getCardImageUrl(chosenChampion, cardsData)}
                       alt={`Chosen Champion ${chosenChampion}`}
                       className="w-[92%] object-contain pointer-events-none"
                       style={{ aspectRatio: '515/719' }}
@@ -5114,7 +5113,7 @@ function App() {
                     {cardId ? (
                       <>
                         <img
-                          src={getCardImageUrl(cardId)}
+                          src={getCardImageUrl(cardId, cardsData)}
                           alt={`Card ${cardId} slot ${index + 1}`}
                           className="w-[92%] object-contain pointer-events-none"
                           style={{ aspectRatio: '515/719' }}
@@ -5190,7 +5189,7 @@ function App() {
                 {legendCard ? (
                   <>
                     <img
-                      src={getCardImageUrl(legendCard)}
+                      src={getCardImageUrl(legendCard, cardsData)}
                       alt={`Legend ${legendCard}`}
                       className="w-full h-full object-contain pointer-events-none"
                       data-card-id={legendCard}
@@ -5320,7 +5319,7 @@ function App() {
                           {cardId ? (
                             <>
                               <img
-                                src={getCardImageUrl(cardId)}
+                                src={getCardImageUrl(cardId, cardsData)}
                                 alt={`Battlefield ${cardId}`}
                                 className="w-[92%] h-[92%] object-contain pointer-events-none"
                                 data-card-id={cardId}
@@ -5406,7 +5405,7 @@ function App() {
                           const { runeA } = getRuneCards;
                           return runeA ? (
                             <img
-                              src={getCardImageUrl(runeA)}
+                              src={getCardImageUrl(runeA, cardsData)}
                               alt="Rune A"
                               className="w-[92%] object-contain pointer-events-none"
                               style={{ aspectRatio: '515/719', outline: '1px solid black', outlineOffset: '0px' }}
@@ -5482,7 +5481,7 @@ function App() {
                           const { runeB } = getRuneCards;
                           return runeB ? (
                             <img
-                              src={getCardImageUrl(runeB)}
+                              src={getCardImageUrl(runeB, cardsData)}
                               alt="Rune B"
                               className="w-[92%] object-contain pointer-events-none"
                               style={{ aspectRatio: '515/719', outline: '1px solid black', outlineOffset: '0px' }}
@@ -5561,18 +5560,11 @@ function App() {
                         {cardId ? (
                           <>
                             <img
-                              src={getCardImageUrl(cardId)}
+                              src={getCardImageUrl(cardId, cardsData)}
                               alt={`Side Deck Card ${cardId} slot ${index + 1}`}
                               className="w-[92%] object-contain pointer-events-none"
                               style={{ aspectRatio: '515/685' }}
                               data-card-id={cardId}
-                              ref={(img) => {
-                                if (img && img.complete && img.naturalHeight !== 0) {
-                                  handleImageLoad(cardId);
-                                }
-                              }}
-                              onLoad={() => handleImageLoad(cardId)}
-                              onError={() => handleImageLoad(cardId)}
                               ref={(img) => {
                                 if (img && img.complete && img.naturalHeight !== 0) {
                                   handleImageLoad(cardId);
@@ -5906,7 +5898,7 @@ function App() {
                     {cardId ? (
                       <>
                         <img
-                          src={getCardImageUrl(cardId)}
+                          src={getCardImageUrl(cardId, cardsData)}
                           alt={`Search Result ${cardId}`}
                           className="w-full h-full object-contain pointer-events-none"
                           style={{ 
@@ -5984,7 +5976,7 @@ function App() {
             className="relative"
           >
             <img
-              src={getCardImageUrl(draggedCard)}
+              src={getCardImageUrl(draggedCard, cardsData)}
               alt={`Dragging ${draggedCard}`}
               style={{
                 ...size,
@@ -6213,7 +6205,7 @@ function App() {
                 <div className="flex justify-center gap-4">
                   {variantModal.variants.map((variant, index) => {
                     const variantCardId = formatCardId(variantModal.baseId, index);
-                    const imageUrl = variantModal.variantImages[index] || getCardImageUrl(variantCardId);
+                    const imageUrl = getCardImageUrl(variantCardId, cardsData);
                     
                     return (
                       <div

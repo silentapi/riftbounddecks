@@ -1,10 +1,17 @@
 #!/usr/bin/env python3
+import io
 import json
+import logging
+import os
 import re
+from argparse import ArgumentParser, Namespace
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
+from urllib.parse import urlparse
 
+import boto3
+from botocore.exceptions import BotoCoreError, ClientError
 import requests
 from bs4 import BeautifulSoup
 
@@ -16,7 +23,114 @@ RELEASE_DATES_BY_SET = {
     "OGS": "2025-10-31",
 }
 
-IMAGE_ROOT = Path(__file__).resolve().parent / "img"
+DEFAULT_OUTPUT_DIR = Path(os.environ.get("WORKER_OUTPUT_DIR", "/output"))
+STATIC_IMG_SUBPATH = "img"
+
+
+class ImageStats:
+    def __init__(self) -> None:
+        self.total_variants = 0
+        self.new_images = 0
+        self.missing_image_urls = 0
+
+logging.basicConfig(
+    level=os.environ.get("WORKER_LOG_LEVEL", "INFO"),
+    format="%(asctime)s %(levelname)s %(name)s %(message)s",
+)
+logger = logging.getLogger("riftbound-worker")
+
+
+class SpacesUploader:
+    """Minimal S3-compatible client that uploads JSON and images to a prefix."""
+
+    REQUIRED_ENV_VARS = (
+        "SPACES_ENDPOINT",
+        "SPACES_KEY",
+        "SPACES_SECRET",
+        "SPACES_BUCKET",
+    )
+
+    def __init__(self) -> None:
+        missing = [
+            var for var in self.REQUIRED_ENV_VARS if not os.environ.get(var)
+        ]
+        if missing:
+            raise RuntimeError(
+                f"Missing required DigitalOcean Spaces env vars: {', '.join(missing)}"
+            )
+
+        endpoint = os.environ["SPACES_ENDPOINT"].strip()
+        if not endpoint:
+            raise RuntimeError("SPACES_ENDPOINT cannot be empty")
+        if not endpoint.lower().startswith("http"):
+            endpoint = f"https://{endpoint}"
+
+        parsed = urlparse(endpoint)
+        if not parsed.scheme or not parsed.netloc:
+            raise RuntimeError(f"Invalid SPACES_ENDPOINT: {endpoint}")
+
+        self.endpoint_url = endpoint
+        self.bucket = os.environ["SPACES_BUCKET"].strip()
+        prefix = (os.environ.get("SPACES_PREFIX") or "").strip().strip("/")
+        self.prefix = f"{prefix}/" if prefix else ""
+        self.client = boto3.client(
+            "s3",
+            endpoint_url=self.endpoint_url,
+            aws_access_key_id=os.environ["SPACES_KEY"].strip(),
+            aws_secret_access_key=os.environ["SPACES_SECRET"].strip(),
+        )
+
+        base_url = f"{parsed.scheme}://{self.bucket}.{parsed.netloc}"
+        if parsed.path and parsed.path not in ("/", ""):
+            base_url = f"{base_url}{parsed.path.rstrip('/')}"
+        self.public_base_url = base_url.rstrip("/")
+
+    def _prefixed_key(self, relative_path: str) -> str:
+        clean_path = relative_path.lstrip("/")
+        return f"{self.prefix}{clean_path}" if self.prefix else clean_path
+
+    def build_public_url(self, relative_path: str) -> str:
+        key = self._prefixed_key(relative_path)
+        return f"{self.public_base_url}/{key}"
+
+    def object_exists(self, relative_path: str) -> bool:
+        key = self._prefixed_key(relative_path)
+        try:
+            self.client.head_object(Bucket=self.bucket, Key=key)
+            return True
+        except ClientError as exc:
+            error_code = exc.response.get("Error", {}).get("Code", "")
+            if error_code in ("404", "NotFound", "NoSuchKey"):
+                return False
+            raise
+
+    def upload_stream(
+        self,
+        stream: io.BytesIO,
+        relative_path: str,
+        content_type: Optional[str] = None,
+    ) -> str:
+        key = self._prefixed_key(relative_path)
+        stream.seek(0)
+        upload_kwargs = {
+            "Bucket": self.bucket,
+            "Key": key,
+            "Body": stream,
+            "ACL": "public-read",
+        }
+        if content_type:
+            upload_kwargs["ContentType"] = content_type
+
+        self.client.put_object(**upload_kwargs)
+        return f"{self.public_base_url}/{key}"
+
+    def upload_json(self, json_content: str, relative_path: str = "cards.json") -> str:
+        stream = io.BytesIO(json_content.encode("utf-8"))
+        return self.upload_stream(
+            stream,
+            relative_path,
+            content_type="application/json; charset=utf-8",
+        )
 
 
 def resolve_set_folder(set_id: str, variant_number: str) -> str:
@@ -30,31 +144,76 @@ def resolve_set_folder(set_id: str, variant_number: str) -> str:
     return "unknown"
 
 
-def download_variant_image(url: Optional[str], set_folder: str, variant_number: str) -> str:
+def upload_variant_image(
+    url: Optional[str],
+    set_folder: str,
+    variant_number: str,
+    uploader: SpacesUploader,
+) -> Tuple[str, bool]:
+    if not url:
+        return "", False
+
+    normalized_folder = set_folder.strip("/") if set_folder else ""
+    relative_parts = [STATIC_IMG_SUBPATH]
+    if normalized_folder:
+        relative_parts.append(normalized_folder)
+    relative_parts.append(f"{variant_number}.png")
+    relative_path = "/".join(relative_parts)
+
+    if uploader.object_exists(relative_path):
+        return uploader.build_public_url(relative_path), False
+
+    try:
+        with requests.get(url, stream=True, timeout=20) as response:
+            response.raise_for_status()
+            buffer = io.BytesIO()
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:
+                    buffer.write(chunk)
+            buffer.seek(0)
+            content_type = response.headers.get("Content-Type", "image/png")
+            return (
+                uploader.upload_stream(buffer, relative_path, content_type=content_type),
+                True,
+            )
+    except requests.RequestException as exc:
+        logger.warning("Failed to download variant image", {"variant": variant_number, "url": url, "error": str(exc)})
+        return url or "", False
+    except (BotoCoreError, ClientError) as exc:
+        logger.warning("Failed to upload variant image to Spaces", {"variant": variant_number, "error": str(exc)})
+        return url or "", False
+
+
+def store_variant_image_static(
+    url: Optional[str],
+    set_folder: str,
+    variant_number: str,
+    output_root: Path,
+) -> Tuple[str, bool]:
     if not url:
         return ""
 
-    IMAGE_ROOT.mkdir(parents=True, exist_ok=True)
-    target_dir = IMAGE_ROOT / set_folder
-    target_dir.mkdir(parents=True, exist_ok=True)
-    filename = f"{variant_number}.png"
-    destination = target_dir / filename
+    normalized_folder = set_folder.strip("/") if set_folder else ""
+    relative_parts = [part for part in (normalized_folder, f"{variant_number}.png") if part]
+    relative_path = "/".join(relative_parts)
+    img_root = output_root / STATIC_IMG_SUBPATH
+    destination = img_root / relative_path
 
     if destination.exists():
-        return f"/{set_folder}/{filename}"
+        return f"/{STATIC_IMG_SUBPATH}/{relative_path}", False
 
+    destination.parent.mkdir(parents=True, exist_ok=True)
     try:
-        response = requests.get(url, stream=True, timeout=20)
-        response.raise_for_status()
-        with destination.open("wb") as fp:
-            for chunk in response.iter_content(chunk_size=8192):
-                if chunk:
-                    fp.write(chunk)
+        with requests.get(url, stream=True, timeout=20) as response:
+            response.raise_for_status()
+            with destination.open("wb") as fp:
+                for chunk in response.iter_content(chunk_size=8192):
+                    if chunk:
+                        fp.write(chunk)
+        return f"/{STATIC_IMG_SUBPATH}/{relative_path}", True
     except requests.RequestException as exc:
-        print(f"Failed to download {variant_number} image at {url}: {exc}")
-        return url or ""
-
-    return f"/{set_folder}/{filename}"
+        logger.warning("Failed to download variant image for static output", {"variant": variant_number, "url": url, "error": str(exc)})
+        return url or "", False
 
 
 # ------------------ HTTP + HTML ------------------ #
@@ -322,7 +481,10 @@ def get_release_date_for_card(card: Dict[str, Any]) -> str:
     return DEFAULT_RELEASE_DATE
 
 
-def map_card_variant(card: Dict[str, Any]) -> Dict[str, Any]:
+def map_card_variant(
+    card: Dict[str, Any],
+    image_handler: Callable[[Optional[str], str, str], str],
+) -> Dict[str, Any]:
     """Build intermediate metadata for a single card variant."""
     variant_number = build_variant_number(card)
     release_date = get_release_date_for_card(card)
@@ -331,7 +493,7 @@ def map_card_variant(card: Dict[str, Any]) -> Dict[str, Any]:
         set_id = ""
     set_folder = resolve_set_folder(set_id, variant_number)
     variant_image_url = card.get("cardImage", {}).get("url")
-    variant_image = download_variant_image(variant_image_url, set_folder, variant_number)
+    variant_image = image_handler(variant_image_url, set_folder, variant_number)
 
     return {
         "name": card.get("name", ""),
@@ -421,20 +583,128 @@ def assemble_cards_by_name(entries: List[Dict[str, Any]]) -> List[Dict[str, Any]
 
 # ------------------ Main ------------------ #
 
-def fetch_cards():
+def fetch_cards(image_handler: Callable[[Optional[str], str, str], str]):
+    logger.info("Pulling card gallery HTML", {"url": RIFTBOUND_URL})
     html = fetch_html(RIFTBOUND_URL)
+    logger.info("Parsing Next.js payload")
     data = extract_next_data(html)
 
     items = get_cards_from_blades(data) or find_cards_items_recursive(data)
     if items is None:
         raise RuntimeError("Could not locate cards.items in JSON")
 
+    logger.info("Discovered card variants", {"variants": len(items)})
     variant_entries = [
-        map_card_variant(card) for card in items if isinstance(card, dict)
+        map_card_variant(card, image_handler) for card in items if isinstance(card, dict)
     ]
     return assemble_cards_by_name(variant_entries)
 
 
-if __name__ == "__main__":
-    cards = fetch_cards()
+def write_cards_json_static(cards: List[Dict[str, Any]], output_root: Path) -> Path:
+    output_root.mkdir(parents=True, exist_ok=True)
+    cards_path = output_root / "cards.json"
+    cards_path.write_text(json.dumps(cards, ensure_ascii=False), encoding="utf-8")
+    return cards_path
+
+
+def make_spaces_image_handler(
+    uploader: SpacesUploader, stats: ImageStats
+) -> Callable[[Optional[str], str, str], str]:
+    def handler(url: Optional[str], set_folder: str, variant_number: str) -> str:
+        stats.total_variants += 1
+
+        if not url:
+            stats.missing_image_urls += 1
+            return ""
+
+        image_url, is_new = upload_variant_image(
+            url, set_folder, variant_number, uploader
+        )
+        if is_new:
+            stats.new_images += 1
+        return image_url
+
+    return handler
+
+
+def make_static_image_handler(
+    output_root: Path, stats: ImageStats
+) -> Callable[[Optional[str], str, str], str]:
+    def handler(url: Optional[str], set_folder: str, variant_number: str) -> str:
+        stats.total_variants += 1
+
+        if not url:
+            stats.missing_image_urls += 1
+            return ""
+
+        image_url, is_new = store_variant_image_static(
+            url, set_folder, variant_number, output_root
+        )
+        if is_new:
+            stats.new_images += 1
+        return image_url
+
+    return handler
+
+
+def log_summary(mode: str, card_count: int, stats: ImageStats, output_target: str) -> None:
+    logger.info(
+        "Worker run complete",
+        {
+            "mode": mode,
+            "cards": card_count,
+            "total_variant_entries": stats.total_variants,
+            "new_images": stats.new_images,
+            "missing_image_urls": stats.missing_image_urls,
+            "output": output_target,
+        },
+    )
+
+
+def parse_args() -> Namespace:
+    parser = ArgumentParser(description="Riftbound card scraper worker")
+    parser.add_argument(
+        "--mode",
+        choices=["spaces", "static"],
+        default="spaces",
+        help="Where to publish cards data (Spaces or static /output directory)",
+    )
+    parser.add_argument(
+        "--output-dir",
+        default=str(DEFAULT_OUTPUT_DIR),
+        help="Root directory for static output mode (mounted by the user)",
+    )
+    return parser.parse_args()
+
+
+def main() -> None:
+    args = parse_args()
+    logger.info("Worker starting", {"mode": args.mode, "output_dir": args.output_dir})
+    stats = ImageStats()
+
+    if args.mode == "spaces":
+        uploader = SpacesUploader()
+        cards = fetch_cards(make_spaces_image_handler(uploader, stats))
+        cards_json = json.dumps(cards, ensure_ascii=False)
+        cards_url = uploader.upload_json(cards_json, "cards.json")
+        logger.info("Cards data uploaded to Spaces", {"url": cards_url, "card_count": len(cards)})
+        log_summary(args.mode, len(cards), stats, cards_url)
+        print(json.dumps(cards, indent=2, ensure_ascii=False))
+        print(f"Cards data uploaded to {cards_url}")
+        return
+
+    output_root = Path(args.output_dir)
+    cards = fetch_cards(make_static_image_handler(output_root, stats))
+    cards_path = write_cards_json_static(cards, output_root)
+    logger.info("Cards data written to static output", {"path": str(cards_path), "card_count": len(cards)})
+    log_summary(args.mode, len(cards), stats, str(cards_path))
     print(json.dumps(cards, indent=2, ensure_ascii=False))
+    print(f"Cards data written to {cards_path}")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception as exc:
+        print(f"Worker failed: {exc}")
+        raise

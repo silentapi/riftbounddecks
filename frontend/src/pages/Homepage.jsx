@@ -15,11 +15,15 @@ import { getPreferences, updatePreferences } from '../utils/preferencesApi';
 import { migrateLegacyDecks } from '../utils/legacyMigration';
 import { getProfilePictureUrl } from '../utils/profilePicture';
 import { getCards } from '../utils/cardsApi';
+import { getCardImageUrl, parseCardId } from '../utils/cardImageUtils';
 
 function Homepage() {
   // Check if we're in production environment (defaults to 'test' if not set)
-  const environment = import.meta.env.VITE_ENVIRONMENT || 'test';
-  const isProduction = environment === 'prod';
+  const environment =
+    import.meta.env.VITE_ENVIRONMENT ??
+    import.meta.env.REACT_APP_ENV ??
+    'test';
+  const isProduction = environment === 'prod' || environment === 'production';
   
   // Dark mode state - initialize from localStorage (will be updated from API)
   const [isDarkMode, setIsDarkMode] = useState(() => getTheme() === 'dark');
@@ -905,53 +909,11 @@ function Homepage() {
     }
   };
   
-  // Helper function to parse card ID with variant index
-  const parseCardId = (cardId) => {
-    if (!cardId) return { baseId: null, variantIndex: 0 };
-    const match = cardId.match(/^([A-Z]+-\d+)(?:-(\d+))?$/);
-    if (match) {
-      return {
-        baseId: match[1],
-        variantIndex: match[2] ? parseInt(match[2], 10) - 1 : 0
-      };
-    }
-    return { baseId: cardId, variantIndex: 0 };
-  };
-  
   // Function to get card details by variant number (handles both "OGN-249" and "OGN-249-1" formats)
   const getCardDetails = (cardId) => {
     if (!cardId || !cardsData || cardsData.length === 0) return null;
     const { baseId } = parseCardId(cardId);
     return cardsData.find(card => card.variantNumber === baseId);
-  };
-  
-  // Function to get card image URL - uses variantImages array based on variant index
-  const getCardImageUrl = (cardId) => {
-    if (!cardId) return 'https://cdn.piltoverarchive.com/Cardback.webp';
-    
-    if (!cardsData || cardsData.length === 0) {
-      // Fallback if cards haven't loaded yet
-      return `https://cdn.piltoverarchive.com/cards/${cardId}.webp`;
-    }
-    
-    const { baseId, variantIndex } = parseCardId(cardId);
-    const card = cardsData.find(c => c.variantNumber === baseId);
-    
-    if (!card) {
-      // Fallback to original cardId if card not found
-      return `https://cdn.piltoverarchive.com/cards/${cardId}.webp`;
-    }
-    
-    // Use variantImages array if available - variantIndex directly indexes into the array
-    if (card.variantImages && card.variantImages.length > variantIndex) {
-      const imageUrl = card.variantImages[variantIndex];
-      if (imageUrl) {
-        return imageUrl;
-      }
-    }
-    
-    // Fallback: construct URL from variantNumber if variantImages not available or empty
-    return `https://cdn.piltoverarchive.com/cards/${card.variantNumber}.webp`;
   };
   
   // Function to check if a release date is in the future (comparing only dates, not time)
@@ -1112,8 +1074,8 @@ function Homepage() {
                   className={`w-full rounded border flex items-center justify-center overflow-hidden ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-200 border-gray-300'}`}
                   style={{ aspectRatio: '515/719' }}
                 >
-                  <img 
-                    src={getCardImageUrl(legendCard)}
+                    <img
+                      src={getCardImageUrl(legendCard, cardsData)}
                     alt={legendCard ? `Legend ${legendCard}` : 'Card back'}
                     className="w-full h-full object-contain"
                   />
@@ -1477,7 +1439,7 @@ function Homepage() {
                               style={{ aspectRatio: '515/719' }}
                             >
                               <img 
-                                src={getCardImageUrl(game.hostLegend)}
+                                src={getCardImageUrl(game.hostLegend, cardsData)}
                                 alt={hostLegendData?.name || 'Host Legend'}
                                 className="w-full h-full object-contain"
                               />
@@ -1534,7 +1496,7 @@ function Homepage() {
                               style={{ aspectRatio: '515/719' }}
                             >
                               <img 
-                                src={getCardImageUrl(game.joinerLegend)}
+                                src={getCardImageUrl(game.joinerLegend, cardsData)}
                                 alt={joinerLegendData?.name || 'Joiner Legend'}
                                 className="w-full h-full object-contain"
                               />

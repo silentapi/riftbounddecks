@@ -15,6 +15,14 @@ import cardRoutes from './routes/cards.js';
 // Load environment variables
 dotenv.config();
 
+// Allow `MONGO_URI` as an alias for the existing `MONGODB_URI` config key
+if (!process.env.MONGODB_URI && process.env.MONGO_URI) {
+  process.env.MONGODB_URI = process.env.MONGO_URI;
+}
+
+// Keep an explicit APP_ENV value so Docker deployments can differentiate
+process.env.APP_ENV = process.env.APP_ENV || process.env.NODE_ENV || 'development';
+
 // Validate required environment variables
 const requiredEnvVars = ['JWT_SECRET', 'MONGODB_URI'];
 const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
@@ -157,8 +165,9 @@ const startServer = async () => {
       logger.info(`Server started successfully`, {
         port: PORT,
         host: '0.0.0.0',
-        environment: process.env.NODE_ENV || 'development',
         nodeVersion: process.version,
+        environment: process.env.NODE_ENV || 'development',
+        appEnv: process.env.APP_ENV,
         accessibleAt: `http://localhost:${PORT} and http://<your-ip>:${PORT}`
       });
       

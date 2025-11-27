@@ -4,15 +4,20 @@
 // This allows the app to work when accessed via IP address or domain
 function getApiBaseUrl() {
   // Use environment variable if set
-  if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL;
+  const envUrl =
+    import.meta.env.VITE_API_BASE_URL ?? import.meta.env.REACT_APP_API_BASE_URL;
+  if (envUrl) {
+    return envUrl;
   }
   
   // In production, use relative paths so nginx can proxy /api/* requests
-  // Check for production mode or production environment
-  const isProduction = import.meta.env.PROD || 
-                       import.meta.env.MODE === 'production' ||
-                       import.meta.env.VITE_ENVIRONMENT === 'prod';
+  const runtimeEnv =
+    import.meta.env.VITE_ENVIRONMENT ?? import.meta.env.REACT_APP_ENV;
+  const isProduction =
+    import.meta.env.PROD ||
+    import.meta.env.MODE === 'production' ||
+    runtimeEnv === 'prod' ||
+    runtimeEnv === 'production';
   
   if (isProduction) {
     // Return empty string to use relative paths (nginx will proxy /api/*)

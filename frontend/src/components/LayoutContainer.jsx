@@ -18,9 +18,12 @@ function LayoutContainer({ children, isDarkMode = false }) {
   useEffect(() => {
     const updateScale = () => {
       if (containerRef.current) {
-        const { width } = containerRef.current.getBoundingClientRect();
-        const newScale = width / REFERENCE_WIDTH;
-        setScale(newScale);
+        const innerWidth = containerRef.current.clientWidth;
+        if (innerWidth > 0) {
+          setScale(innerWidth / REFERENCE_WIDTH);
+        } else {
+          setScale(0);
+        }
       }
     };
 
