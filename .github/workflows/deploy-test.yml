@@ -67,7 +67,7 @@ jobs:
           username: ${{ vars.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           source: "infra/docker-compose.test.yml"
-          target: "/opt/summonersbase-test/"
+          target: "/opt/summonersbase-test/docker-compose.yml"
 
       - name: Deploy to test droplet
         uses: appleboy/ssh-action@v1.2.0
@@ -77,7 +77,6 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd /opt/summonersbase-test/
-            mv docker-compose.test.yml docker-compose.yml 2>/dev/null || true
 
             export BACKEND_TAG=${{ needs.build-and-push-images.outputs.tag }}
             export FRONTEND_TAG=${{ needs.build-and-push-images.outputs.tag }}
