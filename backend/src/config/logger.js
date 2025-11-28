@@ -103,13 +103,11 @@ const logger = winston.createLogger({
   ]
 });
 
-// Add console transport in development
-if (process.env.NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: consoleFormat,
-    level: 'debug'
-  }));
-}
+// Always add console transport for Docker logging (stdout/stderr)
+logger.add(new winston.transports.Console({
+  format: consoleFormat,
+  level: process.env.LOG_LEVEL || 'info'
+}));
 
 // Create a separate access logger for HTTP requests
 export const accessLogger = winston.createLogger({
@@ -121,12 +119,10 @@ export const accessLogger = winston.createLogger({
   ]
 });
 
-// Add console transport for access logs in development
-if (process.env.NODE_ENV !== 'production') {
-  accessLogger.add(new winston.transports.Console({
-    format: consoleFormat
-  }));
-}
+// Always add console transport for access logs (Docker logging)
+accessLogger.add(new winston.transports.Console({
+  format: consoleFormat
+}));
 
 export default logger;
 
