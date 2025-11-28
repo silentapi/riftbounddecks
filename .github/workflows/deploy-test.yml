@@ -11,6 +11,7 @@ permissions:
 jobs:
   build-and-push-images:
     runs-on: ubuntu-latest
+    environment: test.summonersbase.com
     outputs:
       tag: ${{ steps.meta.outputs.tag }}
     steps:
