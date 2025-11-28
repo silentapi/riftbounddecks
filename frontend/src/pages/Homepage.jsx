@@ -1025,11 +1025,11 @@ function Homepage() {
               <div className="flex items-center gap-2 mb-2">
                 <img 
                   src="/vite.svg" 
-                  alt="Riftbound Decks Logo" 
+                  alt="Summoner's Base Logo" 
                   className="h-6 w-auto"
                 />
                 <h2 className={`text-xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
-                  Riftbound Decks{!isProduction && ' [T]'}
+                  Summoner's Base{!isProduction && ' [T]'}
                 </h2>
               </div>
               <p className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>

@@ -160,10 +160,10 @@ function Login() {
             <h1 className={`text-6xl font-bold mb-4 flex items-center justify-center gap-4 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
               <img 
                 src="/vite.svg" 
-                alt="Riftbound Decks Logo" 
+                alt="Summoner's Base Logo" 
                 className="h-[1em] w-auto"
               />
-              Riftbound Decks
+              Summoner's Base
             </h1>
             <p className={`text-xl ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
               Build, manage, and play your Riftbound TCG decks
