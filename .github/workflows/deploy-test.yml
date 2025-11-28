@@ -37,6 +37,8 @@ jobs:
       - name: Build frontend image
         run: |
           docker build \
+            --build-arg REACT_APP_ASSETS_BASE_URL="${{ vars.REACT_APP_ASSETS_BASE_URL }}" \
+            --build-arg REACT_APP_ENV=test \
             -t ghcr.io/${{ github.repository_owner }}/summonersbase-frontend:${{ steps.meta.outputs.tag }} \
             frontend
 

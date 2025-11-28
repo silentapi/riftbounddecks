@@ -87,6 +87,8 @@ const corsOptions = {
           return callback(null, true);
         }
       }
+    } else {
+      logger.warn('CORS: FRONTEND_URL not set, origin will be checked against localhost/local network patterns only', { origin });
     }
     
     // Allow localhost
