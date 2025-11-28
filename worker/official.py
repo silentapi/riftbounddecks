@@ -33,11 +33,106 @@ class ImageStats:
         self.new_images = 0
         self.missing_image_urls = 0
 
-logging.basicConfig(
-    level=os.environ.get("WORKER_LOG_LEVEL", "INFO"),
-    format="%(asctime)s %(levelname)s %(name)s %(message)s",
-)
-logger = logging.getLogger("riftbound-worker")
+class StructuredFormatter(logging.Formatter):
+    """Custom formatter that handles structured logging with clean timestamps."""
+    
+    # Standard LogRecord attributes to exclude from structured output
+    _STANDARD_ATTRS = {
+        "name", "msg", "args", "created", "filename", "funcName",
+        "levelname", "levelno", "lineno", "module", "msecs",
+        "message", "pathname", "process", "processName", "relativeCreated",
+        "thread", "threadName", "exc_info", "exc_text", "stack_info",
+        "asctime"
+    }
+    
+    def __init__(self):
+        super().__init__()
+        self.datefmt = "%Y-%m-%d %H:%M:%S"
+    
+    def format(self, record: logging.LogRecord) -> str:
+        # Format timestamp
+        timestamp = self.formatTime(record, self.datefmt)
+        
+        # Format level as lowercase in brackets
+        level = f"[{record.levelname.lower()}]"
+        
+        # Get the message
+        message = record.getMessage()
+        
+        # Extract structured data (custom attributes not in standard set)
+        # Filter out None values and unwanted keys like taskName
+        extra_dict = {
+            k: v for k, v in record.__dict__.items()
+            if k not in self._STANDARD_ATTRS
+            and v is not None
+            and k != "taskName"
+        }
+        
+        if extra_dict:
+            # Format extra data with quotes and spaces: "key = value"
+            extra_parts = []
+            for key, value in sorted(extra_dict.items()):
+                if isinstance(value, (dict, list)):
+                    # For complex types, use JSON but keep it compact
+                    value_str = json.dumps(value, ensure_ascii=False)
+                    if len(value_str) > 100:
+                        value_str = value_str[:97] + "..."
+                    extra_parts.append(f'"{key} = {value_str}"')
+                elif isinstance(value, str) and len(value) > 100:
+                    # Truncate long strings
+                    extra_parts.append(f'"{key} = {value[:97]}..."')
+                else:
+                    extra_parts.append(f'"{key} = {value}"')
+            extra_str = " ".join(extra_parts)
+            return f"{timestamp} {level} {message} {extra_str}"
+        
+        return f"{timestamp} {level} {message}"
+
+
+class StructuredLogger:
+    """Wrapper around standard logger that supports structured logging with dict as second arg."""
+    
+    def __init__(self, logger: logging.Logger):
+        self._logger = logger
+    
+    def _log(self, level: int, msg: str, *args, **kwargs):
+        """Internal logging method that handles structured data."""
+        # Check if second positional arg is a dict (structured data)
+        if args and isinstance(args[0], dict):
+            extra = args[0]
+            # Pass the dict as extra kwargs to the logger
+            self._logger.log(level, msg, extra=extra)
+        else:
+            # Standard logging
+            self._logger.log(level, msg, *args, **kwargs)
+    
+    def info(self, msg: str, *args, **kwargs):
+        self._log(logging.INFO, msg, *args, **kwargs)
+    
+    def warning(self, msg: str, *args, **kwargs):
+        self._log(logging.WARNING, msg, *args, **kwargs)
+    
+    def error(self, msg: str, *args, **kwargs):
+        self._log(logging.ERROR, msg, *args, **kwargs)
+    
+    def debug(self, msg: str, *args, **kwargs):
+        self._log(logging.DEBUG, msg, *args, **kwargs)
+    
+    def critical(self, msg: str, *args, **kwargs):
+        self._log(logging.CRITICAL, msg, *args, **kwargs)
+
+
+# Set up logging with custom formatter
+handler = logging.StreamHandler()
+handler.setFormatter(StructuredFormatter())
+
+_base_logger = logging.getLogger("riftbound-worker")
+_base_logger.setLevel(os.environ.get("WORKER_LOG_LEVEL", "INFO"))
+_base_logger.addHandler(handler)
+_base_logger.propagate = False
+
+# Create structured logger wrapper
+logger = StructuredLogger(_base_logger)
 
 
 class SpacesUploader:
@@ -131,6 +226,19 @@ class SpacesUploader:
             relative_path,
             content_type="application/json; charset=utf-8",
         )
+
+    def download_json(self, relative_path: str = "cards.json") -> Optional[List[Dict[str, Any]]]:
+        """Download and parse JSON from Spaces. Returns None if file doesn't exist."""
+        key = self._prefixed_key(relative_path)
+        try:
+            response = self.client.get_object(Bucket=self.bucket, Key=key)
+            content = response["Body"].read().decode("utf-8")
+            return json.loads(content)
+        except ClientError as exc:
+            error_code = exc.response.get("Error", {}).get("Code", "")
+            if error_code in ("404", "NotFound", "NoSuchKey"):
+                return None
+            raise
 
 
 def resolve_set_folder(set_id: str, variant_number: str) -> str:
@@ -647,6 +755,156 @@ def make_static_image_handler(
     return handler
 
 
+def load_existing_cards(mode: str, uploader: Optional[SpacesUploader] = None, output_root: Optional[Path] = None) -> Optional[List[Dict[str, Any]]]:
+    """Load existing cards.json from the appropriate location based on mode."""
+    if mode == "spaces" and uploader:
+        return uploader.download_json("cards.json")
+    elif mode == "static" and output_root:
+        cards_path = output_root / "cards.json"
+        if cards_path.exists():
+            try:
+                content = cards_path.read_text(encoding="utf-8")
+                return json.loads(content)
+            except (json.JSONDecodeError, IOError) as exc:
+                logger.warning("Failed to load existing cards.json", {"error": str(exc), "path": str(cards_path)})
+                return None
+    return None
+
+
+def compare_cards(old_cards: Optional[List[Dict[str, Any]]], new_cards: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Compare old and new cards and return a summary of changes."""
+    if old_cards is None:
+        # First run - all cards are "added"
+        added_names = [card["name"] for card in new_cards]
+        return {
+            "added": len(new_cards),
+            "updated": 0,
+            "removed": 0,
+            "unchanged": 0,
+            "total_variants_added": sum(len(card.get("variants", [])) for card in new_cards),
+            "total_variants_removed": 0,
+            "added_names": added_names,
+            "updated_names": [],
+            "removed_names": [],
+            "is_first_run": True,
+        }
+
+    # Create lookup dictionaries by card name
+    old_by_name = {card["name"]: card for card in old_cards}
+    new_by_name = {card["name"]: card for card in new_cards}
+
+    added = []
+    updated = []
+    removed = []
+    unchanged = []
+
+    # Find added and updated cards
+    for name, new_card in new_by_name.items():
+        if name not in old_by_name:
+            added.append(name)
+        else:
+            old_card = old_by_name[name]
+            # Compare cards - only check meaningful fields (ignore variantImages which may change)
+            # Compare key fields that matter for card identity and gameplay
+            fields_to_compare = [
+                "name", "description", "variantNumber", "variants", 
+                "type", "super", "energy", "power", "might", 
+                "colors", "tags", "releaseDate"
+            ]
+            
+            is_different = False
+            for field in fields_to_compare:
+                old_val = old_card.get(field)
+                new_val = new_card.get(field)
+                # Handle list comparison (order might differ but content same)
+                if isinstance(old_val, list) and isinstance(new_val, list):
+                    if set(old_val) != set(new_val):
+                        is_different = True
+                        break
+                elif old_val != new_val:
+                    is_different = True
+                    break
+            
+            if is_different:
+                updated.append(name)
+            else:
+                unchanged.append(name)
+
+    # Find removed cards
+    for name in old_by_name:
+        if name not in new_by_name:
+            removed.append(name)
+
+    # Calculate variant changes
+    total_variants_added = 0
+    total_variants_removed = 0
+    
+    # Count variants for added cards
+    for name in added:
+        if name in new_by_name:
+            total_variants_added += len(new_by_name[name].get("variants", []))
+    
+    # Count variant changes for updated cards
+    for name in updated:
+        if name in new_by_name and name in old_by_name:
+            old_variants = len(old_by_name[name].get("variants", []))
+            new_variants = len(new_by_name[name].get("variants", []))
+            if new_variants > old_variants:
+                total_variants_added += new_variants - old_variants
+            elif new_variants < old_variants:
+                total_variants_removed += old_variants - new_variants
+    
+    # Count variants for removed cards
+    for name in removed:
+        if name in old_by_name:
+            total_variants_removed += len(old_by_name[name].get("variants", []))
+
+    return {
+        "added": len(added),
+        "updated": len(updated),
+        "removed": len(removed),
+        "unchanged": len(unchanged),
+        "total_variants_added": max(0, total_variants_added),
+        "total_variants_removed": max(0, total_variants_removed),
+        "added_names": added,  # Full list for logging
+        "updated_names": updated,  # Full list for logging
+        "removed_names": removed,  # Full list for logging
+        "is_first_run": False,
+    }
+
+
+def format_change_summary(diff: Dict[str, Any], new_count: int) -> str:
+    """Format a human-readable multiline summary of card changes with headers."""
+    lines = [
+        "=" * 60,
+        "Card Changes Summary",
+        "=" * 60,
+        f"New:        {diff['added']:>6}",
+        f"Updated:    {diff['updated']:>6}",
+        f"Deleted:    {diff['removed']:>6}",
+        f"Unchanged:  {diff['unchanged']:>6}",
+        "-" * 60,
+        f"Total:      {new_count:>6}",
+        "=" * 60,
+    ]
+    return "\n".join(lines)
+
+
+def log_card_changes(diff: Dict[str, Any]) -> None:
+    """Log individual card names as they are found (added/updated/removed only)."""
+    # Log added cards
+    for name in diff.get("added_names", []):
+        logger.info(f"Added {name}")
+    
+    # Log updated cards
+    for name in diff.get("updated_names", []):
+        logger.info(f"Updated {name}")
+    
+    # Log removed cards
+    for name in diff.get("removed_names", []):
+        logger.info(f"Deleted {name}")
+
+
 def log_summary(mode: str, card_count: int, stats: ImageStats, output_target: str) -> None:
     logger.info(
         "Worker run complete",
@@ -684,27 +942,57 @@ def main() -> None:
 
     if args.mode == "spaces":
         uploader = SpacesUploader()
+        # Load existing cards for comparison
+        old_cards = load_existing_cards(args.mode, uploader=uploader)
         cards = fetch_cards(make_spaces_image_handler(uploader, stats))
         cards_json = json.dumps(cards, ensure_ascii=False)
         cards_url = uploader.upload_json(cards_json, "cards.json")
         logger.info("Cards data uploaded to Spaces", {"url": cards_url, "card_count": len(cards)})
         log_summary(args.mode, len(cards), stats, cards_url)
-        print(json.dumps(cards, indent=2, ensure_ascii=False))
-        print(f"Cards data uploaded to {cards_url}")
+        
+        # Compare and log changes
+        diff = compare_cards(old_cards, cards)
+        # Add separator before changes if there are any
+        has_changes = diff["added"] > 0 or diff["updated"] > 0 or diff["removed"] > 0
+        if has_changes:
+            logger.info("=" * 60)
+        # Log individual card changes first
+        log_card_changes(diff)
+        # Then log the summary at the end (multiline format)
+        change_summary = format_change_summary(diff, len(cards))
+        # Log each line of the summary separately to preserve formatting
+        for line in change_summary.split("\n"):
+            logger.info(line)
+        logger.info(f"Cards data uploaded to {cards_url}")
         return
 
     output_root = Path(args.output_dir)
+    # Load existing cards for comparison
+    old_cards = load_existing_cards(args.mode, output_root=output_root)
     cards = fetch_cards(make_static_image_handler(output_root, stats))
     cards_path = write_cards_json_static(cards, output_root)
     logger.info("Cards data written to static output", {"path": str(cards_path), "card_count": len(cards)})
     log_summary(args.mode, len(cards), stats, str(cards_path))
-    print(json.dumps(cards, indent=2, ensure_ascii=False))
-    print(f"Cards data written to {cards_path}")
+    
+    # Compare and log changes
+    diff = compare_cards(old_cards, cards)
+    # Add separator before changes if there are any
+    has_changes = diff["added"] > 0 or diff["updated"] > 0 or diff["removed"] > 0
+    if has_changes:
+        logger.info("=" * 60)
+    # Log individual card changes first
+    log_card_changes(diff)
+    # Then log the summary at the end (multiline format)
+    change_summary = format_change_summary(diff, len(cards))
+    # Log each line of the summary separately to preserve formatting
+    for line in change_summary.split("\n"):
+        logger.info(line)
+    logger.info(f"Cards data written to {cards_path}")
 
 
 if __name__ == "__main__":
     try:
         main()
     except Exception as exc:
-        print(f"Worker failed: {exc}")
+        logger.error(f"Worker failed: {exc}")
         raise
