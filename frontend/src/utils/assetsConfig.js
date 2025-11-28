@@ -42,3 +42,38 @@ export function buildAssetsUrl(relativePath) {
   return `${normalizedBase}/${trimmedPath}`;
 }
 
+/**
+ * Fetch JSON from the CDN / asset host without any custom headers.
+ * This is critical for CORS compatibility - the CDN rejects requests with
+ * custom headers like Content-Type, Referer, or sec-ch-ua*.
+ * 
+ * @template T
+ * @param {string} path - Relative path to the JSON file (e.g., 'cards.json' or '/test/cards.json')
+ * @returns {Promise<T>} Parsed JSON data
+ * @throws {Error} If the request fails or response is not ok
+ */
+export async function fetchCdnJson(path) {
+  const normalizedBase = getNormalizedAssetsBaseUrl();
+  if (!normalizedBase) {
+    throw new Error('CDN base URL not configured. Set REACT_APP_ASSETS_BASE_URL or VITE_ASSETS_BASE_URL.');
+  }
+
+  // Normalize path: remove leading slashes from path, ensure base has no trailing slash
+  const cleanedPath = (path ?? '').replace(/^\/+/, '');
+  if (!cleanedPath) {
+    throw new Error('Path cannot be empty');
+  }
+
+  const url = `${normalizedBase}/${cleanedPath}`;
+
+  // CRITICAL: Use bare fetch with NO headers to avoid CORS issues
+  // The CDN rejects requests with Content-Type, Referer, sec-ch-ua*, etc.
+  const res = await fetch(url);
+
+  if (!res.ok) {
+    throw new Error(`CDN request failed: ${res.status} ${res.statusText}`);
+  }
+
+  return res.json();
+}
+

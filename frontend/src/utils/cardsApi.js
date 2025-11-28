@@ -1,4 +1,4 @@
-import { buildAssetsUrl } from './assetsConfig';
+import { buildAssetsUrl, fetchCdnJson } from './assetsConfig';
 
 // Cards API utility functions for fetching card data from the backend
 
@@ -44,10 +44,23 @@ const CARDS_SOURCE_URL = getCardsSourceUrl();
 /**
  * Get all cards either from the configured CDN asset base or from the backend
  * /api/cards endpoint depending on runtime env vars.
+ * 
+ * When fetching from CDN, uses fetchCdnJson which makes a bare fetch with NO headers
+ * to avoid CORS issues. The CDN rejects requests with Content-Type, Referer, or
+ * sec-ch-ua* headers.
+ * 
  * @returns {Promise<Array>} Array of card objects
  */
 export async function getCards() {
   try {
+    // Check if we should use CDN (buildAssetsUrl returns non-null when CDN is configured)
+    const assetsUrl = buildAssetsUrl('cards.json');
+    if (assetsUrl) {
+      // Use CDN helper - no headers, no credentials, just a bare fetch
+      return await fetchCdnJson('cards.json');
+    }
+
+    // Fallback to backend API with proper headers for authenticated requests
     const response = await fetch(CARDS_SOURCE_URL, {
       method: 'GET',
       headers: {
