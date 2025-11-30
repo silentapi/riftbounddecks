@@ -7346,6 +7346,35 @@ function App() {
                             </h1>
                           </div>
                         </div>
+                        {/* Rune Color Icons - Top right */}
+                        {(() => {
+                          const legendData = legendCard ? getCardDetails(legendCard) : null;
+                          const runeColors = legendData?.colors || [];
+                          const colorToIcon = {
+                            "Fury": "/icons/fury.svg",
+                            "Mind": "/icons/mind.svg",
+                            "Calm": "/icons/calm.svg",
+                            "Body": "/icons/body.svg",
+                            "Order": "/icons/order.svg",
+                            "Chaos": "/icons/chaos.svg"
+                          };
+                          const validColors = runeColors.filter(color => colorToIcon[color]).slice(0, 2);
+                          
+                          if (validColors.length === 0) return null;
+                          
+                          return (
+                            <div className="absolute right-0 flex items-center gap-2" style={{ height: '2.7rem' }}>
+                              {validColors.map((color, index) => (
+                                <img
+                                  key={index}
+                                  src={colorToIcon[color]}
+                                  alt={color}
+                                  style={{ height: '2.7rem', width: 'auto' }}
+                                />
+                              ))}
+                            </div>
+                          );
+                        })()}
                       </div>
                       
                       {/* Form Fields - Three Column Layout with 2-cell rows */}

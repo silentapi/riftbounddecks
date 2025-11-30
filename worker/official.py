@@ -625,7 +625,8 @@ def map_card_variant(
     base_name = card.get("name", "")
     
     # For Legend cards, prepend the first tag to the name
-    if card_type == "Legend" and tags:
+    # Check type case-insensitively
+    if card_type and card_type.lower() == "legend" and tags:
         name = f"{tags[0]}, {base_name}"
     else:
         name = base_name
