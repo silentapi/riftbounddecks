@@ -619,18 +619,29 @@ def map_card_variant(
     variant_image_url = card.get("cardImage", {}).get("url")
     variant_image = image_handler(variant_image_url, set_folder, variant_number)
 
+    # Extract type and tags for name modification
+    card_type = extract_type(card)
+    tags = extract_tags(card)
+    base_name = card.get("name", "")
+    
+    # For Legend cards, prepend the first tag to the name
+    if card_type == "Legend" and tags:
+        name = f"{tags[0]}, {base_name}"
+    else:
+        name = base_name
+
     return {
-        "name": card.get("name", ""),
+        "name": name,
         "description": extract_description(card),
         "variantNumber": variant_number,
         "variantImage": variant_image,
-        "type": extract_type(card),
+        "type": card_type,
         "super": extract_super(card),
         "energy": get_stat(card, "energy"),
         "power": get_stat(card, "power"),
         "might": get_stat(card, "might"),
         "colors": extract_colors(card),
-        "tags": extract_tags(card),
+        "tags": tags,
         "releaseDate": release_date,
         "setId": set_id,
     }
