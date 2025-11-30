@@ -4591,13 +4591,29 @@ function App() {
   };
   
   // Open PDF export modal
-  const handleOpenPdfExport = () => {
+  const handleOpenPdfExport = async () => {
     const todayDate = getTodayDateString();
+    
+    // Load preferences to autofill decklist defaults
+    let firstName = '';
+    let lastName = '';
+    let riotId = '';
+    
+    try {
+      const preferences = await getPreferences();
+      firstName = preferences?.firstName || '';
+      lastName = preferences?.lastName || '';
+      riotId = preferences?.riotId || '';
+    } catch (error) {
+      console.error('Error loading preferences for PDF export:', error);
+      // Continue with empty values if preferences fail to load
+    }
+    
     setPdfExportModal({
       isOpen: true,
-      firstName: '',
-      lastName: '',
-      riotId: '',
+      firstName,
+      lastName,
+      riotId,
       eventDate: todayDate,
       eventName: ''
     });

@@ -39,6 +39,24 @@ const userPreferencesSchema = new mongoose.Schema({
     minlength: [1, 'Display name must be at least 1 character'],
     maxlength: [50, 'Display name cannot exceed 50 characters']
   },
+  firstName: {
+    type: String,
+    default: null,
+    trim: true,
+    maxlength: [100, 'First name cannot exceed 100 characters']
+  },
+  lastName: {
+    type: String,
+    default: null,
+    trim: true,
+    maxlength: [100, 'Last name cannot exceed 100 characters']
+  },
+  riotId: {
+    type: String,
+    default: null,
+    trim: true,
+    maxlength: [100, 'Riot ID cannot exceed 100 characters']
+  },
   dateCreated: {
     type: Date,
     default: Date.now

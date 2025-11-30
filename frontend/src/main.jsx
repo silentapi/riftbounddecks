@@ -4,6 +4,7 @@ import './index.css'
 import App from './App.jsx'
 import Login from './pages/Login.jsx'
 import Homepage from './pages/Homepage.jsx'
+import Lobby from './pages/Lobby.jsx'
 import Profile from './pages/Profile.jsx'
 import Game from './pages/Game.jsx'
 import { isLoggedIn } from './utils/auth'
@@ -36,6 +37,15 @@ function Router() {
         return;
       }
       // If logged in, stay on / and show Homepage
+    } else if (currentPath === '/lobby') {
+      if (!loggedIn) {
+        // Not logged in, redirect to login
+        console.log('[Router] Not logged in, redirecting from /lobby to /login');
+        window.history.replaceState(null, '', '/login');
+        setPath('/login');
+        return;
+      }
+      // If logged in, stay on /lobby and show Lobby
     } else if (currentPath === '/login') {
       if (loggedIn) {
         // Already logged in, redirect to homepage
@@ -78,6 +88,15 @@ function Router() {
       return null;
     }
     return <Homepage />;
+  }
+  
+  // Lobby route - requires authentication
+  if (path === '/lobby') {
+    if (!isLoggedIn()) {
+      // Not logged in, will redirect in useEffect
+      return null;
+    }
+    return <Lobby />;
   }
   
   // Login route

@@ -23,6 +23,14 @@ function Profile() {
     profilePictureCardId: 'OGN-155',
     displayName: ''
   });
+  
+  // Decklist defaults form state
+  const [decklistDefaultsForm, setDecklistDefaultsForm] = useState({
+    firstName: '',
+    lastName: '',
+    riotId: ''
+  });
+  const [updatingDecklistDefaults, setUpdatingDecklistDefaults] = useState(false);
   const [preferencesLoading, setPreferencesLoading] = useState(true);
   const [updatingPreferences, setUpdatingPreferences] = useState(false);
   
@@ -119,6 +127,13 @@ function Profile() {
           screenshotMode: preferences?.screenshotMode || 'full',
           profilePictureCardId: preferences?.profilePictureCardId || 'OGN-155',
           displayName: preferences?.displayName || ''
+        });
+        
+        // Set decklist defaults form state
+        setDecklistDefaultsForm({
+          firstName: preferences?.firstName || '',
+          lastName: preferences?.lastName || '',
+          riotId: preferences?.riotId || ''
         });
         
         // Set saved display name (for display purposes)
@@ -257,6 +272,43 @@ function Profile() {
   const handlePreferenceChange = (field, value) => {
     setPreferencesForm(prev => ({ ...prev, [field]: value }));
     // Do not update anything until Update button is clicked
+  };
+  
+  // Handle decklist defaults form field changes
+  const handleDecklistDefaultsChange = (field, value) => {
+    setDecklistDefaultsForm(prev => ({ ...prev, [field]: value }));
+  };
+  
+  // Handle update decklist defaults
+  const handleUpdateDecklistDefaults = async () => {
+    try {
+      setUpdatingDecklistDefaults(true);
+      
+      // Prepare updates object
+      const updates = {
+        firstName: decklistDefaultsForm.firstName || null,
+        lastName: decklistDefaultsForm.lastName || null,
+        riotId: decklistDefaultsForm.riotId || null
+      };
+      
+      const updatedPreferences = await updatePreferences(updates);
+      
+      // Update form state with server response
+      setDecklistDefaultsForm({
+        firstName: updatedPreferences.firstName || '',
+        lastName: updatedPreferences.lastName || '',
+        riotId: updatedPreferences.riotId || ''
+      });
+      
+      // Show success toast
+      addToast('Decklist defaults updated successfully!', 2000);
+    } catch (error) {
+      console.error('Error updating decklist defaults:', error);
+      // Show error toast
+      addToast(error.message || 'Failed to update decklist defaults', 3000);
+    } finally {
+      setUpdatingDecklistDefaults(false);
+    }
   };
   
   // Open profile picture selector modal
@@ -769,6 +821,82 @@ function Profile() {
                   </button>
                 </div>
               )}
+            </div>
+            
+            {/* Decklist Defaults Section */}
+            <div className={`p-4 border-2 rounded ${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-400'}`}>
+              <h3 className={`text-base font-bold mb-3 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                Decklist Defaults
+              </h3>
+              
+              <div className="space-y-3">
+                {/* First Name */}
+                <div>
+                  <label className={`block text-xs font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    First Name
+                  </label>
+                  <input
+                    type="text"
+                    value={decklistDefaultsForm.firstName}
+                    onChange={(e) => handleDecklistDefaultsChange('firstName', e.target.value)}
+                    placeholder="Enter first name"
+                    className={`w-full px-2 py-1 rounded border text-sm ${
+                      isDarkMode 
+                        ? 'bg-gray-600 border-gray-500 text-gray-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500' 
+                        : 'bg-white border-gray-300 text-gray-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
+                    }`}
+                  />
+                </div>
+                
+                {/* Last Name */}
+                <div>
+                  <label className={`block text-xs font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    value={decklistDefaultsForm.lastName}
+                    onChange={(e) => handleDecklistDefaultsChange('lastName', e.target.value)}
+                    placeholder="Enter last name"
+                    className={`w-full px-2 py-1 rounded border text-sm ${
+                      isDarkMode 
+                        ? 'bg-gray-600 border-gray-500 text-gray-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500' 
+                        : 'bg-white border-gray-300 text-gray-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
+                    }`}
+                  />
+                </div>
+                
+                {/* Riot ID */}
+                <div>
+                  <label className={`block text-xs font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Riot ID
+                  </label>
+                  <input
+                    type="text"
+                    value={decklistDefaultsForm.riotId}
+                    onChange={(e) => handleDecklistDefaultsChange('riotId', e.target.value)}
+                    placeholder="Enter Riot ID"
+                    className={`w-full px-2 py-1 rounded border text-sm ${
+                      isDarkMode 
+                        ? 'bg-gray-600 border-gray-500 text-gray-100 focus:border-blue-500 focus:ring-1 focus:ring-blue-500' 
+                        : 'bg-white border-gray-300 text-gray-800 focus:border-blue-500 focus:ring-1 focus:ring-blue-500'
+                    }`}
+                  />
+                </div>
+                
+                {/* Update Button */}
+                <button
+                  onClick={handleUpdateDecklistDefaults}
+                  disabled={updatingDecklistDefaults}
+                  className={`w-full py-2 px-3 rounded text-sm font-medium transition-colors ${
+                    updatingDecklistDefaults
+                      ? 'bg-gray-400 text-gray-600 cursor-not-allowed opacity-50'
+                      : 'bg-blue-600 text-white shadow-md hover:bg-blue-700 active:bg-blue-800'
+                  }`}
+                >
+                  {updatingDecklistDefaults ? 'Updating...' : 'Update Defaults'}
+                </button>
+              </div>
             </div>
             
             {/* Change Password Section */}

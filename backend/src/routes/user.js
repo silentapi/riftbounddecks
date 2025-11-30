@@ -48,6 +48,9 @@ router.get('/preferences', authenticate, async (req, res, next) => {
       screenshotMode: preferences.screenshotMode || 'full',
       profilePictureCardId: preferences.profilePictureCardId || 'OGN-155',
       displayName: preferences.displayName || null,
+      firstName: preferences.firstName || null,
+      lastName: preferences.lastName || null,
+      riotId: preferences.riotId || null,
       dateCreated: preferences.dateCreated,
       lastUpdated: preferences.lastUpdated
     });
@@ -100,7 +103,22 @@ router.post('/preferences', [
     .optional()
     .trim()
     .isLength({ min: 1, max: 50 })
-    .withMessage('Display name must be between 1 and 50 characters')
+    .withMessage('Display name must be between 1 and 50 characters'),
+  body('firstName')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('First name cannot exceed 100 characters'),
+  body('lastName')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('Last name cannot exceed 100 characters'),
+  body('riotId')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('Riot ID cannot exceed 100 characters')
 ], async (req, res, next) => {
   try {
     // Check validation errors
@@ -116,7 +134,7 @@ router.post('/preferences', [
       });
     }
 
-    const { theme, lastOpenedDeck, defaultDeckId, screenshotMode, profilePictureCardId, displayName } = req.body;
+    const { theme, lastOpenedDeck, defaultDeckId, screenshotMode, profilePictureCardId, displayName, firstName, lastName, riotId } = req.body;
 
     logger.info('Update user preferences', {
       userId: req.userId,
@@ -125,7 +143,10 @@ router.post('/preferences', [
       defaultDeckId,
       screenshotMode,
       profilePictureCardId,
-      displayName
+      displayName,
+      firstName,
+      lastName,
+      riotId
     });
 
     // Check if displayName is being updated and if it's already taken (unless it's the same as current)
@@ -176,7 +197,10 @@ router.post('/preferences', [
           ...(defaultDeckId !== undefined && { defaultDeckId: defaultDeckId || null }),
           ...(screenshotMode && { screenshotMode }),
           ...(profilePictureCardId !== undefined && { profilePictureCardId }),
-          ...(displayName !== undefined && { displayName: displayName || null })
+          ...(displayName !== undefined && { displayName: displayName || null }),
+          ...(firstName !== undefined && { firstName: firstName || null }),
+          ...(lastName !== undefined && { lastName: lastName || null }),
+          ...(riotId !== undefined && { riotId: riotId || null })
         }
       },
       {
@@ -206,6 +230,9 @@ router.post('/preferences', [
       screenshotMode: preferences.screenshotMode || 'full',
       profilePictureCardId: preferences.profilePictureCardId || 'OGN-155',
       displayName: preferences.displayName || null,
+      firstName: preferences.firstName || null,
+      lastName: preferences.lastName || null,
+      riotId: preferences.riotId || null,
       dateCreated: preferences.dateCreated,
       lastUpdated: preferences.lastUpdated
     });
