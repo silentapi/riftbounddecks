@@ -3070,6 +3070,16 @@ function App() {
       // Use the same method as LayoutContainer - find the container with data-visible-container
       const container = document.querySelector('[data-visible-container]');
       if (container) {
+        // First try to get the scale from the data attribute (most accurate)
+        const dataScale = container.getAttribute('data-scale');
+        if (dataScale) {
+          const scale = parseFloat(dataScale);
+          if (!isNaN(scale) && scale > 0) {
+            setContainerScale(scale);
+            return;
+          }
+        }
+        // Fallback: calculate from container width
         const innerWidth = container.clientWidth;
         if (innerWidth > 0) {
           const scale = innerWidth / 1920; // Reference width is 1920
@@ -3093,7 +3103,27 @@ function App() {
 
     // Update scale on window resize
     window.addEventListener('resize', updateScale);
-    return () => window.removeEventListener('resize', updateScale);
+    
+    // Watch for scale changes in the container's data-scale attribute
+    const container = document.querySelector('[data-visible-container]');
+    let observer = null;
+    if (container) {
+      observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+          if (mutation.type === 'attributes' && mutation.attributeName === 'data-scale') {
+            updateScale();
+          }
+        });
+      });
+      observer.observe(container, { attributes: true, attributeFilter: ['data-scale'] });
+    }
+    
+    return () => {
+      window.removeEventListener('resize', updateScale);
+      if (observer) {
+        observer.disconnect();
+      }
+    };
   }, []);
 
   // Auto-disable/reset filters based on card type
@@ -4959,11 +4989,6 @@ function App() {
       i++;
     }
     
-    // Update state
-    if (legendCard) {
-      setLegendCard(legendCard);
-    }
-    
     // Handle champion - try to find the first champion in main deck
     const firstChampion = mainDeckCards.find(id => {
       const { baseId } = parseCardId(id);
@@ -4971,19 +4996,22 @@ function App() {
       return card?.super === "Champion";
     });
     
+    // Remove champion from main deck if found
+    let finalMainDeck = mainDeckCards.slice(0, 39);
     if (firstChampion) {
-      setChosenChampion(firstChampion); // Preserve variant index
-      // Remove champion from main deck
       const championIndex = mainDeckCards.indexOf(firstChampion);
-      const newMainDeck = mainDeckCards.filter((_, idx) => idx !== championIndex);
-      setMainDeck(newMainDeck.slice(0, 39));
-    } else {
-      setMainDeck(mainDeckCards.slice(0, 39)); // Main deck is 39 cards (40 total with champion)
+      finalMainDeck = mainDeckCards.filter((_, idx) => idx !== championIndex).slice(0, 39);
     }
     
-    setBattlefields([...battlefieldCards, null, null, null].slice(0, 3));
+    // Prepare battlefields array (pad with nulls to length 3)
+    const finalBattlefields = [...battlefieldCards, null, null, null].slice(0, 3);
     
     // Parse runes to determine counts for A and B, and extract variant indices
+    let runeACount = 6;
+    let runeBCount = 6;
+    let runeAVariantIndex = 0;
+    let runeBVariantIndex = 0;
+    
     if (legendCard) {
       const { baseId: legendBaseId } = parseCardId(legendCard);
       const legendData = getCardDetails(legendBaseId);
@@ -5013,12 +5041,8 @@ function App() {
         if (runeABaseId) {
           const runeACard = getCardDetails(runeABaseId);
           const maxVariantIndex = runeACard?.variants ? runeACard.variants.length - 1 : 0;
-          setRuneAVariantIndex(Math.min(Math.max(0, variantIndex), maxVariantIndex));
-        } else {
-          setRuneAVariantIndex(0);
+          runeAVariantIndex = Math.min(Math.max(0, variantIndex), maxVariantIndex);
         }
-      } else {
-        setRuneAVariantIndex(0);
       }
       
       if (runeBCards.length > 0) {
@@ -5028,32 +5052,35 @@ function App() {
         if (runeBBaseId) {
           const runeBCard = getCardDetails(runeBBaseId);
           const maxVariantIndex = runeBCard?.variants ? runeBCard.variants.length - 1 : 0;
-          setRuneBVariantIndex(Math.min(Math.max(0, variantIndex), maxVariantIndex));
-        } else {
-          setRuneBVariantIndex(0);
+          runeBVariantIndex = Math.min(Math.max(0, variantIndex), maxVariantIndex);
         }
-      } else {
-        setRuneBVariantIndex(0);
       }
       
       // If total doesn't equal 12, normalize to 6-6
       if (newRuneACount + newRuneBCount !== 12) {
-        setRuneACount(6);
-        setRuneBCount(6);
+        runeACount = 6;
+        runeBCount = 6;
       } else {
-        setRuneACount(Math.min(newRuneACount, 12));
-        setRuneBCount(Math.min(newRuneBCount, 12));
+        runeACount = Math.min(newRuneACount, 12);
+        runeBCount = Math.min(newRuneBCount, 12);
       }
-    } else {
-      // No legend card, ensure runes are 6-6 and reset variant indices
-      setRuneACount(6);
-      setRuneBCount(6);
-      setRuneAVariantIndex(0);
-      setRuneBVariantIndex(0);
     }
     
-    // Side deck - up to 8 cards
-    setSideDeck(compactSideDeck(sideDeckCards.slice(0, 8)));
+    // Build cards object for loadDeckCards (this will trigger the loading overlay)
+    const cardsToLoad = {
+      mainDeck: finalMainDeck,
+      chosenChampion: firstChampion || null,
+      sideDeck: sideDeckCards.slice(0, 8),
+      battlefields: finalBattlefields,
+      legendCard: legendCard || null,
+      runeACount,
+      runeBCount,
+      runeAVariantIndex,
+      runeBVariantIndex
+    };
+    
+    // Use loadDeckCards to set state and trigger loading overlay
+    loadDeckCards(cardsToLoad);
     
     const result = {
       success: true,
