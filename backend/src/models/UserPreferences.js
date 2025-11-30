@@ -46,6 +46,19 @@ const userPreferencesSchema = new mongoose.Schema({
   lastUpdated: {
     type: Date,
     default: Date.now
+  },
+  likedDecks: {
+    type: [{
+      deckId: {
+        type: String,
+        required: true
+      },
+      likedAt: {
+        type: Date,
+        default: Date.now
+      }
+    }],
+    default: []
   }
 }, {
   timestamps: false,

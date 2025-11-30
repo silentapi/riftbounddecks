@@ -137,11 +137,24 @@ function Login() {
   
   useEffect(() => {
     const updateScale = () => {
-      const scaledContainer = document.querySelector('[style*="transform: scale"]');
-      if (scaledContainer) {
-        const rect = scaledContainer.getBoundingClientRect();
-        const scale = rect.width / 1920; // Reference width is 1920
-        setContainerScale(scale);
+      // Use the same method as LayoutContainer - find the container with data-visible-container
+      const container = document.querySelector('[data-visible-container]');
+      if (container) {
+        const innerWidth = container.clientWidth;
+        if (innerWidth > 0) {
+          const scale = innerWidth / 1920; // Reference width is 1920
+          setContainerScale(scale);
+        } else {
+          setContainerScale(0);
+        }
+      } else {
+        // Fallback: try to find scaled container
+        const scaledContainer = document.querySelector('[style*="transform: scale"]');
+        if (scaledContainer) {
+          const rect = scaledContainer.getBoundingClientRect();
+          const scale = rect.width / 1920; // Reference width is 1920
+          setContainerScale(scale);
+        }
       }
     };
     

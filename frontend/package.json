@@ -14,7 +14,9 @@
   "dependencies": {
     "framer-motion": "^12.23.24",
     "html2canvas": "^1.4.1",
+    "jspdf": "^2.5.2",
     "modern-screenshot": "^4.6.6",
+    "qrcode.react": "^4.2.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "zustand": "^5.0.2"

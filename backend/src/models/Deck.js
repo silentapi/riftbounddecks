@@ -100,6 +100,26 @@ const deckSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
     index: true
+  },
+  publicListed: {
+    type: Boolean,
+    default: false,
+    index: true
+  },
+  notes: {
+    type: String,
+    default: '',
+    trim: true
+  },
+  views: {
+    type: Number,
+    default: 0,
+    min: [0, 'Views cannot be negative']
+  },
+  likes: {
+    type: Number,
+    default: 0,
+    min: [0, 'Likes cannot be negative']
   }
 }, {
   timestamps: false, // We're managing timestamps manually

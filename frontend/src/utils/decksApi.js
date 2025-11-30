@@ -233,28 +233,34 @@ export async function batchImportDecks(legacyDecks) {
 }
 
 /**
- * Toggle sharing status of a deck
+ * Update sharing status of a deck
  * @param {string} deckId - Deck UUID
- * @param {boolean} shared - Whether the deck should be shared
+ * @param {boolean|string} sharedOrStatus - Either boolean (legacy) or 'private'|'shared'|'public' (new format)
  * @returns {Promise<Object>} Updated deck object
  */
-export async function toggleDeckSharing(deckId, shared) {
-  console.log('[DecksAPI] Toggling deck sharing:', deckId, shared);
+export async function toggleDeckSharing(deckId, sharedOrStatus) {
+  // Support both legacy boolean and new sharingStatus format
+  const body = typeof sharedOrStatus === 'boolean' 
+    ? { shared: sharedOrStatus }
+    : { sharingStatus: sharedOrStatus };
+  
+  console.log('[DecksAPI] Updating deck sharing:', deckId, body);
   const response = await authenticatedFetch(`/api/decks/${deckId}/sharing`, {
     method: 'PATCH',
-    body: JSON.stringify({ shared })
+    body: JSON.stringify(body)
   });
   
   if (!response.ok) {
     const result = await response.json();
-    console.error('[DecksAPI] Failed to toggle sharing:', result);
-    throw new Error(result.message || result.error || 'Failed to toggle sharing');
+    console.error('[DecksAPI] Failed to update sharing:', result);
+    throw new Error(result.message || result.error || 'Failed to update sharing');
   }
 
   const deck = await response.json();
-  console.log('[DecksAPI] Successfully toggled sharing:', {
+  console.log('[DecksAPI] Successfully updated sharing:', {
     id: deck.id,
-    shared: deck.shared
+    shared: deck.shared,
+    publicListed: deck.publicListed
   });
   return deck;
 }
@@ -284,5 +290,49 @@ export async function cloneDeck(deckId, name = null) {
     name: deck.name
   });
   return deck;
+}
+
+/**
+ * Increment view count for a deck
+ * @param {string} deckId - Deck UUID
+ * @returns {Promise<Object>} Response with views count
+ */
+export async function incrementDeckViews(deckId) {
+  console.log('[DecksAPI] Incrementing views for deck:', deckId);
+  const response = await optionalAuthFetch(`/api/decks/${deckId}/view`, {
+    method: 'POST'
+  });
+  
+  if (!response.ok) {
+    const result = await response.json();
+    console.error('[DecksAPI] Failed to increment views:', result);
+    throw new Error(result.message || result.error || 'Failed to increment views');
+  }
+
+  const result = await response.json();
+  console.log('[DecksAPI] Successfully incremented views:', result);
+  return result;
+}
+
+/**
+ * Toggle like for a deck
+ * @param {string} deckId - Deck UUID
+ * @returns {Promise<Object>} Response with isLiked and likes count
+ */
+export async function toggleDeckLike(deckId) {
+  console.log('[DecksAPI] Toggling like for deck:', deckId);
+  const response = await authenticatedFetch(`/api/decks/${deckId}/like`, {
+    method: 'POST'
+  });
+  
+  if (!response.ok) {
+    const result = await response.json();
+    console.error('[DecksAPI] Failed to toggle like:', result);
+    throw new Error(result.message || result.error || 'Failed to toggle like');
+  }
+
+  const result = await response.json();
+  console.log('[DecksAPI] Successfully toggled like:', result);
+  return result;
 }
 

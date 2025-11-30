@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import LayoutContainer from './components/LayoutContainer';
 import { domToPng } from 'modern-screenshot';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import { QRCodeSVG } from 'qrcode.react';
 import {
   findDeckByNameCI,
   createDeck,
@@ -18,7 +21,7 @@ import {
   setDefaultDeckId
 } from './utils/deckStorage';
 import { validateDeck as validateDeckRules } from './utils/deckValidation';
-import { getDecks, ensureOneDeck, updateDeck, createDeck as createDeckApi, getDeck, deleteDeck as deleteDeckApi, toggleDeckSharing, cloneDeck } from './utils/decksApi';
+import { getDecks, ensureOneDeck, updateDeck, createDeck as createDeckApi, getDeck, deleteDeck as deleteDeckApi, toggleDeckSharing, cloneDeck, incrementDeckViews, toggleDeckLike } from './utils/decksApi';
 import { getPreferences, updatePreferences } from './utils/preferencesApi';
 import { migrateLegacyDecks } from './utils/legacyMigration';
 import { isLoggedIn } from './utils/auth';
@@ -122,6 +125,9 @@ function App() {
   const loadedImagesRef = useRef(new Set());
   const expectedImagesRef = useRef(new Set());
   const pendingImageLogRef = useRef(0);
+  const pdfPreviewContainerRef = useRef(null);
+  const pdfPreviewContentRef = useRef(null);
+  const [pdfPreviewScale, setPdfPreviewScale] = useState(0.45);
   const PENDING_IMAGE_LOG_INTERVAL = 5000;
   
   // Ref to store timeout ID for debounced card selection
@@ -177,6 +183,16 @@ function App() {
     deckName: null, // Store deck name for shared decks
     ownerDisplayName: null // Store owner's displayname for non-owned decks
   });
+  
+  // Deck stats state (views, likes, isLiked)
+  const [deckStats, setDeckStats] = useState({
+    views: 0,
+    likes: 0,
+    isLiked: false
+  });
+  
+  // Liked decks list from preferences
+  const [likedDecks, setLikedDecks] = useState([]);
   
   // Name input modal state
   const [nameModal, setNameModal] = useState({
@@ -252,7 +268,8 @@ function App() {
     deckCode: '',
     runLengthCode: '',
     deckId: null,
-    isShared: false,
+    isShared: false, // Keep for backward compatibility with API
+    sharingStatus: 'private', // 'private', 'shared', or 'public'
     isOwner: true
   });
   
@@ -264,6 +281,23 @@ function App() {
     source: null, // 'mainDeck', 'legend', 'battlefield', 'sideDeck', 'champion'
     sourceIndex: null, // index in the source array (if applicable)
     variants: []
+  });
+  
+  // Notes modal state
+  const [notesModal, setNotesModal] = useState({
+    isOpen: false,
+    notes: '',
+    isReadOnly: false
+  });
+  
+  // PDF export modal state
+  const [pdfExportModal, setPdfExportModal] = useState({
+    isOpen: false,
+    firstName: '',
+    lastName: '',
+    riotId: '',
+    eventDate: '',
+    eventName: ''
   });
   
   // Toast notifications state
@@ -688,6 +722,16 @@ function App() {
               deckName: deck.name,
               ownerDisplayName: deck.ownerDisplayName || null
             });
+            updateDeckStats(deck);
+            // Increment views for read-only deck
+            try {
+              await incrementDeckViews(deck.id);
+              // Reload deck to get updated views
+              const updatedDeck = await getDeck(deck.id);
+              updateDeckStats(updatedDeck);
+            } catch (error) {
+              console.error('[DeckBuilder] Error incrementing views:', error);
+            }
             return; // Exit early
           } catch (apiError) {
             console.error('[DeckBuilder] Failed to load deck:', apiError);
@@ -719,6 +763,11 @@ function App() {
         console.log('[DeckBuilder] Loading preferences from API...');
         const preferences = await getPreferences();
         console.log('[DeckBuilder] Loaded preferences:', preferences);
+        
+        // Load liked decks from preferences
+        if (preferences?.likedDecks) {
+          setLikedDecks(preferences.likedDecks);
+        }
         
         // Apply theme from preferences
         const theme = preferences?.theme || 'dark';
@@ -790,6 +839,7 @@ function App() {
               isShared: deckById.shared || false,
               deckId: deckById.id
             });
+            updateDeckStats(deckById);
             return; // Exit early
           } else {
             console.log('[DeckBuilder] UUID not found in decks, trying to load from API...');
@@ -823,6 +873,16 @@ function App() {
                       deckName: deck.name,
                       ownerDisplayName: deck.ownerDisplayName || null
                     });
+                    updateDeckStats(deck);
+                    // Increment views for read-only deck
+                    try {
+                      await incrementDeckViews(deck.id);
+                      // Reload deck to get updated views
+                      const updatedDeck = await getDeck(deck.id);
+                      updateDeckStats(updatedDeck);
+                    } catch (error) {
+                      console.error('[DeckBuilder] Error incrementing views:', error);
+                    }
                     return; // Exit early
                   }
                 } catch (err) {
@@ -856,6 +916,7 @@ function App() {
                 deckId: deck.id,
                 deckName: deck.name
               });
+              updateDeckStats(deck);
               return; // Exit early
             } catch (apiError) {
               console.log('[DeckBuilder] Deck not found in API:', apiError.message);
@@ -1150,6 +1211,7 @@ function App() {
         deckId: deck.id,
         deckName: deck.name
       });
+      updateDeckStats(deck);
       
       console.log('[handleSelectDeck] END - Deck selection complete');
     } else {
@@ -1219,6 +1281,145 @@ function App() {
     closeNameModal();
   };
   
+  // Open notes modal
+  const openNotesModal = async () => {
+    // Get current deck's notes
+    let currentNotes = '';
+    let isReadOnlyMode = isReadOnly;
+    
+    if (currentDeckId) {
+      // Owned deck - get notes from decks array
+      const deck = decks.find(d => d.id === currentDeckId);
+      if (deck) {
+        currentNotes = deck.notes || '';
+      }
+    } else if (isReadOnly && currentDeckMetadata.deckId) {
+      // Read-only deck - fetch it to get notes
+      isReadOnlyMode = true;
+      try {
+        const deck = await getDeck(currentDeckMetadata.deckId);
+        currentNotes = deck.notes || '';
+      } catch (error) {
+        console.error('[DeckBuilder] Error fetching deck for notes:', error);
+        currentNotes = '';
+      }
+    }
+    
+    setNotesModal({
+      isOpen: true,
+      notes: currentNotes,
+      isReadOnly: isReadOnlyMode
+    });
+  };
+  
+  // Close notes modal
+  const closeNotesModal = () => {
+    setNotesModal({
+      isOpen: false,
+      notes: '',
+      isReadOnly: false
+    });
+  };
+  
+  // Handle notes modal input change
+  const handleNotesModalChange = (value) => {
+    setNotesModal(prev => ({ ...prev, notes: value }));
+  };
+  
+  // Handle notes modal save
+  const handleNotesModalSave = async () => {
+    if (!currentDeckId || notesModal.isReadOnly) return;
+    
+    try {
+      console.log('[DeckBuilder] Saving notes for deck:', currentDeckId);
+      const updatedDeck = await updateDeck(currentDeckId, { notes: notesModal.notes });
+      console.log('[DeckBuilder] Notes saved:', updatedDeck);
+      
+      // Reload decks from API to get updated notes
+      const updatedDecks = await getDecks();
+      setDecks(updatedDecks);
+      
+      closeNotesModal();
+      await showNotification('Notes Saved', 'Deck notes saved successfully.');
+    } catch (error) {
+      console.error('[DeckBuilder] Error saving notes:', error);
+      await showNotification('Error', 'Failed to save notes.');
+    }
+  };
+  
+  // Handle toggle like
+  const handleToggleLike = async () => {
+    const deckId = currentDeckId || currentDeckMetadata.deckId;
+    if (!deckId || !isLoggedIn()) return;
+    
+    try {
+      console.log('[DeckBuilder] Toggling like for deck:', deckId);
+      const result = await toggleDeckLike(deckId);
+      console.log('[DeckBuilder] Like toggled:', result);
+      
+      // Update deck stats
+      setDeckStats(prev => ({
+        ...prev,
+        likes: result.likes,
+        isLiked: result.isLiked
+      }));
+      
+      // Update liked decks list
+      if (result.isLiked) {
+        setLikedDecks(prev => [...prev, { deckId, likedAt: new Date() }]);
+        addToast(<>❤️ Deck liked</>);
+      } else {
+        setLikedDecks(prev => prev.filter(liked => liked.deckId !== deckId));
+        addToast(<>💔 Deck unliked</>);
+      }
+      
+      // Reload preferences to get updated likedDecks
+      try {
+        const preferences = await getPreferences();
+        if (preferences?.likedDecks) {
+          setLikedDecks(preferences.likedDecks);
+        }
+      } catch (error) {
+        console.error('[DeckBuilder] Error reloading preferences:', error);
+      }
+    } catch (error) {
+      console.error('[DeckBuilder] Error toggling like:', error);
+      await showNotification('Error', 'Failed to toggle like.');
+    }
+  };
+  
+  // Update deck stats when deck changes
+  const updateDeckStats = (deck) => {
+    if (deck) {
+      const isLiked = likedDecks.some(liked => liked.deckId === deck.id);
+      setDeckStats({
+        views: deck.views || 0,
+        likes: deck.likes || 0,
+        isLiked
+      });
+    } else {
+      setDeckStats({ views: 0, likes: 0, isLiked: false });
+    }
+  };
+  
+  // Update deck stats when likedDecks changes or when current deck changes
+  useEffect(() => {
+    if (currentDeckId) {
+      const deck = decks.find(d => d.id === currentDeckId);
+      if (deck) {
+        updateDeckStats(deck);
+      }
+    } else if (currentDeckMetadata.deckId && !isReadOnly) {
+      // For read-only decks, stats are updated when the deck is loaded
+      // This handles the case when likedDecks is loaded after the deck
+      const deck = decks.find(d => d.id === currentDeckMetadata.deckId);
+      if (deck) {
+        updateDeckStats(deck);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [likedDecks, currentDeckId, decks]);
+  
   // New Deck handler
   const handleNewDeck = async (name) => {
     try {
@@ -1253,6 +1454,7 @@ function App() {
         deckId: newDeck.id,
         deckName: newDeck.name
       });
+      updateDeckStats(newDeck);
       await showNotification('Deck Created', `Deck "${name}" has been created.`);
     } catch (error) {
       console.error('[DeckBuilder] Error creating deck:', error);
@@ -2862,14 +3064,27 @@ function App() {
     }
   };
   
-  // Calculate container scale for proper dragged card sizing
+  // Calculate container scale for proper dragged card sizing and modal scaling
   useEffect(() => {
     const updateScale = () => {
-      const scaledContainer = document.querySelector('[style*="transform: scale"]');
-      if (scaledContainer) {
-        const rect = scaledContainer.getBoundingClientRect();
-        const scale = rect.width / 1920; // Reference width is 1920
-        setContainerScale(scale);
+      // Use the same method as LayoutContainer - find the container with data-visible-container
+      const container = document.querySelector('[data-visible-container]');
+      if (container) {
+        const innerWidth = container.clientWidth;
+        if (innerWidth > 0) {
+          const scale = innerWidth / 1920; // Reference width is 1920
+          setContainerScale(scale);
+        } else {
+          setContainerScale(0);
+        }
+      } else {
+        // Fallback: try to find scaled container
+        const scaledContainer = document.querySelector('[style*="transform: scale"]');
+        if (scaledContainer) {
+          const rect = scaledContainer.getBoundingClientRect();
+          const scale = rect.width / 1920; // Reference width is 1920
+          setContainerScale(scale);
+        }
       }
     };
 
@@ -3975,11 +4190,18 @@ function App() {
     // Fetch the latest deck data from the database to get current shared status
     let isShared = currentDeckMetadata.isShared;
     let isOwner = currentDeckMetadata.isOwner;
+    let sharingStatus = 'private';
     
     if (currentDeckId) {
       try {
         const deck = await getDeck(currentDeckId);
         isShared = deck.shared || false;
+        // Determine sharingStatus from deck properties
+        if (deck.shared) {
+          sharingStatus = deck.publicListed ? 'public' : 'shared';
+        } else {
+          sharingStatus = 'private';
+        }
         // Update currentDeckMetadata with latest shared status
         setCurrentDeckMetadata({
           ...currentDeckMetadata,
@@ -3988,7 +4210,10 @@ function App() {
       } catch (error) {
         console.error('[Export] Error fetching deck for shared status:', error);
         // Fall back to currentDeckMetadata if fetch fails
+        sharingStatus = isShared ? 'public' : 'private';
       }
+    } else {
+      sharingStatus = isShared ? 'public' : 'private';
     }
     
     setExportModal({
@@ -3997,6 +4222,7 @@ function App() {
       runLengthCode, // Store run-length encoded version for URL
       deckId: currentDeckId,
       isShared: isShared,
+      sharingStatus: sharingStatus,
       isOwner: isOwner
     });
   };
@@ -4042,15 +4268,13 @@ function App() {
   // Handle copy deck code
   const handleCopyDeckCode = async () => {
     const deckCode = exportModal.deckCode;
-    // Close export modal first
-    setExportModal({ ...exportModal, isOpen: false });
     
     try {
       await copyToClipboard(deckCode);
-      await showNotification('Copied', 'Deck code copied to clipboard!');
+      addToast('Deck code copied to clipboard!');
     } catch (error) {
       console.error('Error copying to clipboard:', error);
-      await showNotification('Copy Failed', 'Failed to copy deck code to clipboard.');
+      addToast('Failed to copy deck code');
     }
   };
   
@@ -4091,38 +4315,42 @@ function App() {
   // Handle copy deck URL
   const handleCopyDeckUrl = async () => {
     if (!exportModal.deckId) {
-      await showNotification('Error', 'No deck ID available');
+      addToast('No deck ID available');
       return;
     }
-    
-    // Close export modal first
-    setExportModal({ ...exportModal, isOpen: false });
     
     try {
       // Use UUID for the URL
       const deckUrl = `${window.location.origin}/deck/${exportModal.deckId}`;
       await copyToClipboard(deckUrl);
-      await showNotification('Copied', 'Deck URL copied to clipboard!');
+      addToast('Deck URL copied to clipboard!');
     } catch (error) {
       console.error('Error copying URL to clipboard:', error);
-      await showNotification('Copy Failed', 'Failed to copy deck URL to clipboard.');
+      addToast('Failed to copy deck URL');
     }
   };
   
-  // Handle toggle sharing
-  const handleToggleSharing = async () => {
-    if (!exportModal.deckId || !exportModal.isOwner) {
+  // Handle sharing status change (Private/Shared/Public)
+  const handleSharingStatusChange = async (newStatus) => {
+    if (!exportModal.deckId || !exportModal.isOwner || newStatus === exportModal.sharingStatus) {
       return;
     }
     
     try {
-      const newSharedStatus = !exportModal.isShared;
-      const updatedDeck = await toggleDeckSharing(exportModal.deckId, newSharedStatus);
+      // Use new sharingStatus format
+      const updatedDeck = await toggleDeckSharing(exportModal.deckId, newStatus);
+      
+      // Determine sharingStatus from deck properties
+      let updatedStatus = 'private';
+      if (updatedDeck.shared) {
+        updatedStatus = updatedDeck.publicListed ? 'public' : 'shared';
+      }
       
       // Update modal state
       setExportModal({
         ...exportModal,
-        isShared: updatedDeck.shared
+        isShared: updatedDeck.shared,
+        sharingStatus: updatedStatus
       });
       
       // Update current deck metadata
@@ -4135,18 +4363,376 @@ function App() {
       setDecks(prevDecks => 
         prevDecks.map(d => 
           d.id === exportModal.deckId 
-            ? { ...d, shared: updatedDeck.shared }
+            ? { ...d, shared: updatedDeck.shared, publicListed: updatedDeck.publicListed }
             : d
         )
       );
       
-      await showNotification(
-        'Sharing Updated',
-        updatedDeck.shared ? 'Deck is now public' : 'Deck is now private'
-      );
+      const statusMessages = {
+        'private': 'Deck is now private',
+        'shared': 'Deck is now shared',
+        'public': 'Deck is now public'
+      };
+      
+      addToast(statusMessages[updatedStatus] || 'Sharing status updated');
     } catch (error) {
-      console.error('Error toggling sharing:', error);
-      await showNotification('Error', error.message || 'Failed to update sharing status');
+      console.error('Error updating sharing status:', error);
+      addToast(error.message || 'Failed to update sharing status');
+    }
+  };
+  
+  // Calculate PDF preview scale to fit container
+  const calculatePdfPreviewScale = useCallback(() => {
+    if (!pdfPreviewContainerRef.current) return;
+    
+    const container = pdfPreviewContainerRef.current;
+    const containerWidth = container.clientWidth;
+    const containerHeight = container.clientHeight;
+    
+    // A4 dimensions in mm: 210mm x 297mm
+    // Convert to pixels (assuming 96 DPI: 1mm = 3.779527559 pixels)
+    const a4WidthPx = 210 * 3.779527559;
+    const a4HeightPx = 297 * 3.779527559;
+    
+    // Calculate scale to fit both width and height
+    const scaleX = (containerWidth - 48) / a4WidthPx; // 48px for padding (24px * 2)
+    const scaleY = (containerHeight - 48) / a4HeightPx;
+    const scale = Math.min(scaleX, scaleY, 1); // Don't scale up, only down
+    
+    setPdfPreviewScale(Math.max(0.3, scale)); // Minimum scale of 0.3
+  }, []);
+  
+  // Update scale when modal opens or window resizes
+  useEffect(() => {
+    if (pdfExportModal.isOpen) {
+      // Calculate scale after a short delay to ensure DOM is ready
+      setTimeout(calculatePdfPreviewScale, 100);
+      
+      const handleResize = () => {
+        calculatePdfPreviewScale();
+      };
+      
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, [pdfExportModal.isOpen, calculatePdfPreviewScale]);
+  
+  // Get formatted date string (MM/DD/YYYY)
+  const getFormattedDate = (date) => {
+    if (!date) return '';
+    // Parse YYYY-MM-DD format directly to avoid timezone issues
+    const parts = date.split('-');
+    if (parts.length === 3) {
+      const year = parts[0];
+      const month = parts[1];
+      const day = parts[2];
+      return `${month}/${day}/${year}`;
+    }
+    // Fallback to Date parsing if format is different
+    const d = new Date(date);
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${month}/${day}/${year}`;
+  };
+  
+  // Get today's date in YYYY-MM-DD format for date input
+  const getTodayDateString = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+  
+  // Get last initial from last name
+  const getLastInitial = (lastName) => {
+    if (!lastName || lastName.trim().length === 0) return '';
+    return lastName.trim()[0].toUpperCase();
+  };
+  
+  // Get main deck cards with quantities (40 lines)
+  // Includes chosen champion in the count
+  const getMainDeckLines = () => {
+    const cardCounts = new Map();
+    
+    // Count main deck cards
+    mainDeck.forEach(cardId => {
+      if (!cardId) return;
+      const card = getCardDetails(cardId);
+      if (card) {
+        const cardName = card.name || 'Unknown';
+        cardCounts.set(cardName, (cardCounts.get(cardName) || 0) + 1);
+      }
+    });
+    
+    // Include chosen champion in the count
+    if (chosenChampion) {
+      const card = getCardDetails(chosenChampion);
+      if (card) {
+        const cardName = card.name || 'Unknown';
+        cardCounts.set(cardName, (cardCounts.get(cardName) || 0) + 1);
+      }
+    }
+    
+    // Convert to array of {quantity, name} and sort alphabetically
+    const cards = Array.from(cardCounts.entries())
+      .map(([name, count]) => ({ quantity: count, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+    
+    // Pad to 40 lines with empty entries
+    const lines = [];
+    for (let i = 0; i < 40; i++) {
+      lines.push(cards[i] || { quantity: '', name: '' });
+    }
+    
+    return lines;
+  };
+  
+  // Get legend card (1 line - no quantity)
+  const getLegendLine = () => {
+    if (!legendCard) {
+      return { name: '' };
+    }
+    const card = getCardDetails(legendCard);
+    return { name: card?.name || 'Unknown' };
+  };
+  
+  // Get chosen champion (1 line - no quantity)
+  const getChosenChampionLine = () => {
+    if (!chosenChampion) {
+      return { name: '' };
+    }
+    const card = getCardDetails(chosenChampion);
+    return { name: card?.name || 'Unknown' };
+  };
+  
+  // Get battlefield cards (3 lines - no quantity)
+  const getBattlefieldLines = () => {
+    const lines = [];
+    for (let i = 0; i < 3; i++) {
+      const cardId = battlefields[i];
+      if (cardId) {
+        const card = getCardDetails(cardId);
+        lines.push({ name: card?.name || 'Unknown' });
+      } else {
+        lines.push({ name: '' });
+      }
+    }
+    return lines;
+  };
+  
+  // Get rune cards (2 lines - one for each rune type)
+  const getRuneLines = () => {
+    const lines = [];
+    const { runeABaseId, runeBBaseId } = getRuneCards;
+    
+    // Rune A line
+    if (runeACount > 0 && runeABaseId) {
+      const card = getCardDetails(runeABaseId);
+      lines.push({ quantity: runeACount, name: card?.name || 'Unknown' });
+    } else {
+      lines.push({ quantity: '', name: '' });
+    }
+    
+    // Rune B line
+    if (runeBCount > 0 && runeBBaseId) {
+      const card = getCardDetails(runeBBaseId);
+      lines.push({ quantity: runeBCount, name: card?.name || 'Unknown' });
+    } else {
+      lines.push({ quantity: '', name: '' });
+    }
+    
+    return lines;
+  };
+  
+  // Get side deck cards (8 lines)
+  const getSideDeckLines = () => {
+    const cardCounts = new Map();
+    
+    // Count side deck cards
+    sideDeck.forEach(cardId => {
+      if (!cardId) return;
+      const card = getCardDetails(cardId);
+      if (card) {
+        const cardName = card.name || 'Unknown';
+        cardCounts.set(cardName, (cardCounts.get(cardName) || 0) + 1);
+      }
+    });
+    
+    // Convert to array of {quantity, name} and sort alphabetically
+    const cards = Array.from(cardCounts.entries())
+      .map(([name, count]) => ({ quantity: count, name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+    
+    // Pad to 8 lines with empty entries
+    const lines = [];
+    for (let i = 0; i < 8; i++) {
+      lines.push(cards[i] || { quantity: '', name: '' });
+    }
+    
+    return lines;
+  };
+  
+  // Check if the deck contains any future cards
+  const hasFutureCards = () => {
+    const allCards = [
+      legendCard,
+      ...(battlefields || []).filter(c => c),
+      ...(mainDeck || []).filter(c => c),
+      ...(sideDeck || []).filter(c => c),
+      chosenChampion
+    ].filter(c => c);
+    
+    return allCards.some(cardId => {
+      const cardData = getCardDetails(cardId);
+      return isFutureRelease(cardData?.releaseDate);
+    });
+  };
+  
+  // Open PDF export modal
+  const handleOpenPdfExport = () => {
+    const todayDate = getTodayDateString();
+    setPdfExportModal({
+      isOpen: true,
+      firstName: '',
+      lastName: '',
+      riotId: '',
+      eventDate: todayDate,
+      eventName: ''
+    });
+    // Close the export modal
+    setExportModal({ ...exportModal, isOpen: false });
+  };
+  
+  // Close PDF export modal
+  const handleClosePdfExport = () => {
+    setPdfExportModal({ ...pdfExportModal, isOpen: false });
+  };
+  
+  // Update PDF export form field
+  const handlePdfExportFieldChange = (field, value) => {
+    setPdfExportModal({ ...pdfExportModal, [field]: value });
+  };
+  
+  // Generate PDF document by capturing the preview element exactly (using same method as screenshots)
+  const generatePdf = async () => {
+    if (!pdfPreviewContentRef.current) {
+      throw new Error('Preview element not found');
+    }
+    
+    // Create a hidden clone at full size for PDF generation
+    const previewElement = pdfPreviewContentRef.current;
+    const clone = previewElement.cloneNode(true);
+    
+    // Remove any transforms from the clone and set exact dimensions
+    clone.style.position = 'absolute';
+    clone.style.left = '0';
+    clone.style.top = '0';
+    clone.style.transform = 'none';
+    clone.style.width = '210mm';
+    clone.style.height = '297mm';
+    clone.style.padding = '6.35mm';
+    clone.style.boxSizing = 'border-box';
+    clone.style.margin = '0';
+    clone.style.visibility = 'visible';
+    clone.style.opacity = '1';
+    clone.style.zIndex = '-1';
+    clone.style.display = 'block';
+    
+    // Also update all child elements to remove transforms
+    const allChildren = clone.querySelectorAll('*');
+    allChildren.forEach(child => {
+      if (child.style) {
+        child.style.transform = 'none';
+      }
+    });
+    
+    // Create a container to hold the clone with exact A4 dimensions
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.left = '0';
+    container.style.top = '0';
+    container.style.width = '210mm';
+    container.style.height = '297mm';
+    container.style.overflow = 'visible';
+    container.style.backgroundColor = '#ffffff';
+    container.style.margin = '0';
+    container.style.padding = '0';
+    container.appendChild(clone);
+    document.body.appendChild(container);
+    
+    try {
+      // Wait for clone to render and layout (same timing as screenshots)
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
+      // Force a reflow to ensure the value is rendered (same as screenshots)
+      clone.offsetHeight;
+      
+      // Use domToPng (same as screenshots) instead of html2canvas
+      // Ensure borders are captured by using higher pixel ratio
+      const dataUrl = await domToPng(clone, {
+        quality: 1.0,
+        pixelRatio: Math.max(window.devicePixelRatio || 1, 2), // Use at least 2x for better border rendering
+      });
+      
+      // Remove container and clone
+      document.body.removeChild(container);
+      
+      // Create PDF with A4 dimensions
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+      
+      // A4 dimensions in mm
+      const pageWidth = 210;
+      const pageHeight = 297;
+      
+      // Add image at exact page size (no scaling, no offset)
+      pdf.addImage(dataUrl, 'PNG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
+      
+      return pdf;
+    } catch (error) {
+      // Clean up on error
+      if (document.body.contains(container)) {
+        document.body.removeChild(container);
+      }
+      throw error;
+    }
+  };
+  
+  // Handle PDF download
+  const handleDownloadPdf = async () => {
+    try {
+      const pdf = await generatePdf();
+      const fileName = `riftbound-decklist-${Date.now()}.pdf`;
+      pdf.save(fileName);
+      addToast('PDF downloaded successfully!');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      addToast('Failed to generate PDF');
+    }
+  };
+  
+  // Handle PDF print
+  const handlePrintPdf = async () => {
+    try {
+      const pdf = await generatePdf();
+      pdf.autoPrint();
+      // Open in new window for printing
+      const pdfBlob = pdf.output('blob');
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      const printWindow = window.open(pdfUrl, '_blank');
+      if (printWindow) {
+        printWindow.onload = () => {
+          printWindow.print();
+        };
+      }
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      addToast('Failed to generate PDF');
     }
   };
   
@@ -4509,6 +5095,14 @@ function App() {
             loadDeckCards(deckById.cards);
             // Set selected card to the legend of the loaded deck (or null if empty)
             setSelectedCard(deckById.cards.legendCard || null);
+            setIsReadOnly(false);
+            setCurrentDeckMetadata({
+              isOwner: true,
+              isShared: deckById.shared || false,
+              deckId: deckById.id,
+              deckName: deckById.name
+            });
+            updateDeckStats(deckById);
             // Mark that we've loaded from URL to prevent re-initialization
             hasLoadedFromUrlRef.current = true;
             return;
@@ -4548,6 +5142,21 @@ function App() {
           
           loadDeckCards(deck.cards);
           setSelectedCard(deck.cards.legendCard || null);
+          updateDeckStats(deck);
+          
+          // Increment views for read-only deck
+          const isReadOnlyDeck = !loggedIn || (loggedIn && !decks.some(d => d.id === deck.id));
+          if (isReadOnlyDeck) {
+            try {
+              await incrementDeckViews(deck.id);
+              // Reload deck to get updated views
+              const updatedDeck = await getDeck(deck.id);
+              updateDeckStats(updatedDeck);
+            } catch (error) {
+              console.error('[DeckBuilder] loadDeckFromUrl - Error incrementing views:', error);
+            }
+          }
+          
           hasLoadedFromUrlRef.current = true;
           return;
         } catch (apiError) {
@@ -4925,6 +5534,21 @@ function App() {
                     </div>
                   </div>
                 </div>
+                {/* Views and Likes Display - Only show if deck is shared (not private) */}
+                {((currentDeckId || currentDeckMetadata.deckId) && (currentDeckMetadata.isShared || (currentDeckId && decks.find(d => d.id === currentDeckId)?.shared))) && (
+                  <div className="flex items-center gap-3 ml-2">
+                    <div className="flex items-center gap-1">
+                      <span className={`text-[14px] ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                        Views: {deckStats.views || 0}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className={`text-[14px] ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                        Likes: {deckStats.likes || 0}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
               {/* Deck Name - Centered */}
               <div className="absolute left-1/2 transform -translate-x-1/2">
@@ -4966,6 +5590,21 @@ function App() {
                     </button>
                   </>
                 )}
+                {isReadOnly && isLoggedIn() && currentDeckMetadata.deckId && currentDeckMetadata.isShared && (
+                  <button 
+                    onClick={handleToggleLike}
+                    className="px-3 py-1 bg-gray-500 hover:bg-gray-600 text-white text-[11px] font-medium rounded shadow-md transition-colors whitespace-nowrap"
+                  >
+                    {deckStats.isLiked ? '💔 Unlike' : '❤️ Like'}
+                  </button>
+                )}
+                <button 
+                  onClick={openNotesModal}
+                  className="px-3 py-1 bg-gray-500 hover:bg-gray-600 text-white text-[11px] font-medium rounded shadow-md transition-colors"
+                  title="Deck Notes"
+                >
+                  📝
+                </button>
                 <button 
                   onClick={toggleDarkMode}
                   className={`px-3 py-1 text-[11px] font-medium rounded shadow-md transition-colors ${
@@ -6082,29 +6721,114 @@ function App() {
             </div>
             
             {/* Body */}
-            <div className={`px-6 py-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-              {/* Sharing Status Indicator */}
+            <div className={`px-6 py-4 space-y-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              {/* Row 1: Sharing Status */}
               {exportModal.deckId && (
-                <div className="mb-3 flex items-center justify-center gap-2">
-                  <div className={`w-3 h-3 rounded-full ${exportModal.isShared ? 'bg-green-500' : 'bg-red-500'}`} />
-                  <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
-                    {exportModal.isShared ? 'Public Deck' : 'Private Deck'}
-                  </span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {/* Color indicator */}
+                    <div className={`w-4 h-4 rounded-full ${
+                      exportModal.sharingStatus === 'private' ? 'bg-red-500' :
+                      exportModal.sharingStatus === 'shared' ? 'bg-yellow-500' :
+                      'bg-green-500'
+                    }`} />
+                    {/* Status text and description */}
+                    <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                      {exportModal.sharingStatus === 'private' ? 'Private Deck' :
+                       exportModal.sharingStatus === 'shared' ? 'Shared Deck' :
+                       'Public Deck'}
+                      <span className={`text-xs font-normal ml-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        ({exportModal.sharingStatus === 'private' ? 'Only you can access' :
+                         exportModal.sharingStatus === 'shared' ? 'Accessible via URL only' :
+                         'Publicly visible via URL'})
+                      </span>
+                    </span>
+                  </div>
+                  
+                  {/* Radio Buttons (only show if owner) */}
+                  {exportModal.isOwner && (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleSharingStatusChange('private')}
+                        disabled={exportModal.sharingStatus === 'private'}
+                        className={`px-4 py-2 rounded font-medium transition-colors ${
+                          exportModal.sharingStatus === 'private'
+                            ? 'bg-red-600 text-white cursor-not-allowed opacity-60'
+                            : 'bg-red-600 text-white hover:bg-red-700'
+                        }`}
+                      >
+                        Private
+                      </button>
+                      <button
+                        onClick={() => handleSharingStatusChange('shared')}
+                        disabled={exportModal.sharingStatus === 'shared'}
+                        className={`px-4 py-2 rounded font-medium transition-colors ${
+                          exportModal.sharingStatus === 'shared'
+                            ? 'bg-yellow-600 text-white cursor-not-allowed opacity-60'
+                            : 'bg-yellow-600 text-white hover:bg-yellow-700'
+                        }`}
+                      >
+                        Shared
+                      </button>
+                      <button
+                        onClick={() => handleSharingStatusChange('public')}
+                        disabled={exportModal.sharingStatus === 'public'}
+                        className={`px-4 py-2 rounded font-medium transition-colors ${
+                          exportModal.sharingStatus === 'public'
+                            ? 'bg-green-600 text-white cursor-not-allowed opacity-60'
+                            : 'bg-green-600 text-white hover:bg-green-700'
+                        }`}
+                      >
+                        Public
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
               
-              <textarea
-                readOnly
-                value={exportModal.deckCode}
-                className={`w-full h-48 p-3 rounded border resize-none font-mono text-sm ${isDarkMode ? 'bg-gray-900 border-gray-600 text-gray-200' : 'bg-gray-50 border-gray-300 text-gray-800'}`}
-                onClick={(e) => e.target.select()}
-              />
+              {/* Row 2: Deck URL */}
+              <div className="flex items-center justify-between">
+                <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                  Deck URL
+                </span>
+                <button
+                  onClick={handleCopyDeckUrl}
+                  className="px-4 py-2 rounded font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                >
+                  Copy URL
+                </button>
+              </div>
+              
+              {/* Row 3: TTS Code with Copy Button */}
+              <div className="flex items-center justify-between">
+                <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                  Tabletop Simulator Code
+                </span>
+                <button
+                  onClick={handleCopyDeckCode}
+                  className="px-4 py-2 rounded font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                >
+                  Copy Code
+                </button>
+              </div>
+              
+              {/* Row 4: Printable Decklist Form */}
+              <div className="flex items-center justify-between">
+                <span className={`text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>
+                  Printable Decklist Form
+                </span>
+                <button
+                  onClick={handleOpenPdfExport}
+                  className="px-4 py-2 rounded font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                >
+                  Generate
+                </button>
+              </div>
             </div>
             
             {/* Footer */}
             <div className={`px-6 py-4 border-t ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`}>
-              {/* All buttons in one row */}
-              <div className="flex gap-3 justify-center flex-wrap">
+              <div className="flex gap-3 justify-center">
                 <button
                   onClick={() => setExportModal({ ...exportModal, isOpen: false })}
                   className={`px-4 py-2 rounded font-medium transition-colors ${
@@ -6115,43 +6839,6 @@ function App() {
                 >
                   Close
                 </button>
-                <button
-                  onClick={handleCopyDeckCode}
-                  className="px-4 py-2 rounded font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-                >
-                  Copy Code
-                </button>
-                <button
-                  onClick={handleCopyDeckUrl}
-                  disabled={!exportModal.isShared || !exportModal.deckId}
-                  className={`px-4 py-2 rounded font-medium transition-colors ${
-                    (!exportModal.isShared || !exportModal.deckId)
-                      ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                      : 'bg-yellow-600 text-white hover:bg-yellow-700'
-                  }`}
-                >
-                  Copy URL
-                </button>
-                {exportModal.isOwner && exportModal.deckId && (
-                  <button
-                    onClick={handleToggleSharing}
-                    className={`px-4 py-2 rounded font-medium transition-colors ${
-                      exportModal.isShared
-                        ? 'bg-red-600 text-white hover:bg-red-700'
-                        : 'bg-green-600 text-white hover:bg-green-700'
-                    }`}
-                  >
-                    {exportModal.isShared ? 'Make Private' : 'Make Public'}
-                  </button>
-                )}
-                {isReadOnly && exportModal.isShared && (
-                  <button
-                    onClick={handleCloneDeck}
-                    className="px-4 py-2 rounded font-medium bg-purple-600 text-white hover:bg-purple-700 transition-colors"
-                  >
-                    Save As
-                  </button>
-                )}
               </div>
             </div>
           </div>
@@ -6337,6 +7024,77 @@ function App() {
         </div>
       )}
       
+      {/* Notes Modal */}
+      {notesModal.isOpen && (
+        <div 
+          className="fixed inset-0 z-[9999] flex items-center justify-center"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              closeNotesModal();
+            }
+          }}
+        >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black bg-opacity-50" />
+          
+          {/* Modal Content */}
+          <div 
+            className={`relative z-10 w-[600px] max-w-[90%] rounded-lg shadow-2xl border-2 ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-400'}`}
+            style={{ transform: `scale(${containerScale})`, transformOrigin: 'center center' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className={`px-6 py-4 border-b ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`}>
+              <h2 className={`text-xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                {notesModal.isReadOnly ? 'Deck Notes (Read-Only)' : 'Deck Notes'}
+              </h2>
+            </div>
+            
+            {/* Body */}
+            <div className={`px-6 py-4 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              <textarea
+                value={notesModal.notes}
+                onChange={(e) => handleNotesModalChange(e.target.value)}
+                readOnly={notesModal.isReadOnly}
+                placeholder={notesModal.isReadOnly ? 'No notes available' : 'Enter your deck notes here...'}
+                className={`w-full h-64 px-3 py-2 rounded border resize-none ${
+                  isDarkMode 
+                    ? 'bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-500' 
+                    : 'bg-white border-gray-400 text-gray-900 placeholder-gray-400'
+                } ${notesModal.isReadOnly ? 'cursor-not-allowed opacity-75' : ''}`}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape' && !notesModal.isReadOnly) {
+                    closeNotesModal();
+                  }
+                }}
+              />
+            </div>
+            
+            {/* Footer */}
+            <div className={`px-6 py-4 border-t flex gap-3 justify-center ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`}>
+              <button
+                onClick={closeNotesModal}
+                className={`px-4 py-2 rounded font-medium transition-colors ${
+                  isDarkMode 
+                    ? 'bg-gray-600 text-gray-200 hover:bg-gray-500' 
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                {notesModal.isReadOnly ? 'Close' : 'Cancel'}
+              </button>
+              {!notesModal.isReadOnly && (
+                <button
+                  onClick={handleNotesModalSave}
+                  className="px-4 py-2 rounded font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                >
+                  Save
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Screenshot Modal */}
       {screenshotModal.isOpen && screenshotModal.fullBlobUrl && (
         <div 
@@ -6401,6 +7159,538 @@ function App() {
                 className="px-4 py-2 rounded font-medium bg-green-600 text-white hover:bg-green-700 transition-colors"
               >
                 Download
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* PDF Export Modal */}
+      {pdfExportModal.isOpen && (
+        <div 
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              handleClosePdfExport();
+            }
+          }}
+        >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black bg-opacity-50" />
+          
+          {/* Modal Content - Large modal */}
+          <div 
+            className={`relative z-10 w-[90vw] max-w-[1400px] h-[90vh] max-h-[900px] rounded-lg shadow-2xl border-2 flex flex-col ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-400'}`}
+            style={{ transform: `scale(${containerScale})`, transformOrigin: 'center center' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className={`px-6 py-4 border-b flex items-center justify-between flex-shrink-0 ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`}>
+              <h2 className={`text-xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
+                PDF Export - Tournament Decklist Form
+              </h2>
+              <button
+                onClick={handleClosePdfExport}
+                className={`px-3 py-1 rounded transition-colors ${
+                  isDarkMode
+                    ? 'bg-gray-700 hover:bg-gray-600 text-gray-100'
+                    : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
+                }`}
+              >
+                ✕
+              </button>
+            </div>
+            
+            {/* Body - Two column layout */}
+            <div className="flex-1 flex overflow-hidden">
+              {/* Left Section - Form */}
+              <div className={`w-1/2 border-r p-6 overflow-y-auto ${isDarkMode ? 'border-gray-600 bg-gray-850' : 'border-gray-300 bg-gray-50'}`}>
+                <div className="space-y-4">
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                      First Name
+                    </label>
+                    <input
+                      type="text"
+                      value={pdfExportModal.firstName}
+                      onChange={(e) => handlePdfExportFieldChange('firstName', e.target.value)}
+                      className={`w-full px-3 py-2 rounded border ${
+                        isDarkMode 
+                          ? 'bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-500' 
+                          : 'bg-white border-gray-400 text-gray-900 placeholder-gray-400'
+                      } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                      placeholder="Enter first name"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                      Last Name
+                    </label>
+                    <input
+                      type="text"
+                      value={pdfExportModal.lastName}
+                      onChange={(e) => handlePdfExportFieldChange('lastName', e.target.value)}
+                      className={`w-full px-3 py-2 rounded border ${
+                        isDarkMode 
+                          ? 'bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-500' 
+                          : 'bg-white border-gray-400 text-gray-900 placeholder-gray-400'
+                      } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                      placeholder="Enter last name"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                      Riot ID
+                    </label>
+                    <input
+                      type="text"
+                      value={pdfExportModal.riotId}
+                      onChange={(e) => handlePdfExportFieldChange('riotId', e.target.value)}
+                      className={`w-full px-3 py-2 rounded border ${
+                        isDarkMode 
+                          ? 'bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-500' 
+                          : 'bg-white border-gray-400 text-gray-900 placeholder-gray-400'
+                      } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                      placeholder="Enter Riot ID (e.g., PlayerName#1234)"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                      Event Date
+                    </label>
+                    <input
+                      type="date"
+                      value={pdfExportModal.eventDate}
+                      onChange={(e) => handlePdfExportFieldChange('eventDate', e.target.value)}
+                      className={`w-full px-3 py-2 rounded border ${
+                        isDarkMode 
+                          ? 'bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-500' 
+                          : 'bg-white border-gray-400 text-gray-900 placeholder-gray-400'
+                      } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className={`block text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                      Event Name
+                    </label>
+                    <input
+                      type="text"
+                      value={pdfExportModal.eventName}
+                      onChange={(e) => handlePdfExportFieldChange('eventName', e.target.value)}
+                      className={`w-full px-3 py-2 rounded border ${
+                        isDarkMode 
+                          ? 'bg-gray-700 border-gray-600 text-gray-200 placeholder-gray-500' 
+                          : 'bg-white border-gray-400 text-gray-900 placeholder-gray-400'
+                      } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                      placeholder="Enter event name"
+                    />
+                    {hasFutureCards() && (
+                      <div className={`mt-2 px-3 py-2 rounded border ${isDarkMode ? 'bg-yellow-900/30 border-yellow-600 text-yellow-200' : 'bg-yellow-50 border-yellow-400 text-yellow-800'} text-sm`}>
+                        ⚠️ Your deck contains future cards and may be invalid for in-person tournaments.
+                      </div>
+                    )}
+                    {!deckValidation.isValid && (
+                      <div className={`mt-2 px-3 py-2 rounded border ${isDarkMode ? 'bg-red-900/30 border-red-600 text-red-200' : 'bg-red-50 border-red-400 text-red-800'} text-sm`}>
+                        ❌ Your deck does not meet the official decklist requirements and may be invalid for in-person tournaments.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Right Section - PDF Preview */}
+              <div 
+                ref={pdfPreviewContainerRef}
+                className={`w-1/2 p-6 overflow-hidden flex items-center justify-center ${isDarkMode ? 'bg-gray-900' : 'bg-gray-100'}`}
+              >
+                <div 
+                  className="flex items-center justify-center w-full h-full"
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: '100%'
+                  }}
+                >
+                  <div 
+                    ref={pdfPreviewContentRef}
+                    className={`shadow-lg ${isDarkMode ? 'bg-white' : 'bg-white'}`}
+                    style={{ 
+                      width: '210mm',
+                      height: '297mm',
+                      padding: '6.35mm',
+                      aspectRatio: '210/297',
+                      boxSizing: 'border-box',
+                      transform: `scale(${pdfPreviewScale})`,
+                      transformOrigin: 'center center'
+                    }}
+                  >
+                    {/* PDF Preview Content */}
+                    <div className="h-full flex flex-col" style={{ width: '100%', height: '100%', boxSizing: 'border-box' }}>
+                      {/* Title Section with Logo */}
+                      <div className="flex items-center relative" style={{ marginTop: 0, marginBottom: '6.35mm' }}>
+                        {/* Logo - Left aligned, bigger than title */}
+                        <img 
+                          src="/vite.svg" 
+                          alt="Logo" 
+                          className="absolute left-0"
+                          style={{ height: '3.6rem', width: 'auto' }}
+                        />
+                        {/* Title - Centered with heading box */}
+                        <div className="flex-1 flex items-center justify-center" style={{ position: 'relative' }}>
+                          <div style={{ height: '28px', backgroundColor: 'rgb(156, 156, 156)', border: '1px solid rgb(0, 0, 0)', boxSizing: 'border-box', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', paddingLeft: '12px', paddingRight: '12px' }}>
+                            <h1 className="text-lg font-bold text-center text-gray-900" style={{ margin: 0, color: 'rgb(17, 17, 17)', whiteSpace: 'nowrap' }}>
+                              Riftbound Tournament Decklist
+                            </h1>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Form Fields - Three Column Layout with 2-cell rows */}
+                      <div className="flex-1" style={{ marginTop: 0 }}>
+                        {/* First Row */}
+                        <div className="flex gap-1.5 mb-1.5" style={{ minWidth: 0 }}>
+                          {/* First Name - 2 cells */}
+                          <div className="flex flex-shrink-0" style={{ height: '38px', flex: '1 1 0', minWidth: 0, border: '1px solid rgb(0, 0, 0)', boxSizing: 'border-box' }}>
+                            <div className="px-1 flex items-center text-xs flex-shrink-0" style={{ width: '30%', minWidth: 0, backgroundColor: 'rgb(229, 229, 229)', borderRight: '1px solid rgb(0, 0, 0)', color: 'rgb(107, 107, 107)', boxSizing: 'border-box' }}>
+                              First Name:
+                            </div>
+                            <div className="px-1 flex items-center text-xs overflow-hidden flex-shrink min-w-0" style={{ width: '70%', minWidth: 0, color: 'rgb(17, 17, 17)' }}>
+                              <span className="truncate block w-full">{pdfExportModal.firstName || ''}</span>
+                            </div>
+                          </div>
+                          
+                          {/* Last Name - 2 cells */}
+                          <div className="flex flex-shrink-0" style={{ height: '38px', flex: '1 1 0', minWidth: 0, border: '1px solid rgb(0, 0, 0)', boxSizing: 'border-box' }}>
+                            <div className="px-1 flex items-center text-xs flex-shrink-0" style={{ width: '30%', minWidth: 0, backgroundColor: 'rgb(229, 229, 229)', borderRight: '1px solid rgb(0, 0, 0)', color: 'rgb(107, 107, 107)', boxSizing: 'border-box' }}>
+                              Last Name:
+                            </div>
+                            <div className="px-1 flex items-center text-xs overflow-hidden flex-shrink min-w-0" style={{ width: '70%', minWidth: 0, color: 'rgb(17, 17, 17)' }}>
+                              <span className="truncate block w-full">{pdfExportModal.lastName || ''}</span>
+                            </div>
+                          </div>
+                          
+                          {/* Last Initial - skinnier, 2 cells - width calculated to fit "00/00/0000" in value box (60% of total) */}
+                          <div className="flex flex-shrink-0" style={{ height: '38px', width: 'calc(10ch / 0.6 + 2px)', minWidth: 0, border: '1px solid rgb(0, 0, 0)', boxSizing: 'border-box' }}>
+                            <div className="px-1 flex items-center text-xs flex-shrink-0" style={{ width: '40%', minWidth: 0, backgroundColor: 'rgb(229, 229, 229)', borderRight: '1px solid rgb(0, 0, 0)', color: 'rgb(107, 107, 107)', boxSizing: 'border-box' }}>
+                              Last Initial:
+                            </div>
+                            <div className="px-1 flex items-center justify-center text-lg font-bold overflow-hidden flex-shrink min-w-0" style={{ width: '60%', minWidth: 0, color: 'rgb(17, 17, 17)' }}>
+                              {getLastInitial(pdfExportModal.lastName) || ''}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Second Row */}
+                        <div className="flex gap-1.5 mb-4" style={{ minWidth: 0 }}>
+                          {/* Riot ID - 2 cells */}
+                          <div className="flex flex-shrink-0" style={{ height: '38px', flex: '1 1 0', minWidth: 0, border: '1px solid rgb(0, 0, 0)', boxSizing: 'border-box' }}>
+                            <div className="px-1 flex items-center text-xs flex-shrink-0" style={{ width: '30%', minWidth: 0, backgroundColor: 'rgb(229, 229, 229)', borderRight: '1px solid rgb(0, 0, 0)', color: 'rgb(107, 107, 107)', boxSizing: 'border-box' }}>
+                              Riot ID:
+                            </div>
+                            <div className="px-1 flex items-center text-xs overflow-hidden flex-shrink min-w-0" style={{ width: '70%', minWidth: 0, color: 'rgb(17, 17, 17)' }}>
+                              <span className="truncate block w-full">{pdfExportModal.riotId || ''}</span>
+                            </div>
+                          </div>
+                          
+                          {/* Event Name - 2 cells */}
+                          <div className="flex flex-shrink-0" style={{ height: '38px', flex: '1 1 0', minWidth: 0, border: '1px solid rgb(0, 0, 0)', boxSizing: 'border-box' }}>
+                            <div className="px-1 flex items-center text-xs flex-shrink-0" style={{ width: '30%', minWidth: 0, backgroundColor: 'rgb(229, 229, 229)', borderRight: '1px solid rgb(0, 0, 0)', color: 'rgb(107, 107, 107)', boxSizing: 'border-box' }}>
+                              Event Name:
+                            </div>
+                            <div className="px-1 flex items-center text-xs overflow-hidden flex-shrink min-w-0" style={{ width: '70%', minWidth: 0, color: 'rgb(17, 17, 17)' }}>
+                              <span className="truncate block w-full">{pdfExportModal.eventName || ''}</span>
+                            </div>
+                          </div>
+                          
+                          {/* Event Date - skinnier, 2 cells - width calculated to fit "00/00/0000" in value box (60% of total) */}
+                          <div className="flex flex-shrink-0" style={{ height: '38px', width: 'calc(10ch / 0.6 + 2px)', minWidth: 0, border: '1px solid rgb(0, 0, 0)', boxSizing: 'border-box' }}>
+                            <div className="px-1 flex items-center text-xs flex-shrink-0" style={{ width: '40%', minWidth: 0, backgroundColor: 'rgb(229, 229, 229)', borderRight: '1px solid rgb(0, 0, 0)', color: 'rgb(107, 107, 107)', boxSizing: 'border-box' }}>
+                              Event Date:
+                            </div>
+                            <div className="px-1 flex items-center justify-center text-xs overflow-hidden flex-shrink min-w-0" style={{ width: '60%', minWidth: 0, color: 'rgb(17, 17, 17)' }}>
+                              <span className="truncate block w-full text-center">{getFormattedDate(pdfExportModal.eventDate) || ''}</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Deck List - Two Column Layout */}
+                        <div className="flex gap-1.5" style={{ flex: '1 1 0', minHeight: 0 }}>
+                          {/* Left Column - Main Deck */}
+                          <div className="flex flex-col" style={{ flex: '1 1 0', minWidth: 0 }}>
+                            {/* Main Deck Heading */}
+                            <div style={{ height: '22px', backgroundColor: 'rgb(156, 156, 156)', border: '1px solid rgb(0, 0, 0)', boxSizing: 'border-box' }}>
+                              <div className="font-bold text-base px-2 flex items-center justify-center h-full" style={{ color: 'rgb(17, 17, 17)' }}>
+                                Main Deck
+                              </div>
+                            </div>
+                            
+                            {/* Main Deck Lines - 40 lines with borders between each row */}
+                            <div className="flex flex-col" style={{ flex: '1 1 0', minHeight: 0 }}>
+                              {getMainDeckLines().map((card, index) => (
+                                <div key={index} className="flex flex-shrink-0" style={{ height: '22px', border: '1px solid rgb(0, 0, 0)', borderTop: 'none', boxSizing: 'border-box' }}>
+                                  {/* Quantity box - fixed width for 2 digits */}
+                                  <div className="px-1 flex items-center justify-center flex-shrink-0" style={{ width: '28px', minWidth: '28px', maxWidth: '28px', borderRight: '1px solid rgb(0, 0, 0)', color: 'rgb(17, 17, 17)', boxSizing: 'border-box', fontSize: '0.984375rem', backgroundColor: 'rgb(229, 229, 229)' }}>
+                                    {card.quantity || ''}
+                                  </div>
+                                  {/* Card name - rest of line */}
+                                  <div className="px-1 flex items-center overflow-hidden flex-shrink min-w-0" style={{ flex: '1 1 0', minWidth: 0, color: 'rgb(17, 17, 17)', fontSize: '0.984375rem' }}>
+                                    <span className="truncate block w-full">{card.name || ''}</span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          {/* Right Column - Legend, Chosen Champion, Battlefields, Runes, Side Deck */}
+                          <div className="flex flex-col" style={{ flex: '1 1 0', minWidth: 0 }}>
+                            {/* Legend Section - 1x1 table */}
+                            <div style={{ height: '22px', backgroundColor: 'rgb(156, 156, 156)', border: '1px solid rgb(0, 0, 0)', boxSizing: 'border-box' }}>
+                              <div className="font-bold text-base px-2 flex items-center justify-center h-full" style={{ color: 'rgb(17, 17, 17)' }}>
+                                Legend
+                              </div>
+                            </div>
+                            {(() => {
+                              const legend = getLegendLine();
+                              return (
+                                <div className="flex flex-shrink-0" style={{ height: '22px', border: '1px solid rgb(0, 0, 0)', borderTop: 'none', boxSizing: 'border-box' }}>
+                                  <div className="px-1 flex items-center overflow-hidden flex-shrink min-w-0" style={{ width: '100%', color: 'rgb(17, 17, 17)', fontSize: '0.984375rem' }}>
+                                    <span className="truncate block w-full">{legend.name || ''}</span>
+                                  </div>
+                                </div>
+                              );
+                            })()}
+                            
+                            {/* Chosen Champion Section - 1x1 table */}
+                            <div style={{ height: '22px', backgroundColor: 'rgb(156, 156, 156)', border: '1px solid rgb(0, 0, 0)', marginTop: '4px', boxSizing: 'border-box' }}>
+                              <div className="font-bold text-base px-2 flex items-center justify-center h-full" style={{ color: 'rgb(17, 17, 17)' }}>
+                                Chosen Champion
+                              </div>
+                            </div>
+                            {(() => {
+                              const champion = getChosenChampionLine();
+                              return (
+                                <div className="flex flex-shrink-0" style={{ height: '22px', border: '1px solid rgb(0, 0, 0)', borderTop: 'none', boxSizing: 'border-box' }}>
+                                  <div className="px-1 flex items-center overflow-hidden flex-shrink min-w-0" style={{ width: '100%', color: 'rgb(17, 17, 17)', fontSize: '0.984375rem' }}>
+                                    <span className="truncate block w-full">{champion.name || ''}</span>
+                                  </div>
+                                </div>
+                              );
+                            })()}
+                            
+                            {/* Battlefields Section - 1x3 table */}
+                            <div style={{ height: '22px', backgroundColor: 'rgb(156, 156, 156)', border: '1px solid rgb(0, 0, 0)', marginTop: '4px', boxSizing: 'border-box' }}>
+                              <div className="font-bold text-base px-2 flex items-center justify-center h-full" style={{ color: 'rgb(17, 17, 17)' }}>
+                                Battlefields
+                              </div>
+                            </div>
+                            {getBattlefieldLines().map((card, index) => (
+                              <div key={index} className="flex flex-shrink-0" style={{ height: '22px', border: '1px solid rgb(0, 0, 0)', borderTop: 'none', boxSizing: 'border-box' }}>
+                                <div className="px-1 flex items-center overflow-hidden flex-shrink min-w-0" style={{ width: '100%', color: 'rgb(17, 17, 17)', fontSize: '0.984375rem' }}>
+                                  <span className="truncate block w-full">{card.name || ''}</span>
+                                </div>
+                              </div>
+                            ))}
+                            
+                            {/* Runes Section - 2x2 table */}
+                            <div style={{ height: '22px', backgroundColor: 'rgb(156, 156, 156)', border: '1px solid rgb(0, 0, 0)', marginTop: '4px', boxSizing: 'border-box' }}>
+                              <div className="font-bold text-base px-2 flex items-center justify-center h-full" style={{ color: 'rgb(17, 17, 17)' }}>
+                                Runes
+                              </div>
+                            </div>
+                            {getRuneLines().map((card, index) => (
+                              <div key={index} className="flex flex-shrink-0" style={{ height: '22px', border: '1px solid rgb(0, 0, 0)', borderTop: 'none', boxSizing: 'border-box' }}>
+                                <div className="px-1 flex items-center justify-center flex-shrink-0" style={{ width: '28px', minWidth: '28px', maxWidth: '28px', borderRight: '1px solid rgb(0, 0, 0)', color: 'rgb(17, 17, 17)', boxSizing: 'border-box', fontSize: '0.984375rem', backgroundColor: 'rgb(229, 229, 229)' }}>
+                                  {card.quantity || ''}
+                                </div>
+                                <div className="px-1 flex items-center overflow-hidden flex-shrink min-w-0" style={{ flex: '1 1 0', minWidth: 0, color: 'rgb(17, 17, 17)', fontSize: '0.984375rem' }}>
+                                  <span className="truncate block w-full">{card.name || ''}</span>
+                                </div>
+                              </div>
+                            ))}
+                            
+                            {/* Side Deck Section - 2x8 table */}
+                            <div style={{ height: '22px', backgroundColor: 'rgb(156, 156, 156)', border: '1px solid rgb(0, 0, 0)', marginTop: '4px', boxSizing: 'border-box' }}>
+                              <div className="font-bold text-base px-2 flex items-center justify-center h-full" style={{ color: 'rgb(17, 17, 17)' }}>
+                                Side Deck
+                              </div>
+                            </div>
+                            {getSideDeckLines().map((card, index) => (
+                              <div key={index} className="flex flex-shrink-0" style={{ height: '22px', border: '1px solid rgb(0, 0, 0)', borderTop: 'none', boxSizing: 'border-box' }}>
+                                <div className="px-1 flex items-center justify-center flex-shrink-0" style={{ width: '28px', minWidth: '28px', maxWidth: '28px', borderRight: '1px solid rgb(0, 0, 0)', color: 'rgb(17, 17, 17)', boxSizing: 'border-box', fontSize: '0.984375rem', backgroundColor: 'rgb(229, 229, 229)' }}>
+                                  {card.quantity || ''}
+                                </div>
+                                <div className="px-1 flex items-center overflow-hidden flex-shrink min-w-0" style={{ flex: '1 1 0', minWidth: 0, color: 'rgb(17, 17, 17)', fontSize: '0.984375rem' }}>
+                                  <span className="truncate block w-full">{card.name || ''}</span>
+                                </div>
+                              </div>
+                            ))}
+                            
+                            {/* For Judge Use Only Section */}
+                            <div style={{ height: '22px', backgroundColor: 'rgb(156, 156, 156)', border: '1px solid rgb(0, 0, 0)', marginTop: '4px', boxSizing: 'border-box' }}>
+                              <div className="font-bold text-base px-2 flex items-center justify-center h-full" style={{ color: 'rgb(17, 17, 17)' }}>
+                                For Judge Use Only
+                              </div>
+                            </div>
+                            
+                            {/* Main / Side */}
+                            <div className="flex flex-shrink-0" style={{ height: '22px', border: '1px solid rgb(0, 0, 0)', borderTop: 'none', boxSizing: 'border-box' }}>
+                              <div className="px-1 flex items-center text-xs flex-shrink-0" style={{ width: '30%', minWidth: 0, backgroundColor: 'rgb(229, 229, 229)', borderRight: '1px solid rgb(0, 0, 0)', color: 'rgb(107, 107, 107)', boxSizing: 'border-box' }}>
+                                Main / Side:
+                              </div>
+                              <div className="px-1 flex items-center text-xs overflow-hidden flex-shrink min-w-0" style={{ width: '70%', minWidth: 0, color: 'rgb(17, 17, 17)', backgroundColor: 'rgb(229, 229, 229)' }}>
+                                <span className="truncate block w-full"></span>
+                              </div>
+                            </div>
+                            
+                            {/* Deck Check Rd - First */}
+                            <div className="flex flex-shrink-0" style={{ height: '22px', border: '1px solid rgb(0, 0, 0)', borderTop: '2px solid rgb(0, 0, 0)', boxSizing: 'border-box' }}>
+                              <div className="px-1 flex items-center text-xs flex-shrink-0" style={{ width: '30%', minWidth: 0, backgroundColor: 'rgb(229, 229, 229)', borderRight: '1px solid rgb(0, 0, 0)', color: 'rgb(107, 107, 107)', boxSizing: 'border-box' }}>
+                                Deck Check Rd:
+                              </div>
+                              <div className="px-1 flex items-center text-xs overflow-hidden flex-shrink min-w-0" style={{ width: '70%', minWidth: 0, color: 'rgb(17, 17, 17)', backgroundColor: 'rgb(229, 229, 229)' }}>
+                                <span className="truncate block w-full"></span>
+                              </div>
+                            </div>
+                            
+                            {/* Judge - First */}
+                            <div className="flex flex-shrink-0" style={{ height: '22px', border: '1px solid rgb(0, 0, 0)', borderTop: 'none', boxSizing: 'border-box' }}>
+                              <div className="px-1 flex items-center text-xs flex-shrink-0" style={{ width: '30%', minWidth: 0, backgroundColor: 'rgb(229, 229, 229)', borderRight: '1px solid rgb(0, 0, 0)', color: 'rgb(107, 107, 107)', boxSizing: 'border-box' }}>
+                                Judge:
+                              </div>
+                              <div className="px-1 flex items-center text-xs overflow-hidden flex-shrink min-w-0" style={{ width: '70%', minWidth: 0, color: 'rgb(17, 17, 17)', backgroundColor: 'rgb(229, 229, 229)' }}>
+                                <span className="truncate block w-full"></span>
+                              </div>
+                            </div>
+                            
+                            {/* Status - First - 2 lines height */}
+                            <div className="flex flex-shrink-0" style={{ height: '44px', border: '1px solid rgb(0, 0, 0)', borderTop: 'none', boxSizing: 'border-box' }}>
+                              <div className="px-1 flex items-center text-xs flex-shrink-0" style={{ width: '30%', minWidth: 0, backgroundColor: 'rgb(229, 229, 229)', borderRight: '1px solid rgb(0, 0, 0)', color: 'rgb(107, 107, 107)', boxSizing: 'border-box' }}>
+                                Status:
+                              </div>
+                              <div className="px-1 flex items-center text-xs overflow-hidden flex-shrink min-w-0" style={{ width: '70%', minWidth: 0, color: 'rgb(17, 17, 17)', backgroundColor: 'rgb(229, 229, 229)' }}>
+                                <span className="truncate block w-full"></span>
+                              </div>
+                            </div>
+                            
+                            {/* Deck Check Rd - Second */}
+                            <div className="flex flex-shrink-0" style={{ height: '22px', border: '1px solid rgb(0, 0, 0)', borderTop: '2px solid rgb(0, 0, 0)', boxSizing: 'border-box' }}>
+                              <div className="px-1 flex items-center text-xs flex-shrink-0" style={{ width: '30%', minWidth: 0, backgroundColor: 'rgb(229, 229, 229)', borderRight: '1px solid rgb(0, 0, 0)', color: 'rgb(107, 107, 107)', boxSizing: 'border-box' }}>
+                                Deck Check Rd:
+                              </div>
+                              <div className="px-1 flex items-center text-xs overflow-hidden flex-shrink min-w-0" style={{ width: '70%', minWidth: 0, color: 'rgb(17, 17, 17)', backgroundColor: 'rgb(229, 229, 229)' }}>
+                                <span className="truncate block w-full"></span>
+                              </div>
+                            </div>
+                            
+                            {/* Judge - Second */}
+                            <div className="flex flex-shrink-0" style={{ height: '22px', border: '1px solid rgb(0, 0, 0)', borderTop: 'none', boxSizing: 'border-box' }}>
+                              <div className="px-1 flex items-center text-xs flex-shrink-0" style={{ width: '30%', minWidth: 0, backgroundColor: 'rgb(229, 229, 229)', borderRight: '1px solid rgb(0, 0, 0)', color: 'rgb(107, 107, 107)', boxSizing: 'border-box' }}>
+                                Judge:
+                              </div>
+                              <div className="px-1 flex items-center text-xs overflow-hidden flex-shrink min-w-0" style={{ width: '70%', minWidth: 0, color: 'rgb(17, 17, 17)', backgroundColor: 'rgb(229, 229, 229)' }}>
+                                <span className="truncate block w-full"></span>
+                              </div>
+                            </div>
+                            
+                            {/* Status - Second - 2 lines height */}
+                            <div className="flex flex-shrink-0" style={{ height: '44px', border: '1px solid rgb(0, 0, 0)', borderTop: 'none', boxSizing: 'border-box' }}>
+                              <div className="px-1 flex items-center text-xs flex-shrink-0" style={{ width: '30%', minWidth: 0, backgroundColor: 'rgb(229, 229, 229)', borderRight: '1px solid rgb(0, 0, 0)', color: 'rgb(107, 107, 107)', boxSizing: 'border-box' }}>
+                                Status:
+                              </div>
+                              <div className="px-1 flex items-center text-xs overflow-hidden flex-shrink min-w-0" style={{ width: '70%', minWidth: 0, color: 'rgb(17, 17, 17)', backgroundColor: 'rgb(229, 229, 229)' }}>
+                                <span className="truncate block w-full"></span>
+                              </div>
+                            </div>
+                            
+                            {/* Deck Check Rd - Third */}
+                            <div className="flex flex-shrink-0" style={{ height: '22px', border: '1px solid rgb(0, 0, 0)', borderTop: '2px solid rgb(0, 0, 0)', boxSizing: 'border-box' }}>
+                              <div className="px-1 flex items-center text-xs flex-shrink-0" style={{ width: '30%', minWidth: 0, backgroundColor: 'rgb(229, 229, 229)', borderRight: '1px solid rgb(0, 0, 0)', color: 'rgb(107, 107, 107)', boxSizing: 'border-box' }}>
+                                Deck Check Rd:
+                              </div>
+                              <div className="px-1 flex items-center text-xs overflow-hidden flex-shrink min-w-0" style={{ width: '70%', minWidth: 0, color: 'rgb(17, 17, 17)', backgroundColor: 'rgb(229, 229, 229)' }}>
+                                <span className="truncate block w-full"></span>
+                              </div>
+                            </div>
+                            
+                            {/* Judge - Third */}
+                            <div className="flex flex-shrink-0" style={{ height: '22px', border: '1px solid rgb(0, 0, 0)', borderTop: 'none', boxSizing: 'border-box' }}>
+                              <div className="px-1 flex items-center text-xs flex-shrink-0" style={{ width: '30%', minWidth: 0, backgroundColor: 'rgb(229, 229, 229)', borderRight: '1px solid rgb(0, 0, 0)', color: 'rgb(107, 107, 107)', boxSizing: 'border-box' }}>
+                                Judge:
+                              </div>
+                              <div className="px-1 flex items-center text-xs overflow-hidden flex-shrink min-w-0" style={{ width: '70%', minWidth: 0, color: 'rgb(17, 17, 17)', backgroundColor: 'rgb(229, 229, 229)' }}>
+                                <span className="truncate block w-full"></span>
+                              </div>
+                            </div>
+                            
+                            {/* Status - Third - 2 lines height */}
+                            <div className="flex flex-shrink-0" style={{ height: '44px', border: '1px solid rgb(0, 0, 0)', borderTop: 'none', boxSizing: 'border-box' }}>
+                              <div className="px-1 flex items-center text-xs flex-shrink-0" style={{ width: '30%', minWidth: 0, backgroundColor: 'rgb(229, 229, 229)', borderRight: '1px solid rgb(0, 0, 0)', color: 'rgb(107, 107, 107)', boxSizing: 'border-box' }}>
+                                Status:
+                              </div>
+                              <div className="px-1 flex items-center text-xs overflow-hidden flex-shrink min-w-0" style={{ width: '70%', minWidth: 0, color: 'rgb(17, 17, 17)', backgroundColor: 'rgb(229, 229, 229)' }}>
+                                <span className="truncate block w-full"></span>
+                              </div>
+                            </div>
+                            
+                            {/* View Decklist On SummonersBase.com and QR Code - Two columns */}
+                            <div className="flex items-center justify-center" style={{ marginTop: '32px', gap: '24px' }}>
+                              {/* Left column - Text */}
+                              <div className="flex flex-col items-center justify-center" style={{ minWidth: 0 }}>
+                                <span className="text-base" style={{ color: 'rgb(17, 17, 17)' }}>
+                                  View Decklist On
+                                </span>
+                                <span className="text-base font-bold" style={{ color: 'rgb(17, 17, 17)' }}>
+                                  SummonersBase.com
+                                </span>
+                              </div>
+                              {/* Right column - QR Code */}
+                              {currentDeckId && (
+                                <div style={{ flexShrink: 0 }}>
+                                  <QRCodeSVG
+                                    value={`${window.location.origin}/deck/${currentDeckId}`}
+                                    size={70}
+                                    level="M"
+                                    includeMargin={false}
+                                    fgColor="#606060"
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Footer */}
+            <div className={`px-6 py-4 border-t flex gap-3 justify-center flex-shrink-0 ${isDarkMode ? 'border-gray-600' : 'border-gray-300'}`}>
+              <button
+                onClick={handleClosePdfExport}
+                className={`px-6 py-2 rounded font-medium transition-colors ${
+                  isDarkMode 
+                    ? 'bg-gray-600 text-gray-200 hover:bg-gray-500' 
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                Close
+              </button>
+              <button
+                onClick={handleDownloadPdf}
+                className="px-6 py-2 rounded font-medium bg-green-600 text-white hover:bg-green-700 transition-colors"
+              >
+                Download
+              </button>
+              <button
+                onClick={handlePrintPdf}
+                className="px-6 py-2 rounded font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+              >
+                Print
               </button>
             </div>
           </div>

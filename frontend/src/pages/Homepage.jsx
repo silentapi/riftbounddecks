@@ -49,6 +49,9 @@ function Homepage() {
   const [displayName, setDisplayName] = useState(null);
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
   
+  // Container scale for modal scaling
+  const [containerScale, setContainerScale] = useState(1);
+  
   // Cards data state - loaded from backend API
   const [cardsData, setCardsData] = useState([]);
   const [cardsLoading, setCardsLoading] = useState(true);
@@ -435,6 +438,35 @@ function Homepage() {
       updateTheme();
     }
   }, [isDarkMode, loadingDecks]);
+  
+  // Calculate container scale for modal scaling
+  useEffect(() => {
+    const updateScale = () => {
+      // Use the same method as LayoutContainer
+      const container = document.querySelector('[data-visible-container]');
+      if (container) {
+        const innerWidth = container.clientWidth;
+        if (innerWidth > 0) {
+          const scale = innerWidth / 1920; // Reference width is 1920
+          setContainerScale(scale);
+        } else {
+          setContainerScale(0);
+        }
+      } else {
+        // Fallback: try to find scaled container
+        const scaledContainer = document.querySelector('[style*="transform: scale"]');
+        if (scaledContainer) {
+          const rect = scaledContainer.getBoundingClientRect();
+          const scale = rect.width / 1920; // Reference width is 1920
+          setContainerScale(scale);
+        }
+      }
+    };
+    
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, []);
   
   // Reload decks when needed (e.g., after deck operations)
   const reloadDecks = async () => {
@@ -1818,6 +1850,7 @@ function Homepage() {
                 ? 'bg-gray-800 border-gray-600' 
                 : 'bg-white border-gray-400'
             }`}
+            style={{ transform: `scale(${containerScale})`, transformOrigin: 'center center' }}
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
@@ -1906,6 +1939,7 @@ function Homepage() {
                 ? 'bg-gray-800 border-gray-600' 
                 : 'bg-white border-gray-400'
             }`}
+            style={{ transform: `scale(${containerScale})`, transformOrigin: 'center center' }}
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>

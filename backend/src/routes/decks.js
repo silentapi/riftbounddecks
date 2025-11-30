@@ -239,7 +239,11 @@ router.patch('/:id', [
   body('cards')
     .optional()
     .isObject()
-    .withMessage('Cards must be an object')
+    .withMessage('Cards must be an object'),
+  body('notes')
+    .optional()
+    .isString()
+    .withMessage('Notes must be a string')
 ], async (req, res, next) => {
   try {
     const errors = validationResult(req);
@@ -256,13 +260,14 @@ router.patch('/:id', [
     }
 
     const { id } = req.params;
-    const { name, cards } = req.body;
+    const { name, cards, notes } = req.body;
 
     logger.info('Update deck', {
       userId: req.userId,
       deckId: id,
       hasName: !!name,
-      hasCards: !!cards
+      hasCards: !!cards,
+      hasNotes: notes !== undefined
     });
 
     // Find deck and verify ownership
@@ -308,6 +313,11 @@ router.patch('/:id', [
         ...deck.cards,
         ...cards
       };
+    }
+
+    // Update notes if provided
+    if (notes !== undefined) {
+      deck.notes = notes.trim();
     }
 
     deck.updatedAt = new Date();
@@ -759,19 +769,19 @@ router.post('/batchimport', [
 
 /**
  * PATCH /api/decks/:id/sharing
- * Toggle sharing status of a deck (owner only)
+ * Update sharing status of a deck (owner only)
+ * Accepts either:
+ *   - { shared: boolean } (legacy format)
+ *   - { sharingStatus: 'private' | 'shared' | 'public' } (new format)
  */
 router.patch('/:id/sharing', [
   authenticate,
-  param('id').trim().notEmpty().withMessage('Deck ID is required'),
-  body('shared')
-    .isBoolean()
-    .withMessage('Shared must be a boolean value')
+  param('id').trim().notEmpty().withMessage('Deck ID is required')
 ], async (req, res, next) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      logger.warn('Toggle sharing validation failed', {
+      logger.warn('Update sharing validation failed', {
         userId: req.userId,
         deckId: req.params.id,
         errors: errors.array()
@@ -783,19 +793,53 @@ router.patch('/:id/sharing', [
     }
 
     const { id } = req.params;
-    const { shared } = req.body;
+    const { shared, sharingStatus } = req.body;
 
-    logger.info('Toggle deck sharing', {
+    // Support both legacy boolean format and new sharingStatus format
+    let newShared = false;
+    let newPublicListed = false;
+
+    if (sharingStatus !== undefined) {
+      // New format: sharingStatus is 'private', 'shared', or 'public'
+      if (!['private', 'shared', 'public'].includes(sharingStatus)) {
+        return res.status(400).json({
+          error: 'Validation Error',
+          message: 'sharingStatus must be "private", "shared", or "public"'
+        });
+      }
+      newShared = sharingStatus !== 'private';
+      newPublicListed = sharingStatus === 'public';
+    } else if (shared !== undefined) {
+      // Legacy format: boolean shared
+      if (typeof shared !== 'boolean') {
+        return res.status(400).json({
+          error: 'Validation Error',
+          message: 'shared must be a boolean value'
+        });
+      }
+      newShared = shared;
+      // Legacy behavior: if shared=true, also set publicListed=true for backward compatibility
+      newPublicListed = shared;
+    } else {
+      return res.status(400).json({
+        error: 'Validation Error',
+        message: 'Either "shared" (boolean) or "sharingStatus" (string) must be provided'
+      });
+    }
+
+    logger.info('Update deck sharing', {
       userId: req.userId,
       deckId: id,
-      shared
+      sharingStatus: sharingStatus || (shared ? 'public' : 'private'),
+      shared: newShared,
+      publicListed: newPublicListed
     });
 
     // Find deck and verify ownership
     const deck = await Deck.findOne({ id, userId: req.userId });
 
     if (!deck) {
-      logger.warn('Toggle sharing failed: Deck not found', {
+      logger.warn('Update sharing failed: Deck not found', {
         userId: req.userId,
         deckId: id
       });
@@ -805,14 +849,16 @@ router.patch('/:id/sharing', [
       });
     }
 
-    deck.shared = shared;
+    deck.shared = newShared;
+    deck.publicListed = newPublicListed;
     deck.updatedAt = new Date();
     await deck.save();
 
-    logger.info('Deck sharing toggled', {
+    logger.info('Deck sharing updated', {
       userId: req.userId,
       deckId: deck.id,
-      shared: deck.shared
+      shared: deck.shared,
+      publicListed: deck.publicListed
     });
 
     res.json(deck);
@@ -952,6 +998,179 @@ router.post('/:id/clone', [
         message: 'A deck with this name already exists'
       });
     }
+    next(error);
+  }
+});
+
+/**
+ * POST /api/decks/:id/view
+ * Increment view count for a deck (public access, no auth required)
+ */
+router.post('/:id/view', [
+  optionalAuthenticate,
+  param('id').trim().notEmpty().withMessage('Deck ID is required')
+], async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        error: 'Validation Error',
+        message: errors.array().map(e => e.msg).join(', ')
+      });
+    }
+
+    const { id } = req.params;
+
+    logger.debug('Increment deck views', {
+      userId: req.userId || 'anonymous',
+      deckId: id
+    });
+
+    // Find deck by ID
+    const deck = await Deck.findOne({ id });
+
+    if (!deck) {
+      logger.warn('Increment views failed: Deck not found', {
+        userId: req.userId || 'anonymous',
+        deckId: id
+      });
+      return res.status(404).json({
+        error: 'Not Found',
+        message: 'Deck not found'
+      });
+    }
+
+    // Check access: deck must be shared for anonymous users
+    const isOwner = req.userId && deck.userId.toString() === req.userId;
+    const isShared = deck.shared === true;
+
+    if (!isOwner && !isShared) {
+      logger.warn('Increment views failed: Deck not shared', {
+        userId: req.userId || 'anonymous',
+        deckId: id
+      });
+      return res.status(404).json({
+        error: 'Not Found',
+        message: 'Deck is not public'
+      });
+    }
+
+    // Increment views
+    deck.views = (deck.views || 0) + 1;
+    await deck.save();
+
+    logger.info('Deck views incremented', {
+      userId: req.userId || 'anonymous',
+      deckId: id,
+      views: deck.views
+    });
+
+    res.json({ views: deck.views });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * POST /api/decks/:id/like
+ * Toggle like for a deck (requires authentication)
+ */
+router.post('/:id/like', [
+  authenticate,
+  param('id').trim().notEmpty().withMessage('Deck ID is required')
+], async (req, res, next) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        error: 'Validation Error',
+        message: errors.array().map(e => e.msg).join(', ')
+      });
+    }
+
+    const { id } = req.params;
+
+    logger.debug('Toggle deck like', {
+      userId: req.userId,
+      deckId: id
+    });
+
+    // Find deck by ID
+    const deck = await Deck.findOne({ id });
+
+    if (!deck) {
+      logger.warn('Toggle like failed: Deck not found', {
+        userId: req.userId,
+        deckId: id
+      });
+      return res.status(404).json({
+        error: 'Not Found',
+        message: 'Deck not found'
+      });
+    }
+
+    // Check access: deck must be shared or user must own it
+    const isOwner = deck.userId.toString() === req.userId;
+    const isShared = deck.shared === true;
+
+    if (!isOwner && !isShared) {
+      logger.warn('Toggle like failed: Deck not shared', {
+        userId: req.userId,
+        deckId: id
+      });
+      return res.status(404).json({
+        error: 'Not Found',
+        message: 'Deck is not public'
+      });
+    }
+
+    // Get user preferences
+    let preferences = await UserPreferences.findOne({ userId: req.userId });
+    if (!preferences) {
+      preferences = new UserPreferences({
+        userId: req.userId,
+        theme: 'dark',
+        likedDecks: []
+      });
+      await preferences.save();
+    }
+
+    // Check if already liked
+    const likedIndex = preferences.likedDecks.findIndex(
+      liked => liked.deckId === id
+    );
+
+    let isLiked = false;
+    if (likedIndex >= 0) {
+      // Unlike: remove from likedDecks and decrement likes
+      preferences.likedDecks.splice(likedIndex, 1);
+      deck.likes = Math.max(0, (deck.likes || 0) - 1);
+      isLiked = false;
+    } else {
+      // Like: add to likedDecks and increment likes
+      preferences.likedDecks.push({
+        deckId: id,
+        likedAt: new Date()
+      });
+      deck.likes = (deck.likes || 0) + 1;
+      isLiked = true;
+    }
+
+    await preferences.save();
+    await deck.save();
+
+    logger.info('Deck like toggled', {
+      userId: req.userId,
+      deckId: id,
+      isLiked,
+      likes: deck.likes
+    });
+
+    res.json({
+      isLiked,
+      likes: deck.likes
+    });
+  } catch (error) {
     next(error);
   }
 });

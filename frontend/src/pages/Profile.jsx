@@ -45,6 +45,9 @@ function Profile() {
   // Toast notifications state
   const [toasts, setToasts] = useState([]);
   
+  // Container scale for modal scaling
+  const [containerScale, setContainerScale] = useState(1);
+  
   // Profile picture selector modal state
   const [profilePictureModal, setProfilePictureModal] = useState({
     isOpen: false,
@@ -140,6 +143,35 @@ function Profile() {
     };
     
     loadPreferences();
+  }, []);
+  
+  // Calculate container scale for modal scaling
+  useEffect(() => {
+    const updateScale = () => {
+      // Use the same method as LayoutContainer
+      const container = document.querySelector('[data-visible-container]');
+      if (container) {
+        const innerWidth = container.clientWidth;
+        if (innerWidth > 0) {
+          const scale = innerWidth / 1920; // Reference width is 1920
+          setContainerScale(scale);
+        } else {
+          setContainerScale(0);
+        }
+      } else {
+        // Fallback: try to find scaled container
+        const scaledContainer = document.querySelector('[style*="transform: scale"]');
+        if (scaledContainer) {
+          const rect = scaledContainer.getBoundingClientRect();
+          const scale = rect.width / 1920; // Reference width is 1920
+          setContainerScale(scale);
+        }
+      }
+    };
+    
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
   }, []);
   
   // Load registration keys on mount
@@ -867,7 +899,9 @@ function Profile() {
             style={{ 
               width: '600px',
               maxWidth: '90vw',
-              maxHeight: '90vh'
+              maxHeight: '90vh',
+              transform: `scale(${containerScale})`,
+              transformOrigin: 'center center'
             }}
             onClick={(e) => e.stopPropagation()}
           >
