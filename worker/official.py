@@ -175,7 +175,23 @@ class SpacesUploader:
             aws_secret_access_key=os.environ["SPACES_SECRET"].strip(),
         )
 
-        base_url = f"{parsed.scheme}://{self.bucket}.{parsed.netloc}"
+        # Use CDN endpoint if provided, otherwise inject .cdn. into netloc
+        cdn_endpoint = os.environ.get("SPACES_CDN_ENDPOINT", "").strip()
+        if cdn_endpoint:
+            if not cdn_endpoint.lower().startswith("http"):
+                cdn_endpoint = f"https://{cdn_endpoint}"
+            cdn_parsed = urlparse(cdn_endpoint)
+            cdn_netloc = cdn_parsed.netloc
+            cdn_scheme = cdn_parsed.scheme or parsed.scheme
+        else:
+            # Auto-inject .cdn. before digitaloceanspaces.com
+            if ".cdn." not in parsed.netloc and "digitaloceanspaces.com" in parsed.netloc:
+                cdn_netloc = parsed.netloc.replace("digitaloceanspaces.com", "cdn.digitaloceanspaces.com")
+            else:
+                cdn_netloc = parsed.netloc
+            cdn_scheme = parsed.scheme
+
+        base_url = f"{cdn_scheme}://{self.bucket}.{cdn_netloc}"
         if parsed.path and parsed.path not in ("/", ""):
             base_url = f"{base_url}{parsed.path.rstrip('/')}"
         self.public_base_url = base_url.rstrip("/")
